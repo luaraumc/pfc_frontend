@@ -1,3 +1,5 @@
+// APENAS MODELO
+
 // Exemplo de requisição para listar itens
 fetch("http://localhost:5000/itens")
   .then(res => res.json())
