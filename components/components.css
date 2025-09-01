@@ -1,0 +1,19 @@
+.header, .footer {
+    color: white;
+    background-color: #6e6e6e;
+    padding: 15px 20px;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    text-align: center;
+}
+
+.header {
+    top: 0;
+    font-size: small;
+    height: 50px;
+}
+
+.footer {
+    bottom: 0;
+}
