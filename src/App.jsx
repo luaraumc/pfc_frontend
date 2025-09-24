@@ -1,12 +1,19 @@
-import './App.css'
+import { Routes, Route } from 'react-router-dom'
+
+import CadastroUsuario from './pages/cadastro.jsx'
+import Login from './pages/login.jsx'
+import RecuperarSenha from './pages/recuperar-senha.jsx'
 
 function App() {
-  
 
   return (
-    <div className="App">
-      <h1>Hello World!</h1>
-    </div>
+    <>
+    <Routes>
+        <Route path="/cadastro" element={<CadastroUsuario />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+    </Routes>
+    </>
   )
 }
 
