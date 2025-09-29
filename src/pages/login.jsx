@@ -1,74 +1,97 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState } from "react"; // useMemo: armazenamento em cache | useState: gerenciar estado de componentes
+import { authFetch } from "../utils/auth"; // fetch autenticado com renovação automática de token
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-function decodeJwt(token) {
-	try {
-		const base64Url = token.split(".")[1];
-		const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-		// Adiciona padding se necessário
-		const padded = base64 + "===".slice(0, (4 - (base64.length % 4)) % 4);
-		const jsonPayload = decodeURIComponent(
-			atob(padded)
-				.split("")
-				.map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-				.join("")
-		);
-		return JSON.parse(jsonPayload);
-	} catch (e) {
-		return null;
-	}
+// Pega os dados de um JWT e transforma em JSON
+export function transformarJwt(token) {
+    // Entrada: uma string JWT no formato header.payload.signature (dois “.”)
+    // Saída: objeto JSON com os dados do payload ou null se falhar
+    try {
+        const base64Url = token.split('.')[1]; // pega o payload (parte do meio) do JWT
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // converte para base64 padrão
+        const padded = base64 + '==='.slice(0, (4 - (base64.length % 4)) % 4); // adiciona padding se necessário
+        // Decodifica base64 para string
+        const jsonPayload = decodeURIComponent(
+        atob(padded) // retorna uma string onde cada caractere representa um byte
+            .split('') // divide em caracteres
+            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)) // converte para percent-encoding (apenas caracteres permitidos em URLs)
+            .join('') // junta de volta em string
+        );
+        return JSON.parse(jsonPayload); // estrutura em JSON
+    } catch {
+        return null;
+    }
 }
 
 export default function LoginUsuario() {
+	// Estados dos campos
 	const [email, setEmail] = useState("");
 	const [senha, setSenha] = useState("");
 	const [submitting, setSubmitting] = useState(false);
 	const [erro, setErro] = useState("");
 	const [mensagem, setMensagem] = useState("");
 
-	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]);
+	// Limpa dados de autenticação
+	function clearAuth() {
+		try {
+			localStorage.removeItem("access_token");
+			localStorage.removeItem("refresh_token");
+			localStorage.removeItem("token_type");
+			localStorage.removeItem("usuario_id");
+			localStorage.removeItem("is_admin");
+			localStorage.removeItem("usuario_nome");
+		} catch {}
+	}
+
+	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]); // validação de email (com @ e .)
 
 	function validarCampos() {
-		if (!email.trim() || !emailValido) return "Informe um e-mail válido";
-		if (!senha) return "Informe a senha";
+		if (!email.trim() || !emailValido) return "Informe um e-mail válido"; // trim() remove espaços em branco no início e fim
+		if (!senha) return "Informe a senha"; // senha campo obrigatório
 		return null;
 	}
 
+	// Descobre o perfil do usuário (admin ou comum) e redireciona para a home correta
 	async function descobrirPerfilERedirecionar(accessToken) {
-		const decoded = decodeJwt(accessToken);
-		const userId = decoded?.sub ? Number(decoded.sub) : null;
+		const decoded = transformarJwt(accessToken); // decodifica o token
+		const userId = decoded?.sub ? Number(decoded.sub) : null; // pega o ID do usuário do campo "sub" do token
 		if (!userId) {
-			// Falhou decodificação: redireciona como usuário comum
-			window.location.href = "/dashboard";
+			clearAuth(); // limpa dados de autenticação
+			setErro("Não foi possível validar o token retornado. Tente novamente.");
 			return;
 		}
 		try {
-			const res = await fetch(`${API_URL}/usuario/${userId}`);
+			const res = await authFetch(`${API_URL}/usuario/${userId}`); // busca os dados do usuário no backend
 			if (!res.ok) throw new Error("Falha ao obter dados do usuário");
-			const user = await res.json();
-			const isAdmin = !!user?.admin;
-			// Guarda alguns dados úteis
+			const user = await res.json(); // guarda os dados do usuário em formato JSON
+			const isAdmin = !!user?.admin; // verifica se é admin (true/false)
+			// Guarda dados úteis em localStorage
 			localStorage.setItem("usuario_id", String(userId));
 			localStorage.setItem("is_admin", String(isAdmin));
-			window.location.href = isAdmin ? "/admin" : "/dashboard";
-		} catch {
-			// Se falhar a busca, segue para dashboard comum
-			window.location.href = "/dashboard";
+			if (user?.nome) localStorage.setItem("usuario_nome", String(user.nome));
+			window.location.href = isAdmin ? "/homeAdmin" : "/homeUsuario"; // redireciona conforme o tipo de usuário
+		} catch (e) {
+			clearAuth(); // limpa dados de autenticação
+			setErro("Não foi possível obter os dados do usuário. Tente novamente.");
+			return;
 		}
 	}
 
+	// Envio do formulário
 	async function onSubmit(e) {
-		e.preventDefault();
-		setErro("");
-		setMensagem("");
+		e.preventDefault(); // previne recarregar a página
+		setErro(""); // limpa erros anteriores
+		setMensagem(""); // limpa mensagens anteriores
 
+		// Validação dos campos
 		const erroValid = validarCampos();
 		if (erroValid) {
-			setErro(erroValid);
+			setErro(erroValid); // mostra o erro de validação
 			return;
 		}
 
+		// Envia os dados para o backend
 		setSubmitting(true);
 		try {
 			const res = await fetch(`${API_URL}/auth/login`, {
@@ -76,31 +99,32 @@ export default function LoginUsuario() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim(), senha }),
 			});
-			const data = await res.json().catch(() => ({}));
+			const data = await res.json().catch(() => ({})); // tenta decodificar JSON, se falhar retorna objeto vazio
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Falha no login (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
-			const { access_token, refresh_token, token_type } = data;
+			const { access_token, refresh_token, token_type } = data; // pega os tokens retornados
 			if (!access_token) throw new Error("Token de acesso não retornado");
 
-			// Persistência básica dos tokens
+			// Persistência dos tokens no localStorage
 			localStorage.setItem("access_token", access_token);
 			if (refresh_token) localStorage.setItem("refresh_token", refresh_token);
 			if (token_type) localStorage.setItem("token_type", token_type);
 
 			setMensagem("Login realizado com sucesso. Redirecionando…");
-			await descobrirPerfilERedirecionar(access_token);
+			await descobrirPerfilERedirecionar(access_token); // descobre o perfil e redireciona
 		} catch (e) {
 			setErro(e.message ?? "Erro ao efetuar login");
 		} finally {
-			setSubmitting(false);
+			setSubmitting(false); // finaliza o estado de submissão
 		}
 	}
 
+	// HTML
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 p-4">
-			<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Login</h1>
+			<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Entrar</h1>
 			<div className="w-full max-w-md bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
 
 				{!!erro && (
