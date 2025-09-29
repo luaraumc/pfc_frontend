@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client' // criar a raiz da aplicação Rea
 import './index.css' // tailwindcss
 import App from './App.jsx' // componente principal da aplicação
 
+// Cria a raiz e renderiza a aplicação dentro do BrowserRouter para habilitar o roteamento
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
