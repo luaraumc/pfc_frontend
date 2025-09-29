@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState } from "react"; // useMemo: armazenamento em cache | useState: gerenciar estado de componentes
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
+// Página de recuperação de senha
 export default function RecuperarSenha() {
+	// Estados dos campos
 	const [step, setStep] = useState("request");
 	const [email, setEmail] = useState("");
 	const [codigo, setCodigo] = useState("");
@@ -12,13 +14,14 @@ export default function RecuperarSenha() {
 	const [mensagem, setMensagem] = useState("");
 	const [erro, setErro] = useState("");
 
-	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]);
+	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]); // validação de email (com @ e .)
 
 	function validarRequest() {
-		if (!email.trim() || !emailValido) return "Informe um e-mail válido";
+		if (!email.trim() || !emailValido) return "Informe um e-mail válido"; // trim() remove espaços em branco no início e fim
 		return null;
 	}
 
+	// Validação do formulário
 	function validarReset() {
 		if (!email.trim() || !emailValido) return "Informe um e-mail válido";
 		if (!codigo.trim() || codigo.trim().length !== 6) return "Informe o código de 6 dígitos";
@@ -28,14 +31,19 @@ export default function RecuperarSenha() {
 		return null;
 	}
 
+	// Solicita o código de recuperação de senha
 	async function solicitarCodigo() {
-		setErro("");
-		setMensagem("");
+		setErro(""); // limpa erros anteriores
+		setMensagem(""); // limpa mensagens anteriores
+
+		// validação dos campos
 		const err = validarRequest();
 		if (err) {
 			setErro(err);
 			return;
 		}
+
+		// Requisição para solicitar código ao backend
 		setSubmitting(true);
 		try {
 			const res = await fetch(`${API_URL}/auth/solicitar-codigo/recuperar-senha`, {
@@ -43,29 +51,34 @@ export default function RecuperarSenha() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim() }),
 			});
-			const data = await res.json().catch(() => ({}));
+			const data = await res.json().catch(() => ({})); // tenta converter a resposta em JSON, se falhar retorna objeto vazio
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Falha ao solicitar código (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
 			setMensagem(data?.message || "Código enviado para seu e-mail");
-			setStep("reset");
+			setStep("reset"); // avança para a etapa de redefinição de senha
 		} catch (e) {
 			setErro(e.message ?? "Erro ao solicitar código");
 		} finally {
-			setSubmitting(false);
+			setSubmitting(false); // finaliza o estado de submissão
 		}
 	}
 
+	// Redefine a senha usando o código enviado por e-mail
 	async function redefinirSenha(e) {
-		e.preventDefault();
-		setErro("");
-		setMensagem("");
+		e.preventDefault(); // previne recarregar a página
+		setErro(""); // limpa erros anteriores
+		setMensagem(""); // limpa mensagens anteriores
+
+		// validação dos campos
 		const err = validarReset();
 		if (err) {
 			setErro(err);
 			return;
 		}
+
+		// Requisição para redefinir a senha no backend
 		setSubmitting(true);
 		try {
 			const res = await fetch(`${API_URL}/auth/recuperar-senha`, {
@@ -73,7 +86,7 @@ export default function RecuperarSenha() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim(), codigo: codigo.trim(), nova_senha: novaSenha }),
 			});
-			const data = await res.json().catch(() => ({}));
+			const data = await res.json().catch(() => ({})); // tenta converter a resposta em JSON, se falhar retorna objeto vazio
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Falha ao atualizar senha (HTTP ${res.status})`;
 				throw new Error(msg);
@@ -82,10 +95,11 @@ export default function RecuperarSenha() {
 		} catch (e) {
 			setErro(e.message ?? "Erro ao atualizar senha");
 		} finally {
-			setSubmitting(false);
+			setSubmitting(false); // finaliza o estado de submissão
 		}
 	}
 
+	// HTML
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 p-4">
 			<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Recuperar senha</h1>
