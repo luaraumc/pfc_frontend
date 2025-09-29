@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react"; // useEffect: executar funções | useMemo: armazenamento em cache | useState: gerenciar estado de componentes
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
+// Página de cadastro de usuário comum
 export default function CadastroUsuario() {
+	// Estados dos campos
 	const [nome, setNome] = useState("");
 	const [email, setEmail] = useState("");
 	const [senha, setSenha] = useState("");
-	// Cadastro apenas de usuários comuns (não-admin)
 	const [carreiraId, setCarreiraId] = useState("");
 	const [cursoId, setCursoId] = useState("");
-
 	const [carreiras, setCarreiras] = useState([]);
 	const [cursos, setCursos] = useState([]);
 	const [loadingListas, setLoadingListas] = useState(true);
@@ -17,40 +17,41 @@ export default function CadastroUsuario() {
 	const [mensagem, setMensagem] = useState("");
 	const [erro, setErro] = useState("");
 
-	// Validação simples de email
-	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]);
+	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]); // validação de email (com @ e .)
 
 	// Carrega carreiras e cursos em paralelo
 	useEffect(() => {
-		const ctrl = new AbortController();
+		const ctrl = new AbortController(); // para cancelar fetch se o componente desmontar
 		async function carregarListas() {
-			setLoadingListas(true);
-			setErro("");
+			setLoadingListas(true); // indica que as listas estão sendo carregadas
+			setErro(""); // limpa erros anteriores
 			try {
+				// Requisições GET
 				const [resCarreira, resCurso] = await Promise.all([
 					fetch(`${API_URL}/carreira/`, { signal: ctrl.signal }),
 					fetch(`${API_URL}/curso/`, { signal: ctrl.signal }),
 				]);
-
 				if (!resCarreira.ok) throw new Error(`Falha ao listar carreiras (${resCarreira.status})`);
 				if (!resCurso.ok) throw new Error(`Falha ao listar cursos (${resCurso.status})`);
-
+				// Converte respostas para JSON
 				const [carreirasJson, cursosJson] = await Promise.all([
 					resCarreira.json(),
 					resCurso.json(),
 				]);
+				// Atualiza estado dos arrays
 				setCarreiras(carreirasJson ?? []);
 				setCursos(cursosJson ?? []);
 			} catch (e) {
 				if (e.name !== "AbortError") setErro(e.message ?? "Erro ao carregar listas");
 			} finally {
-				setLoadingListas(false);
+				setLoadingListas(false); // indica que o carregamento terminou
 			}
 		}
-		carregarListas();
-		return () => ctrl.abort();
+		carregarListas(); // chama a função para carregar as listas
+		return () => ctrl.abort(); // cancela fetch se o componente desmontar
 	}, []);
 
+	// Validação dos campos do formulário
 	function validarCampos() {
 		if (!nome.trim()) return "Informe o nome";
 		if (!email.trim() || !emailValido) return "Informe um e-mail válido";
@@ -61,27 +62,30 @@ export default function CadastroUsuario() {
 		return null;
 	}
 
+	// Envio do formulário
 	async function onSubmit(e) {
-		e.preventDefault();
-		setErro("");
-		setMensagem("");
+		e.preventDefault(); // previne recarregar a página
+		setErro(""); // limpa erros anteriores
+		setMensagem(""); // limpa mensagens anteriores
 
+		// Validação dos campos
 		const erroValid = validarCampos();
 		if (erroValid) {
-			setErro(erroValid);
+			setErro(erroValid); // mostra o erro de validação
 			return;
 		}
 
+		// Prepara dados para envio
 		const payload = {
 			nome: nome.trim(),
 			email: email.trim(),
 			senha,
-			// admin é sempre falso para este fluxo de cadastro público
 			admin: false,
 			carreira_id: Number(carreiraId),
 			curso_id: Number(cursoId),
 		};
 
+		// Envia os dados para o backend
 		setSubmitting(true);
 		try {
 			const res = await fetch(`${API_URL}/auth/cadastro`, {
@@ -89,8 +93,7 @@ export default function CadastroUsuario() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
 			});
-
-			const data = await res.json().catch(() => ({}));
+			const data = await res.json().catch(() => ({})); // tenta decodificar JSON, se falhar retorna objeto vazio
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Erro ao cadastrar (HTTP ${res.status})`;
 				throw new Error(msg);
@@ -105,10 +108,11 @@ export default function CadastroUsuario() {
 		} catch (e) {
 			setErro(e.message ?? "Falha ao cadastrar");
 		} finally {
-			setSubmitting(false);
+			setSubmitting(false); // finaliza o estado de submissão
 		}
 	}
 
+	// HTML
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 p-4">
 			<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Cadastro de Usuário</h1>
