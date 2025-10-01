@@ -26,8 +26,8 @@ export default function Home() {
 			</header>
 
 			<main className="max-w-6xl mx-auto px-4 py-10">
-				<h1 className="text-3xl font-bold text-slate-100">Bem-vindo</h1>
-				<p className="mt-2 text-slate-300">Esta é a página inicial.</p>
+				<h1 className="text-3xl font-bold text-slate-100 text-center">Bem-vindo</h1>
+				<p className="mt-2 text-slate-300 text-center">Esta é a página inicial.</p>
 			</main>
 		</div>
 	);
