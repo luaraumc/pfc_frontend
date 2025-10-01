@@ -26,8 +26,8 @@ export default function HomeUsuario() {
 			</header>
 
 			<main className="max-w-6xl mx-auto px-4 py-10">
-				<h1 className="text-2xl font-semibold">Olá{nome ? `, ${nome}` : ''}!</h1>
-				<p className="mt-2 text-slate-300">Bem-vindo à sua Home de usuário.</p>
+				<h1 className="text-2xl font-semibold text-center">Olá{nome ? `, ${nome}` : ''}!</h1>
+				<p className="mt-2 text-slate-300 text-center">Bem-vindo à sua Home de usuário.</p>
 			</main>
 		</div>
 	);
