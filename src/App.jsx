@@ -7,7 +7,7 @@ import Login from './pages/login.jsx'
 import RecuperarSenha from './pages/recuperar-senha.jsx'
 import Home from './pages/home.jsx'
 import HomeUsuario from './pages/usuario/homeUsuario.jsx'
-import HomeAdmin from './pages/homeAdmin.jsx'
+import HomeAdmin from './pages/admin/homeAdmin.jsx'
 
 // Componente principal da aplicação
 function App() {
