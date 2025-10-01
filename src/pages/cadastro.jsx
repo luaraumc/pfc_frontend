@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"; // useEffect: executar funções | useMemo: armazenamento em cache | useState: gerenciar estado de componentes
+import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -112,107 +113,117 @@ export default function CadastroUsuario() {
 		}
 	}
 
+	const navigate = useNavigate(); // navegação de páginas (voltar)
+
 	// HTML
 	return (
-		<div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 p-4">
-			<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Cadastro de Usuário</h1>
-			<div className="w-full max-w-3xl bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
-				{loadingListas && (
-					<div className="mb-3 p-2 rounded bg-slate-800 text-slate-300 text-sm">Carregando listas…</div>
-				)}
-				{!!erro && <div className="mb-3 p-3 rounded border border-red-600 bg-red-900 text-red-100 text-sm">{erro}</div>}
-				{!!mensagem && <div className="mb-3 p-3 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{mensagem}</div>}
+		<div className="min-h-screen relative bg-slate-900">
+			<button
+				onClick={() => navigate(-1)}
+				className="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+				>
+				<span aria-hidden>←</span> Voltar
+		    </button>
+			<div className="min-h-screen flex flex-col items-center justify-center p-4">
+				<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Cadastro de Usuário</h1>
+				<div className="w-full max-w-3xl bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
+					{loadingListas && (
+						<div className="mb-3 p-2 rounded bg-slate-800 text-slate-300 text-sm">Carregando listas…</div>
+					)}
+					{!!erro && <div className="mb-3 p-3 rounded border border-red-600 bg-red-900 text-red-100 text-sm">{erro}</div>}
+					{!!mensagem && <div className="mb-3 p-3 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{mensagem}</div>}
 
-				<form onSubmit={onSubmit} className="mt-3 space-y-3">
-					<div className="flex flex-col">
-						<label className="mb-2 text-indigo-300 text-1xl" htmlFor="nome">Nome</label>
-						<input
-							id="nome"
-							type="text"
-							value={nome}
-							onChange={(e) => setNome(e.target.value)}
-							placeholder="Seu nome"
-							className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-							autoComplete="name"
-						/>
-					</div>
-
-					<div className="flex flex-col">
-						<label className="mb-2 text-indigo-300 text-1xl" htmlFor="email">E-mail</label>
-						<input
-							id="email"
-							type="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="voce@exemplo.com"
-							className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-							autoComplete="email"
-						/>
-					</div>
-
-					<div className="flex flex-col">
-						<label className="mb-2 text-indigo-300 text-1xl" htmlFor="senha">Senha</label>
-						<input
-							id="senha"
-							type="password"
-							value={senha}
-							onChange={(e) => setSenha(e.target.value)}
-							placeholder="Mínimo 6 caracteres"
-							className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-							autoComplete="new-password"
-						/>
-					</div>
-
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+					<form onSubmit={onSubmit} className="mt-3 space-y-3">
 						<div className="flex flex-col">
-							<label className="mb-2 text-indigo-300 text-1xl" htmlFor="carreira">Carreira Desejada</label>
-							<select
-								id="carreira"
-								value={carreiraId}
-								disabled={loadingListas}
-								onChange={(e) => setCarreiraId(e.target.value)}
-								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-							>
-								<option value="">Selecione…</option>
-								{carreiras.map((c) => (
-									<option key={c.id} value={c.id}>
-										{c.nome}
-									</option>
-								))}
-							</select>
+							<label className="mb-2 text-indigo-300 text-1xl" htmlFor="nome">Nome</label>
+							<input
+								id="nome"
+								type="text"
+								value={nome}
+								onChange={(e) => setNome(e.target.value)}
+								placeholder="Seu nome"
+								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+								autoComplete="name"
+							/>
 						</div>
+
 						<div className="flex flex-col">
-							<label className="mb-2 text-indigo-300 text-1xl" htmlFor="curso">Curso</label>
-							<select
-								id="curso"
-								value={cursoId}
-								disabled={loadingListas}
-								onChange={(e) => setCursoId(e.target.value)}
-								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-							>
-								<option value="">Selecione…</option>
-								{cursos.map((c) => (
-									<option key={c.id} value={c.id}>
-										{c.nome}
-									</option>
-								))}
-							</select>
+							<label className="mb-2 text-indigo-300 text-1xl" htmlFor="email">E-mail</label>
+							<input
+								id="email"
+								type="email"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								placeholder="voce@exemplo.com"
+								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+								autoComplete="email"
+							/>
 						</div>
+
+						<div className="flex flex-col">
+							<label className="mb-2 text-indigo-300 text-1xl" htmlFor="senha">Senha</label>
+							<input
+								id="senha"
+								type="password"
+								value={senha}
+								onChange={(e) => setSenha(e.target.value)}
+								placeholder="Mínimo 6 caracteres"
+								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+								autoComplete="new-password"
+							/>
+						</div>
+
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+							<div className="flex flex-col">
+								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="carreira">Carreira Desejada</label>
+								<select
+									id="carreira"
+									value={carreiraId}
+									disabled={loadingListas}
+									onChange={(e) => setCarreiraId(e.target.value)}
+									className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+								>
+									<option value="">Selecione…</option>
+									{carreiras.map((c) => (
+										<option key={c.id} value={c.id}>
+											{c.nome}
+										</option>
+									))}
+								</select>
+							</div>
+							<div className="flex flex-col">
+								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="curso">Curso</label>
+								<select
+									id="curso"
+									value={cursoId}
+									disabled={loadingListas}
+									onChange={(e) => setCursoId(e.target.value)}
+									className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+								>
+									<option value="">Selecione…</option>
+									{cursos.map((c) => (
+										<option key={c.id} value={c.id}>
+											{c.nome}
+										</option>
+									))}
+								</select>
+							</div>
+						</div>
+
+						<button type="submit" className="mt-2 w-full py-3 rounded-md border border-indigo-600 bg-indigo-500 text-white font-semibold hover:bg-indigo-600 disabled:opacity-60" disabled={submitting || loadingListas}>
+							{submitting ? "Enviando…" : "Cadastrar"}
+						</button>
+					</form>
+
+					<div className="mt-4">
+						<button
+							type="button"
+							onClick={() => (window.location.href = "/login")}
+							className="w-full py-2 text-slate-200"
+						>
+							Já possui uma conta? <span className="underline underline-offset-2">Fazer login</span>
+						</button>
 					</div>
-
-					<button type="submit" className="mt-2 w-full py-3 rounded-md border border-indigo-600 bg-indigo-500 text-white font-semibold hover:bg-indigo-600 disabled:opacity-60" disabled={submitting || loadingListas}>
-						{submitting ? "Enviando…" : "Cadastrar"}
-					</button>
-				</form>
-
-				<div className="mt-4">
-					<button
-						type="button"
-						onClick={() => (window.location.href = "/login")}
-						className="w-full py-2 text-slate-200"
-					>
-						Já possui uma conta? <span className="underline underline-offset-2">Fazer login</span>
-					</button>
 				</div>
 			</div>
 		</div>
