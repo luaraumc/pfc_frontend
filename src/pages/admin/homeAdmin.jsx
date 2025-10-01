@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"; // criar links de navegação para redirecionar o usuário
-import { logoutRedirecionar } from "../utils/auth"; // logout e redirecionamento
+import { logoutRedirecionar } from "../../utils/auth"; // logout e redirecionamento
 
 // Página inicial do usuário administrador
 export default function HomeAdmin() {
