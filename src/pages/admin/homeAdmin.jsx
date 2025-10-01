@@ -21,8 +21,28 @@ export default function HomeAdmin() {
         </header>
 
         <main className="max-w-6xl mx-auto px-4 py-10">
-            <h1 className="text-2xl font-semibold">Home do Administrador</h1>
-            <p className="mt-2 text-slate-300">Gerencie usuários, vagas e configurações.</p>
+            <h1 className="text-2xl font-semibold text-center">Home do Administrador</h1>
+            <p className="mt-2 text-slate-300 text-center">Gerencie carreiras, habilidades, vagas, cursos e conhecimentos.</p>
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <Link
+                    to="/admin/carreira"
+                    className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm"
+                >
+                    <h2 className="text-xl font-medium">Gerenciar Carreiras</h2>
+                    <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova carreiras.</p>
+                    <p className="mt-1 text-slate-400 text-sm">Inclua vagas.</p>
+                </Link>
+
+                <Link
+                    to="/admin/curso"
+                    className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm"
+                >
+                    <h2 className="text-xl font-medium">Gerenciar Cursos</h2>
+                    <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova cursos.</p>
+                    <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova conhecimentos.</p>
+                </Link>
+            </div>
+            
         </main>
         </div>
     );
