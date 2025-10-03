@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom"; // criar links de navegaç
 import { useEffect, useState } from "react"; // estados e efeitos
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento | fetch autenticado com renovação automática de token
 import trashIcon from "../../../images/lixeira.png"; // ícone de lixeira para deletar
+import arrowIcon from "../../../images/seta.png"; // ícone de seta para expandir
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -356,20 +357,26 @@ export default function AdminCurso() {
                                     {cursos.map(c => (
                                         <li key={c.id ?? c.nome} className="p-4 flex items-center justify-between">
                                             <div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <p className="font-medium">{c.nome ?? `Curso #${c.id}`}</p>
                                                     <button
                                                         type="button"
                                                         onClick={() => alternarExpandirCurso(c.id)}
-                                                        className="w-6 h-6 flex items-center justify-center rounded border border-slate-700 text-xs hover:bg-slate-800"
+                                                        className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800"
                                                         title="Ver conhecimentos"
                                                     >
-                                                        {cursosExpandidos.includes(c.id) ? "▼" : "▶"}
+                                                        <img
+                                                            src={arrowIcon}
+                                                            alt={cursosExpandidos.includes(c.id) ? "Recolher" : "Expandir"}
+                                                            className={`w-4 h-4 transition-transform duration-200 ${
+                                                                cursosExpandidos.includes(c.id) ? "rotate-180" : "rotate-0"
+                                                            }`}
+                                                        />
                                                     </button>
-                                                    <p className="font-medium">{c.nome ?? `Curso #${c.id}`}</p>
                                                 </div>
                                                 {c.descricao && <p className="text-sm text-slate-400">{c.descricao}</p>}
                                                 {cursosExpandidos.includes(c.id) && (
-                                                    <div className="mt-3 pl-8 border-l border-slate-700">
+                                                    <div className="mt-3 border-t border-slate-700 pt-3">
                                                         {conhecimentosCurso[c.id]?.loading && (
                                                             <p className="text-xs text-slate-400">Carregando conhecimentos…</p>
                                                         )}
@@ -412,7 +419,7 @@ export default function AdminCurso() {
 
                     {/* Painel lateral */}
                     <div className="w-full lg:w-96 bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6 self-start">
-                        <div className="flex flex-col gap-3 mb-6">
+                        <div className="flex flex-col gap-3">
                             <button
                                 onClick={() => {
                                     setModoPainel(modoPainel === "criar" ? "nenhum" : "criar");
@@ -474,14 +481,9 @@ export default function AdminCurso() {
                                 Remover conhecimento do curso
                             </button>
                         </div>
-
-                        {modoPainel === "nenhum" && (
-                            <p className="text-sm text-slate-400">Selecione uma ação para começar.</p>
-                        )}
-
                         {modoPainel === "criar" && (
                             <form onSubmit={aoSubmeterCriar} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide">Novo Curso</h2>
+                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Novo Curso</h2>
                                 {erroCriar && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
                                         {erroCriar}
@@ -523,7 +525,7 @@ export default function AdminCurso() {
 
                         {modoPainel === "atualizar" && (
                             <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide">Atualizar Curso</h2>
+                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Curso</h2>
                                 {erroAtualizar && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
                                         {erroAtualizar}
@@ -581,7 +583,7 @@ export default function AdminCurso() {
 
                         {modoPainel === "adicionarConhecimento" && (
                             <form onSubmit={aoSubmeterAdicionarConhecimento} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide">Adicionar Conhecimento</h2>
+                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Adicionar Conhecimento</h2>
                                 {erroAdicionarConhecimento && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
                                         {erroAdicionarConhecimento}
@@ -642,7 +644,7 @@ export default function AdminCurso() {
 
                         {modoPainel === "removerConhecimento" && (
                             <form onSubmit={aoSubmeterRemoverConhecimento} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide">Remover Conhecimento</h2>
+                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Remover Conhecimento</h2>
                                 {erroRemoverConhecimento && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
                                         {erroRemoverConhecimento}

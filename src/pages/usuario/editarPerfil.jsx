@@ -299,7 +299,7 @@ export default function EditarPerfil() {
 					<form onSubmit={excluirConta} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário excluir conta">
 						{excluirErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{excluirErr}</div>}
 						{excluirMsg && <div className="text-xs text-amber-300 bg-amber-900/30 border border-amber-600 px-2 py-1 rounded">{excluirMsg}</div>}
-						<p className="text-xs text-slate-400 leading-snug">Esta ação é definitiva. Será necessário um código enviado para o email para confirmar.</p>
+						<p className="text-xs text-slate-300 leading-snug text-center">ATENÇÃO! Esta ação é definitiva e não poderá ser desfeita.</p>
 						<div>
 							<label className="block text-xs mb-1">Email</label>
 							<input type="email" value={emailExclusao} onChange={e=>setEmailExclusao(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />

@@ -208,7 +208,7 @@ export default function AdminCarreira() {
                     </div>
                     {/* Painel lateral */}
                     <div className="w-full lg:w-96 bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6 self-start">
-                        <div className="flex flex-col gap-3 mb-6">
+                        <div className="flex flex-col gap-3">
                             <button
                                 onClick={() => { setModoPainel(modoPainel === 'criar' ? 'nenhum' : 'criar'); setMensagemCriar(''); setErroCriar(''); }}
                                 className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === 'criar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
@@ -222,12 +222,9 @@ export default function AdminCarreira() {
                                 Atualizar Carreira
                             </button>
                         </div>
-                        {modoPainel === 'nenhum' && (
-                            <p className="text-sm text-slate-400">Selecione uma ação para começar.</p>
-                        )}
                         {modoPainel === 'criar' && (
                             <form onSubmit={aoSubmeterCriar} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide">Nova Carreira</h2>
+                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Nova Carreira</h2>
                                 {erroCriar && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroCriar}</div>
                                 )}
@@ -263,7 +260,7 @@ export default function AdminCarreira() {
                         )}
                         {modoPainel === 'atualizar' && (
                             <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide">Atualizar Carreira</h2>
+                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Carreira</h2>
                                 {erroAtualizar && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroAtualizar}</div>
                                 )}

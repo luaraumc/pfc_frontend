@@ -17,11 +17,19 @@ export default function HomeUsuario() {
 					<Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
 						PFC
 					</Link>
-						<button
-							onClick={logoutRedirecionar}
-						    className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
-						    Sair
-					    </button>
+						<div className="flex items-center gap-3">
+							<Link
+								to="/usuario/editar-perfil"
+								className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+							>
+								Editar Perfil
+							</Link>
+							<button
+								onClick={logoutRedirecionar}
+							    className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
+							    Sair
+						    </button>
+						</div>
 				</div>
 			</header>
 
