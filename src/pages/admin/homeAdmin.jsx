@@ -30,7 +30,6 @@ export default function HomeAdmin() {
                 >
                     <h2 className="text-xl font-medium">Gerenciar Carreiras</h2>
                     <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova carreiras.</p>
-                    <p className="mt-1 text-slate-400 text-sm">Inclua vagas.</p>
                 </Link>
 
                 <Link
@@ -40,6 +39,14 @@ export default function HomeAdmin() {
                     <h2 className="text-xl font-medium">Gerenciar Cursos</h2>
                     <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova cursos.</p>
                     <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova conhecimentos.</p>
+                </Link>
+
+                <Link
+                    to="/admin/vaga"
+                    className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm"
+                >
+                    <h2 className="text-xl font-medium">Gerenciar Vagas</h2>
+                    <p className="mt-1 text-slate-400 text-sm">Cadastre vagas para extrair habilidades.</p>
                 </Link>
             </div>
             
