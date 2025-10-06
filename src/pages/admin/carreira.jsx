@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom"; // criar links de navegação para redirecionar o usuário e voltar
 import { useEffect, useState } from "react"; // estados e efeitos
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento | fetch autenticado com renovação automática de token
-import trashIcon from "../../../images/lixeira.png"; // ícone de lixeira para deletar
+import lixeiraIcon from "../../../images/lixeira.png"; // ícone de lixeira para deletar
+import setaIcon from "../../../images/seta.png"; // ícone de seta para expandir
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -27,9 +28,10 @@ export default function AdminCarreira() {
     const [atualizando, setAtualizando] = useState(false);
     const [mensagemAtualizar, setMensagemAtualizar] = useState('');
     const [erroAtualizar, setErroAtualizar] = useState('');
-    const [carreiraExcluir, setCarreiraExcluir] = useState(null); // {id, nome}
+    const [carreiraExcluir, setCarreiraExcluir] = useState(null);
     const [excluindo, setExcluindo] = useState(false);
 
+    // Carrega lista de carreiras
     useEffect(() => {
         let ativo = true;
         (async () => {
@@ -48,6 +50,64 @@ export default function AdminCarreira() {
             ativo = false;
         };
     }, []);
+
+    // Habilidades globais
+    const [habilidades, setHabilidades] = useState([]);
+    const [habilidadesErro, setHabilidadesErro] = useState("");
+    const [habilidadesLoading, setHabilidadesLoading] = useState(true);
+    useEffect(() => {
+        let ativo = true;
+        (async () => {
+            try {
+                setHabilidadesLoading(true);
+                const res = await authFetch(`${API_URL}/habilidade/`);
+                if (!res.ok) throw new Error(`Falha ao listar habilidades (HTTP ${res.status})`);
+                const data = await res.json();
+                if (ativo) setHabilidades(Array.isArray(data) ? data : []);
+            } catch (e) {
+                if (ativo) setHabilidadesErro(e.message || "Erro ao carregar habilidades");
+            } finally {
+                if (ativo) setHabilidadesLoading(false);
+            }
+        })();
+        return () => {
+            ativo = false;
+        };
+    }, []);
+
+    // Estados para expandir carreiras e armazenar habilidades
+    const [carreirasExpandidas, setCarreirasExpandidas] = useState([]); // lista de ids expandidos
+    const [conhecimentosCarreira, setConhecimentosCarreira] = useState({}); // { id: { items, loading, error } }
+
+    // Alterna expansão e carrega habilidades da carreira (cache)
+    function alternarExpandirCarreira(id) {
+        setCarreirasExpandidas(prev => (prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]));
+        setConhecimentosCarreira(prev => {
+            if (prev[id]) return prev;
+            return { ...prev, [id]: { items: [], loading: true, error: "" } };
+        });
+        if (!conhecimentosCarreira[id]) {
+            (async () => {
+                try {
+                    const res = await authFetch(`${API_URL}/carreira/${id}/habilidades`);
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok)
+                        throw new Error(
+                            data?.detail || data?.message || `Falha ao carregar habilidades da carreira (HTTP ${res.status})`
+                        );
+                    setConhecimentosCarreira(prev => ({
+                        ...prev,
+                        [id]: { items: Array.isArray(data) ? data : [], loading: false, error: "" }
+                    }));
+                } catch (e) {
+                    setConhecimentosCarreira(prev => ({
+                        ...prev,
+                        [id]: { items: [], loading: false, error: e.message || "Erro ao carregar" }
+                    }));
+                }
+            })();
+        }
+    }
 
     function solicitarExclusao(c){
         setErro(''); setMensagem('');
@@ -183,22 +243,61 @@ export default function AdminCarreira() {
                             ) : (
                                 <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-950">
                                     {carreiras.map((c) => (
-                                        <li key={c.id ?? c.nome} className="p-4 flex items-center justify-between">
-                                            <div>
-                                                <p className="font-medium">{c.nome ?? `Carreira #${c.id}`}</p>
-                                                {c.descricao && (
-                                                    <p className="text-sm text-slate-400">{c.descricao}</p>
+                                        <li key={c.id ?? c.nome} className="p-4">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-medium">{c.nome ?? `Carreira #${c.id}`}</p>
+                                                    {c.id && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => alternarExpandirCarreira(c.id)}
+                                                            className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 ml-2"
+                                                            title="Ver habilidades"
+                                                        >
+                                                            <img
+                                                                src={setaIcon}
+                                                                alt={carreirasExpandidas.includes(c.id) ? "Recolher" : "Expandir"}
+                                                                className={`w-4 h-4 transition-transform duration-200 ${carreirasExpandidas.includes(c.id) ? "rotate-180" : "rotate-0"}`}
+                                                            />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                {c.id && (
+                                                    <button
+                                                        onClick={() => solicitarExclusao(c)}
+                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40"
+                                                        title="Excluir carreira"
+                                                    >
+                                                        <img src={lixeiraIcon} alt="Excluir" className="w-5 h-5" />
+                                                        <span className="hidden sm:inline">Excluir</span>
+                                                    </button>
                                                 )}
                                             </div>
-                                            {c.id && (
-                                                <button
-                                                    onClick={() => solicitarExclusao(c)}
-                                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40"
-                                                    title="Excluir carreira"
-                                                >
-                                                    <img src={trashIcon} alt="Excluir" className="w-5 h-5" />
-                                                    <span className="hidden sm:inline">Excluir</span>
-                                                </button>
+                                            {c.descricao && (
+                                                <p className="text-sm text-slate-400 mt-1">{c.descricao}</p>
+                                            )}
+                                            {/* Habilidades associadas */}
+                                            {carreirasExpandidas.includes(c.id) && (
+                                                <div className="mt-3 ml-4">
+                                                    {conhecimentosCarreira[c.id]?.loading ? (
+                                                        <p className="text-xs text-slate-400">Carregando habilidades…</p>
+                                                    ) : conhecimentosCarreira[c.id]?.error ? (
+                                                        <p className="text-xs text-red-400">{conhecimentosCarreira[c.id].error}</p>
+                                                    ) : (
+                                                        <ul className="list-disc pl-5">
+                                                            {conhecimentosCarreira[c.id]?.items.length > 0 ? (
+                                                                conhecimentosCarreira[c.id].items.map(hab => (
+                                                                    <li key={hab.id || hab.habilidade_id} className="text-sm text-slate-200 mb-1 flex items-center gap-2">
+                                                                        <span className="inline-block w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
+                                                                        {hab.habilidade_nome || hab.nome || '-'}
+                                                                    </li>
+                                                                ))
+                                                            ) : (
+                                                                <li className="text-xs text-slate-400">Nenhuma habilidade associada.</li>
+                                                            )}
+                                                        </ul>
+                                                    )}
+                                                </div>
                                             )}
                                         </li>
                                     ))}
