@@ -6,44 +6,60 @@ import setaIcon from "../../../images/seta.png"; // ícone de seta para expandir
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
+// Página de administração de carreiras
 export default function AdminCarreira() {
+
+    // Estados principais
     const navigate = useNavigate(); // navegação de páginas (voltar)
-    const [carreiras, setCarreiras] = useState([]);
+    const [carreiras, setCarreiras] = useState([]); // lista de carreiras
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
     const [mensagem, setMensagem] = useState("");
+
     // Painel lateral
-    // Modo do painel lateral: 'nenhum' | 'criar' | 'atualizar'
     const [modoPainel, setModoPainel] = useState('nenhum');
-    // Form criar
+
+    // Cadastrar Carreira
     const [novoNome, setNovoNome] = useState('');
     const [novaDescricao, setNovaDescricao] = useState('');
     const [criando, setCriando] = useState(false);
     const [mensagemCriar, setMensagemCriar] = useState('');
     const [erroCriar, setErroCriar] = useState('');
-    // Form atualizar
+
+    // Atualizar Carreira
     const [atualizarId, setAtualizarId] = useState('');
     const [atualizarNome, setAtualizarNome] = useState('');
     const [atualizarDescricao, setAtualizarDescricao] = useState('');
     const [atualizando, setAtualizando] = useState(false);
     const [mensagemAtualizar, setMensagemAtualizar] = useState('');
     const [erroAtualizar, setErroAtualizar] = useState('');
+
+    // Pop-up Exclusão de Carreira
     const [carreiraExcluir, setCarreiraExcluir] = useState(null);
     const [excluindo, setExcluindo] = useState(false);
 
+    // Habilidades globais
+    const [habilidades, setHabilidades] = useState([]);
+    const [habilidadesErro, setHabilidadesErro] = useState("");
+    const [habilidadesLoading, setHabilidadesLoading] = useState(true);
+
+    // Habilidades por Carreira
+    const [carreirasExpandidas, setCarreirasExpandidas] = useState([]);
+    const [habilidadesCarreira, setHabilidadesCarreira] = useState({});
+
     // Carrega lista de carreiras
     useEffect(() => {
-        let ativo = true;
+        let ativo = true; // para evitar atualização de estado após desmontar
         (async () => {
             try {
-                const res = await authFetch(`${API_URL}/carreira/`);
+                const res = await authFetch(`${API_URL}/carreira/`); // chama backend
                 if (!res.ok) throw new Error(`Falha ao listar carreiras (HTTP ${res.status})`);
-                const data = await res.json();
-                if (ativo) setCarreiras(Array.isArray(data) ? data : []);
+                const data = await res.json(); // converte resposta em JSON
+                if (ativo) setCarreiras(Array.isArray(data) ? data : []); // garante que é array
             } catch (e) {
                 if (ativo) setErro(e.message ?? "Erro ao listar carreiras");
             } finally {
-                if (ativo) setCarregando(false);
+                if (ativo) setCarregando(false); 
             }
         })();
         return () => {
@@ -51,19 +67,16 @@ export default function AdminCarreira() {
         };
     }, []);
 
-    // Habilidades globais
-    const [habilidades, setHabilidades] = useState([]);
-    const [habilidadesErro, setHabilidadesErro] = useState("");
-    const [habilidadesLoading, setHabilidadesLoading] = useState(true);
+    // Carrega lista de habilidades
     useEffect(() => {
-        let ativo = true;
+        let ativo = true; // para evitar atualização de estado após desmontar
         (async () => {
             try {
-                setHabilidadesLoading(true);
-                const res = await authFetch(`${API_URL}/habilidade/`);
+                setHabilidadesLoading(true); // inicia carregamento
+                const res = await authFetch(`${API_URL}/habilidade/`); // chama backend
                 if (!res.ok) throw new Error(`Falha ao listar habilidades (HTTP ${res.status})`);
-                const data = await res.json();
-                if (ativo) setHabilidades(Array.isArray(data) ? data : []);
+                const data = await res.json();  // converte resposta em JSON, se não, rejeita e vai para catch
+                if (ativo) setHabilidades(Array.isArray(data) ? data : []); // garante que é array
             } catch (e) {
                 if (ativo) setHabilidadesErro(e.message || "Erro ao carregar habilidades");
             } finally {
@@ -75,131 +88,148 @@ export default function AdminCarreira() {
         };
     }, []);
 
-    // Estados para expandir carreiras e armazenar habilidades
-    const [carreirasExpandidas, setCarreirasExpandidas] = useState([]); // lista de ids expandidos
-    const [conhecimentosCarreira, setConhecimentosCarreira] = useState({}); // { id: { items, loading, error } }
-
     // Alterna expansão e carrega habilidades da carreira (cache)
     function alternarExpandirCarreira(id) {
-        setCarreirasExpandidas(prev => (prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]));
-        setConhecimentosCarreira(prev => {
-            if (prev[id]) return prev;
-            return { ...prev, [id]: { items: [], loading: true, error: "" } };
+        setCarreirasExpandidas(estadoAnterior => (estadoAnterior.includes(id) // verifica se já está expandida
+            ? estadoAnterior.filter(item => item !== id) // recolhe
+            : [...estadoAnterior, id])); // expande
+        setHabilidadesCarreira(estadoAnterior => {
+            if (estadoAnterior[id]) return estadoAnterior; // já carregado
+            return { ...estadoAnterior, [id]: { items: [], loading: true, error: "" } }; // inicia carregamento
         });
-        if (!conhecimentosCarreira[id]) {
+        // carrega habilidades se ainda não carregadas
+        if (!habilidadesCarreira[id]) {
             (async () => {
                 try {
-                    const res = await authFetch(`${API_URL}/carreira/${id}/habilidades`);
-                    const data = await res.json().catch(() => ({}));
+                    const res = await authFetch(`${API_URL}/carreira/${id}/habilidades`); // chama backend
+                    const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
                     if (!res.ok)
                         throw new Error(
                             data?.detail || data?.message || `Falha ao carregar habilidades da carreira (HTTP ${res.status})`
                         );
-                    setConhecimentosCarreira(prev => ({
-                        ...prev,
-                        [id]: { items: Array.isArray(data) ? data : [], loading: false, error: "" }
+                    // grava no cache as habilidades carregadas de uma carreira
+                    setHabilidadesCarreira(estadoAnterior => ({ // garante estado mais recente
+                        ...estadoAnterior, // mantém estados anteriores das outras carreiras no cache
+                        [id]: { items: Array.isArray(data) ? data : [], loading: false, error: "" } // atualiza só a carreira específica
                     }));
+                //  registra um erro ao carregar as habilidades de uma carreira específica sem afetar as demais
                 } catch (e) {
-                    setConhecimentosCarreira(prev => ({
-                        ...prev,
-                        [id]: { items: [], loading: false, error: e.message || "Erro ao carregar" }
+                    setHabilidadesCarreira(estadoAnterior => ({ // garante estado mais recente
+                        ...estadoAnterior, // mantém estados anteriores das outras carreiras no cache
+                        [id]: { items: [], loading: false, error: e.message || "Erro ao carregar" } // atualiza só a carreira específica
                     }));
                 }
             })();
         }
     }
 
+    // Exclusão de carreira
     function solicitarExclusao(c){
         setErro(''); setMensagem('');
-        setCarreiraExcluir({ id: c.id, nome: c.nome });
+        setCarreiraExcluir({ id: c.id, nome: c.nome }); // abre modal de confirmação
     }
 
+    // Confirma exclusão de carreira
     async function confirmarExclusao(){
-        if(!carreiraExcluir) return;
+        if(!carreiraExcluir) return; // evita exclusão quando não há carreira selecionada
         setExcluindo(true); setErro(''); setMensagem('');
         try {
-            const res = await authFetch(`${API_URL}/carreira/deletar/${carreiraExcluir.id}`, { method: 'DELETE' });
-            const data = await res.json().catch(()=> ({}));
+            const res = await authFetch(`${API_URL}/carreira/deletar/${carreiraExcluir.id}`, { method: 'DELETE' }); // chama backend
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
             if(!res.ok){
                 const msg = data?.detail || data?.message || `Falha ao excluir (HTTP ${res.status})`;
                 throw new Error(msg);
             }
-            setCarreiras(prev => prev.filter(c => c.id !== carreiraExcluir.id));
+            setCarreiras(estadoAnterior => estadoAnterior.filter(c => c.id !== carreiraExcluir.id)); // atualiza removendo do array a carreira que foi excluída
             setMensagem(data?.message || 'Carreira deletada com sucesso.');
-            setCarreiraExcluir(null);
+            setCarreiraExcluir(null); // fecha modal
         } catch(e){
             setErro(e.message ?? 'Erro ao deletar carreira');
         } finally { setExcluindo(false); }
     }
 
+    // Cancela exclusão de carreira
     function cancelarExclusao(){
-        if(excluindo) return;
+        if(excluindo) return; // evita fechar modal durante exclusão
         setCarreiraExcluir(null);
     }
 
-    async function aoSubmeterCriar(e){
-        e.preventDefault();
+    // Cadastrar carreira
+    async function cadastrarCarreira(e){
+        e.preventDefault(); // evita reload da página
         setErroCriar(''); setMensagemCriar('');
         try {
             setCriando(true);
-            const payload = { nome: novoNome.trim(), descricao: novaDescricao.trim() };
+            const payload = { nome: novoNome.trim(), descricao: novaDescricao.trim() }; // monta o objeto que será enviado ao backend
+            // chama backend
             const res = await authFetch(`${API_URL}/carreira/cadastro`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload) // converte para JSON
             });
-            const data = await res.json().catch(()=> ({}));
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
             if(!res.ok){
                 const msg = data?.detail || data?.message || `Falha ao cadastrar (HTTP ${res.status})`;
                 throw new Error(msg);
             }
             setMensagemCriar(data?.message || 'Carreira cadastrada com sucesso');
-            setCarreiras(prev => [{ id: data?.id ?? Math.random(), nome: payload.nome, descricao: payload.descricao }, ...prev]);
+            setCarreiras(estadoAnterior => [{ id: data?.id, nome: payload.nome, descricao: payload.descricao }, ...estadoAnterior]); // update na lista de carreiras inserindo a nova no topo
             setNovoNome(''); setNovaDescricao('');
         } catch(e){
             setErroCriar(e.message ?? 'Erro ao cadastrar carreira');
         } finally { setCriando(false); }
     }
 
+    // Atualizar carreira (chamada ao selecionar carreira para atualizar)
     function aoSelecionarAtualizar(e){
-        const id = e.target.value;
+        const id = e.target.value; // id da carreira selecionada
         setAtualizarId(id);
         setMensagemAtualizar(''); setErroAtualizar('');
-        if(!id){ setAtualizarNome(''); setAtualizarDescricao(''); return; }
-        const carreiraSel = carreiras.find(c => String(c.id) === id);
+        if(!id){ setAtualizarNome(''); setAtualizarDescricao(''); return; } // nenhuma carreira válida selecionada, ainda está no “Selecione…”
+        const carreiraSel = carreiras.find(c => String(c.id) === id); // busca carreira selecionada
+        // preenche campos de nome e descrição
         if(carreiraSel){
             setAtualizarNome(carreiraSel.nome || '');
             setAtualizarDescricao(carreiraSel.descricao || '');
         }
     }
 
+    // Submete atualização de carreira
     async function aoSubmeterAtualizar(e){
         e.preventDefault();
-        if(!atualizarId) return;
+        if(!atualizarId) return; // evita submissão quando não há carreira válida selecionada
         setErroAtualizar(''); setMensagemAtualizar('');
         try {
             setAtualizando(true);
-            const payload = { nome: atualizarNome.trim(), descricao: atualizarDescricao.trim() };
+            const payload = { nome: atualizarNome.trim(), descricao: atualizarDescricao.trim() }; // monta o objeto que será enviado ao backend
+            // chama backend
             const res = await authFetch(`${API_URL}/carreira/atualizar/${atualizarId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload) // converte para JSON
             });
-            const data = await res.json().catch(()=> ({}));
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
             if(!res.ok){
                 const msg = data?.detail || data?.message || `Falha ao atualizar (HTTP ${res.status})`;
                 throw new Error(msg);
             }
             setMensagemAtualizar(data?.message || 'Carreira atualizada com sucesso');
-            setCarreiras(prev => prev.map(c => c.id === Number(atualizarId) ? { ...c, nome: payload.nome, descricao: payload.descricao } : c));
+            setCarreiras(estadoAnterior => estadoAnterior.map(c => c.id === Number(atualizarId) ? { ...c, nome: payload.nome, descricao: payload.descricao } : c)); // atualiza a carreira na lista
         } catch(e){
             setErroAtualizar(e.message ?? 'Erro ao atualizar carreira');
         } finally { setAtualizando(false); }
     }
 
+    // Obter o nome da habilidade pelo ID para exibição
+    function obterNomeHabilidade(habilidadeId) {
+        const habilidade = habilidades.find(h => Number(h.id) === Number(habilidadeId)); // busca habilidade pelo ID
+        return habilidade?.nome || `Habilidade #${habilidadeId}`; // retorna nome ou ID se não encontrado
+    }
+
     // HTML
     return (
         <div className="min-h-screen bg-slate-900 text-slate-200">
+            {/* Cabeçalho: logo e ação de sair */}
             <header className="w-full border-b border-slate-800 bg-slate-950/80">
                 <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
                     <Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
@@ -213,37 +243,53 @@ export default function AdminCarreira() {
                     </button>
                 </div>
             </header>
+
+            {/* Conteúdo principal: navegação, título, listagem e painel lateral */}
             <main className="ml-8 mr-8 mx-auto px-4 py-10">
+                {/* Ação: voltar à página anterior */}
                 <button
                     onClick={() => navigate(-1)}
                     className="mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
                 >
                     <span aria-hidden>←</span> Voltar
                 </button>
+
+                {/* Título da página */}
                 <h1 className="text-2xl font-semibold text-center mb-8">Gerenciar Carreiras</h1>
+
+                {/* Layout: duas colunas (Listagem à esquerda | Painel lateral à direita) */}
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    {/* Listagem */}
+                    {/* Listagem de carreiras e feedbacks */}
                     <div className="flex-1 w-full">
+                        {/* Feedback: carregando */}
                         {carregando && (
                             <p className="text-slate-400">Carregando carreiras…</p>
                         )}
+
+                        {/* Feedback: mensagem geral de sucesso */}
                         {!!mensagem && !carregando && (
                             <div className="mb-3 p-3 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">
                                 {mensagem}
                             </div>
                         )}
+
+                        {/* Feedback: mensagem geral de erro */}
                         {!!erro && !carregando && (
                             <div className="p-3 rounded border border-red-600 bg-red-900 text-red-100 text-sm">
                                 {erro}
                             </div>
                         )}
+
+                        {/* Lista de carreiras ou estado vazio */}
                         {!carregando && !erro && (
                             carreiras.length === 0 ? (
                                 <p className="text-slate-400">Nenhuma carreira cadastrada.</p>
                             ) : (
+                                /* Lista de itens de carreira com ações e habilidades */
                                 <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-950">
                                     {carreiras.map((c) => (
                                         <li key={c.id ?? c.nome} className="p-4">
+                                            {/* Cabeçalho do item: nome da carreira, expandir habilidades e excluir */}
                                             <div className="flex items-center justify-between gap-2">
                                                 <div className="flex items-center gap-2">
                                                     <p className="font-medium">{c.nome ?? `Carreira #${c.id}`}</p>
@@ -273,23 +319,27 @@ export default function AdminCarreira() {
                                                     </button>
                                                 )}
                                             </div>
+
+                                            {/* Descrição da carreira (opcional) */}
                                             {c.descricao && (
                                                 <p className="text-sm text-slate-400 mt-1">{c.descricao}</p>
                                             )}
-                                            {/* Habilidades associadas */}
+
+                                            {/* Seção: Habilidades associadas (expandível) */}
                                             {carreirasExpandidas.includes(c.id) && (
                                                 <div className="mt-3 ml-4">
-                                                    {conhecimentosCarreira[c.id]?.loading ? (
+                                                    {/* Estados da lista de habilidades: carregando, erro ou itens */}
+                                                    {habilidadesCarreira[c.id]?.loading ? (
                                                         <p className="text-xs text-slate-400">Carregando habilidades…</p>
-                                                    ) : conhecimentosCarreira[c.id]?.error ? (
-                                                        <p className="text-xs text-red-400">{conhecimentosCarreira[c.id].error}</p>
+                                                    ) : habilidadesCarreira[c.id]?.error ? (
+                                                        <p className="text-xs text-red-400">{habilidadesCarreira[c.id].error}</p>
                                                     ) : (
                                                         <ul className="list-disc pl-5">
-                                                            {conhecimentosCarreira[c.id]?.items.length > 0 ? (
-                                                                conhecimentosCarreira[c.id].items.map(hab => (
+                                                            {habilidadesCarreira[c.id]?.items.length > 0 ? (
+                                                                habilidadesCarreira[c.id].items.map(hab => (
                                                                     <li key={hab.id || hab.habilidade_id} className="text-sm text-slate-200 mb-1 flex items-center gap-2">
                                                                         <span className="inline-block w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
-                                                                        {hab.habilidade_nome || hab.nome || '-'}
+                                                                        {hab.habilidade_nome || hab.nome || (hab.habilidade_id ? obterNomeHabilidade(hab.habilidade_id) : '-')}
                                                                     </li>
                                                                 ))
                                                             ) : (
@@ -305,8 +355,10 @@ export default function AdminCarreira() {
                             )
                         )}
                     </div>
-                    {/* Painel lateral */}
+
+                    {/* Painel lateral: alterna entre criar e atualizar carreira */}
                     <div className="w-full lg:w-96 bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6 self-start">
+                        {/* Ações do painel: escolher modo (criar | atualizar) */}
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={() => { setModoPainel(modoPainel === 'criar' ? 'nenhum' : 'criar'); setMensagemCriar(''); setErroCriar(''); }}
@@ -321,15 +373,19 @@ export default function AdminCarreira() {
                                 Atualizar Carreira
                             </button>
                         </div>
+
+                        {/* Formulário: cadastro de nova carreira */}
                         {modoPainel === 'criar' && (
-                            <form onSubmit={aoSubmeterCriar} className="space-y-4">
+                            <form onSubmit={cadastrarCarreira} className="space-y-4">
                                 <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Nova Carreira</h2>
+                                {/* Feedback do formulário de cadastro */}
                                 {erroCriar && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroCriar}</div>
                                 )}
                                 {mensagemCriar && (
                                     <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemCriar}</div>
                                 )}
+                                {/* Campos do formulário de cadastro */}
                                 <div>
                                     <label className="block text-xs mb-1">Nome</label>
                                     <input
@@ -348,6 +404,7 @@ export default function AdminCarreira() {
                                         className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
                                     />
                                 </div>
+                                {/* Ação: submeter cadastro */}
                                 <button
                                     disabled={criando}
                                     type="submit"
@@ -357,15 +414,19 @@ export default function AdminCarreira() {
                                 </button>
                             </form>
                         )}
+
+                        {/* Formulário: atualização de carreira existente */}
                         {modoPainel === 'atualizar' && (
                             <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
                                 <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Carreira</h2>
+                                {/* Feedback do formulário de atualização */}
                                 {erroAtualizar && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroAtualizar}</div>
                                 )}
                                 {mensagemAtualizar && (
                                     <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemAtualizar}</div>
                                 )}
+                                {/* Campos do formulário de atualização */}
                                 <div>
                                     <label className="block text-xs mb-1">Selecionar carreira</label>
                                     <select
@@ -398,6 +459,7 @@ export default function AdminCarreira() {
                                         className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
                                     />
                                 </div>
+                                {/* Ação: submeter atualização */}
                                 <button
                                     disabled={atualizando}
                                     type="submit"
@@ -409,6 +471,8 @@ export default function AdminCarreira() {
                         )}
                     </div>
                 </div>
+
+                {/* Modal de confirmação de exclusão (aparece quando há carreira selecionada para excluir) */}
                 {carreiraExcluir && (
                     <div
                         className="fixed inset-0 z-50 flex items-center justify-center"
@@ -416,12 +480,15 @@ export default function AdminCarreira() {
                         aria-modal="true"
                         aria-labelledby="modal-excluir-carreira-titulo"
                     >
+                        {/* Fundo escuro/blur: fecha ao clicar fora */}
                         <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={cancelarExclusao} />
+                        {/* Conteúdo do modal: título, mensagem e ações */}
                         <div className="relative w-full max-w-md mx-auto bg-slate-900 border border-slate-700 rounded-lg shadow-lg p-6">
                             <h2 id="modal-excluir-carreira-titulo" className="text-lg font-semibold text-red-300 mb-3">Confirmar Exclusão</h2>
                             <p className="text-sm text-slate-300 mb-6 leading-relaxed">
                                 Tem certeza que deseja excluir a carreira <strong className="text-slate-100">{carreiraExcluir.nome}</strong>? Esta ação não pode ser desfeita.
                             </p>
+                            {/* Ações do modal: cancelar ou confirmar exclusão */}
                             <div className="flex justify-end gap-3">
                                 <button
                                     onClick={cancelarExclusao}
