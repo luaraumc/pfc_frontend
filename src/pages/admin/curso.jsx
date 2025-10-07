@@ -1,22 +1,44 @@
 import { Link, useNavigate } from "react-router-dom"; // criar links de navegação para redirecionar o usuário e voltar
 import { useEffect, useState } from "react"; // estados e efeitos
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento | fetch autenticado com renovação automática de token
-import trashIcon from "../../../images/lixeira.png"; // ícone de lixeira para deletar
+import lixeiraIcon from "../../../images/lixeira.png"; // ícone de lixeira para deletar
 import setaIcon from "../../../images/seta.png"; // ícone de seta para expandir
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de administração de cursos
 export default function AdminCurso() {
-    const navigate = useNavigate(); // navegação de páginas (voltar)
 
-    // Estado principal
+    // Estados principais
+    const navigate = useNavigate(); // navegação de páginas (voltar)
     const [cursos, setCursos] = useState([]); // lista de cursos
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
     const [mensagem, setMensagem] = useState("");
-    const [modoPainel, setModoPainel] = useState("nenhum"); // 'nenhum' | 'criar' | 'atualizar' | 'adicionarConhecimento' | 'removerConhecimento' | 'cadastrarConhecimento' | 'deletarConhecimento'
-    // Formulário de conhecimento
+
+    // Painel Lateral
+    const [modoPainel, setModoPainel] = useState("nenhum");
+
+    // Cadastrar Curso
+    const [novoNome, setNovoNome] = useState("");
+    const [novaDescricao, setNovaDescricao] = useState("");
+    const [criando, setCriando] = useState(false);
+    const [mensagemCriar, setMensagemCriar] = useState("");
+    const [erroCriar, setErroCriar] = useState("");
+
+    // Atualizar Curso
+    const [atualizarId, setAtualizarId] = useState("");
+    const [atualizarNome, setAtualizarNome] = useState("");
+    const [atualizarDescricao, setAtualizarDescricao] = useState("");
+    const [atualizando, setAtualizando] = useState(false);
+    const [mensagemAtualizar, setMensagemAtualizar] = useState("");
+    const [erroAtualizar, setErroAtualizar] = useState("");
+
+    // Pop-up Exclusão de Curso
+    const [cursoExcluir, setCursoExcluir] = useState(null);
+    const [excluindo, setExcluindo] = useState(false);
+    
+    // Cadastrar e Deletar Conhecimento
     const [novoConhecimento, setNovoConhecimento] = useState("");
     const [criandoConhecimento, setCriandoConhecimento] = useState(false);
     const [mensagemConhecimento, setMensagemConhecimento] = useState("");
@@ -25,90 +47,24 @@ export default function AdminCurso() {
     const [deletandoConhecimento, setDeletandoConhecimento] = useState(false);
     const [mensagemDeletarConhecimento, setMensagemDeletarConhecimento] = useState("");
     const [erroDeletarConhecimento, setErroDeletarConhecimento] = useState("");
-    async function aoSubmeterCadastrarConhecimento(e) {
-        e.preventDefault();
-        setErroConhecimento(""); setMensagemConhecimento("");
-        try {
-            setCriandoConhecimento(true);
-            const payload = { nome: novoConhecimento.trim() };
-            const res = await authFetch(`${API_URL}/conhecimento/cadastro`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) {
-                const msg = data?.detail || data?.message || `Falha ao cadastrar (HTTP ${res.status})`;
-                throw new Error(msg);
-            }
-            setMensagemConhecimento(data?.message || "Conhecimento cadastrado com sucesso");
-            // Usar o ID real retornado pela API e atualizar a lista imediatamente
-            if (data?.id) {
-                const novoConhecimentoObj = { id: data.id, nome: payload.nome };
-                setConhecimentos(prev => [novoConhecimentoObj, ...prev]);
-            }
-            setNovoConhecimento("");
-        } catch (e) {
-            setErroConhecimento(e.message ?? "Erro ao cadastrar conhecimento");
-        } finally { setCriandoConhecimento(false); }
-    }
-
-    async function aoSubmeterDeletarConhecimento(e) {
-        e.preventDefault();
-        setErroDeletarConhecimento(""); setMensagemDeletarConhecimento("");
-        if (!deletarConhecimentoId) return;
-        try {
-            setDeletandoConhecimento(true);
-            const res = await authFetch(`${API_URL}/conhecimento/deletar/${deletarConhecimentoId}`, { method: "DELETE" });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) {
-                const msg = data?.detail || data?.message || `Falha ao deletar (HTTP ${res.status})`;
-                throw new Error(msg);
-            }
-            setMensagemDeletarConhecimento(data?.message || "Conhecimento deletado com sucesso");
-            setConhecimentos(prev => prev.filter(k => String(k.id) !== String(deletarConhecimentoId)));
-            setDeletarConhecimentoId("");
-        } catch (e) {
-            setErroDeletarConhecimento(e.message ?? "Erro ao deletar conhecimento");
-        } finally { setDeletandoConhecimento(false); }
-    }
-
-    // Form criar
-    const [novoNome, setNovoNome] = useState("");
-    const [novaDescricao, setNovaDescricao] = useState("");
-    const [criando, setCriando] = useState(false);
-    const [mensagemCriar, setMensagemCriar] = useState("");
-    const [erroCriar, setErroCriar] = useState("");
-
-    // Form atualizar
-    const [atualizarId, setAtualizarId] = useState("");
-    const [atualizarNome, setAtualizarNome] = useState("");
-    const [atualizarDescricao, setAtualizarDescricao] = useState("");
-    const [atualizando, setAtualizando] = useState(false);
-    const [mensagemAtualizar, setMensagemAtualizar] = useState("");
-    const [erroAtualizar, setErroAtualizar] = useState("");
-
-    // Pop-up exclusão
-    const [cursoExcluir, setCursoExcluir] = useState(null);
-    const [excluindo, setExcluindo] = useState(false);
-
+    
     // Conhecimentos globais
     const [conhecimentos, setConhecimentos] = useState([]);
     const [conhecimentosErro, setConhecimentosErro] = useState("");
     const [conhecimentosLoading, setConhecimentosLoading] = useState(true);
 
-    // Conhecimentos por curso (expansão)
-    const [cursosExpandidos, setCursosExpandidos] = useState([]); // ids abertos
-    const [conhecimentosCurso, setConhecimentosCurso] = useState({}); // { [id]: { items: [], loading: bool, error: '' } }
+    // Conhecimentos por curso
+    const [cursosExpandidos, setCursosExpandidos] = useState([]);
+    const [conhecimentosCurso, setConhecimentosCurso] = useState({});
 
-    // Form adicionar conhecimento
+    // Adicionar Conhecimento ao Curso
     const [adicionarCursoId, setAdicionarCursoId] = useState("");
     const [adicionarConhecimentoId, setAdicionarConhecimentoId] = useState("");
     const [adicionandoConhecimento, setAdicionandoConhecimento] = useState(false);
     const [mensagemAdicionarConhecimento, setMensagemAdicionarConhecimento] = useState("");
     const [erroAdicionarConhecimento, setErroAdicionarConhecimento] = useState("");
 
-    // Form remover conhecimento
+    // Remover Conhecimento do Curso
     const [removerCursoId, setRemoverCursoId] = useState("");
     const [removerConhecimentoId, setRemoverConhecimentoId] = useState("");
     const [removendoConhecimento, setRemovendoConhecimento] = useState(false);
@@ -117,13 +73,13 @@ export default function AdminCurso() {
 
     // Carrega lista de cursos
     useEffect(() => {
-        let ativo = true;
+        let ativo = true; // para evitar atualização de estado após desmontar
         (async () => {
             try {
-                const res = await authFetch(`${API_URL}/curso/`);
+                const res = await authFetch(`${API_URL}/curso/`); // chama backend
                 if (!res.ok) throw new Error(`Falha ao listar cursos (HTTP ${res.status})`);
-                const data = await res.json();
-                if (ativo) setCursos(Array.isArray(data) ? data : []);
+                const data = await res.json(); // converte resposta em JSON
+                if (ativo) setCursos(Array.isArray(data) ? data : []);  // garante que é array
             } catch (e) {
                 if (ativo) setErro(e.message ?? "Erro ao listar cursos");
             } finally {
@@ -135,16 +91,16 @@ export default function AdminCurso() {
         };
     }, []);
 
-    // Carrega lista de conhecimentos globais
+    // Carrega lista de conhecimentos
     useEffect(() => {
-        let ativo = true;
+        let ativo = true; // para evitar atualização de estado após desmontar
         (async () => {
             try {
-                setConhecimentosLoading(true);
-                const res = await authFetch(`${API_URL}/conhecimento/`);
+                setConhecimentosLoading(true); // inicia carregamento
+                const res = await authFetch(`${API_URL}/conhecimento/`); // chama backend
                 if (!res.ok) throw new Error(`Falha ao listar conhecimentos (HTTP ${res.status})`);
-                const data = await res.json();
-                if (ativo) setConhecimentos(Array.isArray(data) ? data : []);
+                const data = await res.json(); // converte resposta em JSON, se não, rejeita e vai para catch
+                if (ativo) setConhecimentos(Array.isArray(data) ? data : []); // garante que é array
             } catch (e) {
                 if (ativo) setConhecimentosErro(e.message || "Erro ao carregar conhecimentos");
             } finally {
@@ -158,58 +114,56 @@ export default function AdminCurso() {
 
     // Alterna expansão e carrega conhecimentos do curso (cache)
     function alternarExpandirCurso(id) {
-        setCursosExpandidos(prev => (prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]));
-        setConhecimentosCurso(prev => {
-            if (prev[id]) return prev;
-            return { ...prev, [id]: { items: [], loading: true, error: "" } };
+        setCursosExpandidos(estadoAnterior => (estadoAnterior.includes(id) // verifica se já está expandido
+        ? estadoAnterior.filter(item => item !== id) // recolhe
+        : [...estadoAnterior, id])); // expande
+        setConhecimentosCurso(estadoAnterior => {
+            if (estadoAnterior[id]) return estadoAnterior; // já carregado
+            return { ...estadoAnterior, [id]: { items: [], loading: true, error: "" } }; // inicia carregamento
         });
+        // carrega conhecimentos se ainda não carregados
         if (!conhecimentosCurso[id]) {
             (async () => {
                 try {
-                    const res = await authFetch(`${API_URL}/curso/${id}/conhecimentos`);
-                    const data = await res.json().catch(() => ({}));
+                    const res = await authFetch(`${API_URL}/curso/${id}/conhecimentos`); // chama backend
+                    const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
                     if (!res.ok)
                         throw new Error(
                             data?.detail || data?.message || `Falha ao carregar conhecimentos do curso (HTTP ${res.status})`
                         );
-                    setConhecimentosCurso(prev => ({
-                        ...prev,
-                        [id]: { items: Array.isArray(data) ? data : [], loading: false, error: "" }
+                    // grava no cache os conhecimentos carregados de um curso
+                    setConhecimentosCurso(estadoAnterior => ({ // garante estado mais recente
+                        ...estadoAnterior, // mantém estados anteriores dos outros cursos no cache
+                        [id]: { items: Array.isArray(data) ? data : [], loading: false, error: "" } // atualiza só o curso específico
                     }));
                 } catch (e) {
-                    setConhecimentosCurso(prev => ({
-                        ...prev,
-                        [id]: { items: [], loading: false, error: e.message || "Erro ao carregar" }
+                    setConhecimentosCurso(estadoAnterior => ({ // garante estado mais recente
+                        ...estadoAnterior, // mantém estados anteriores dos outros cursos no cache
+                        [id]: { items: [], loading: false, error: e.message || "Erro ao carregar" } // atualiza só o curso específico
                     }));
                 }
             })();
         }
     }
 
-    function obterNomeConhecimento(conhecimentoId) {
-        const k = conhecimentos.find(k => Number(k.id) === Number(conhecimentoId));
-        return k?.nome || `Conhecimento #${conhecimentoId}`;
-    }
-
+    // Exclusão de curso
     function solicitarExclusao(c) {
-        setErro("");
-        setMensagem("");
-        setCursoExcluir({ id: c.id, nome: c.nome });
+        setErro(""); setMensagem("");
+        setCursoExcluir({ id: c.id, nome: c.nome }); // abre modal de confirmação
     }
 
+    // Confirma exclusão de curso
     async function confirmarExclusao() {
-        if (!cursoExcluir) return;
-        setExcluindo(true);
-        setErro("");
-        setMensagem("");
+        if (!cursoExcluir) return; // evita exclusão quando não há curso selecionado
+        setExcluindo(true); setErro(""); setMensagem("");
         try {
-            const res = await authFetch(`${API_URL}/curso/deletar/${cursoExcluir.id}`, { method: "DELETE" });
+            const res = await authFetch(`${API_URL}/curso/deletar/${cursoExcluir.id}`, { method: "DELETE" }); // chama backend
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao excluir (HTTP ${res.status})`;
                 throw new Error(msg);
             }
-            setCursos(prev => prev.filter(c => c.id !== cursoExcluir.id));
+            setCursos(estadoAnterior => estadoAnterior.filter(c => c.id !== cursoExcluir.id)); // atualiza removendo do array o curso que foi excluído
             setMensagem(data?.message || "Curso deletado com sucesso.");
             setCursoExcluir(null);
         } catch (e) {
@@ -219,35 +173,35 @@ export default function AdminCurso() {
         }
     }
 
+    // Cancela exclusão de curso
     function cancelarExclusao() {
-        if (excluindo) return;
+        if (excluindo) return; // evita fechar modal durante exclusão
         setCursoExcluir(null);
     }
 
-    async function aoSubmeterCriar(e) {
-        e.preventDefault();
-        setErroCriar("");
-        setMensagemCriar("");
+    // Cadastrar curso
+    async function cadastrarCurso(e) {
+        e.preventDefault(); // evita reload da página
+        setErroCriar(""); setMensagemCriar("");
         try {
             setCriando(true);
-            const payload = { nome: novoNome.trim(), descricao: novaDescricao.trim() };
+            const payload = { nome: novoNome.trim(), descricao: novaDescricao.trim() }; // monta o objeto que será enviado ao backend
+            // chama backend
             const res = await authFetch(`${API_URL}/curso/cadastro`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload) // converte para JSON
             });
-            const data = await res.json().catch(() => ({}));
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao cadastrar (HTTP ${res.status})`;
                 throw new Error(msg);
             }
             setMensagemCriar(data?.message || "Curso cadastrado com sucesso");
-            // Usar o ID real retornado pela API
             if (data?.id) {
-                setCursos(prev => [{ id: data.id, nome: payload.nome, descricao: payload.descricao }, ...prev]);
+                setCursos(estadoAnterior => [{ id: data.id, nome: payload.nome, descricao: payload.descricao }, ...estadoAnterior]); // update na lista de cursos inserindo o novo no topo
             }
-            setNovoNome("");
-            setNovaDescricao("");
+            setNovoNome(""); setNovaDescricao("");
         } catch (e) {
             setErroCriar(e.message ?? "Erro ao cadastrar curso");
         } finally {
@@ -255,43 +209,41 @@ export default function AdminCurso() {
         }
     }
 
+    // Atualizar curso (chamado ao selecionar curso para atualizar)
     function aoSelecionarAtualizar(e) {
-        const id = e.target.value;
+        const id = e.target.value; // id do curso selecionada
         setAtualizarId(id);
-        setMensagemAtualizar("");
-        setErroAtualizar("");
-        if (!id) {
-            setAtualizarNome("");
-            setAtualizarDescricao("");
-            return;
-        }
-        const curso = cursos.find(c => String(c.id) === id);
+        setMensagemAtualizar(""); setErroAtualizar("");
+        if (!id) { setAtualizarNome(""); setAtualizarDescricao(""); return; } // nenhum curso válido selecionado, ainda está no “Selecione…”
+        const curso = cursos.find(c => String(c.id) === id); // busca curso selecionado
+        // preenche campos de nome e descrição
         if (curso) {
             setAtualizarNome(curso.nome || "");
             setAtualizarDescricao(curso.descricao || "");
         }
     }
 
+    // Submeter atualização de curso
     async function aoSubmeterAtualizar(e) {
         e.preventDefault();
-        if (!atualizarId) return;
-        setErroAtualizar("");
-        setMensagemAtualizar("");
+        if (!atualizarId) return; // evita submissão quando não há curso válido selecionado
+        setErroAtualizar(""); setMensagemAtualizar("");
         try {
             setAtualizando(true);
-            const payload = { nome: atualizarNome.trim(), descricao: atualizarDescricao.trim() };
+            const payload = { nome: atualizarNome.trim(), descricao: atualizarDescricao.trim() }; // monta o objeto que será enviado ao backend
+            // chama backend
             const res = await authFetch(`${API_URL}/curso/atualizar/${atualizarId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload) // converte para JSON
             });
-            const data = await res.json().catch(() => ({}));
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao atualizar (HTTP ${res.status})`;
                 throw new Error(msg);
             }
             setMensagemAtualizar(data?.message || "Curso atualizado com sucesso");
-            setCursos(prev => prev.map(c => (c.id === Number(atualizarId) ? { ...c, nome: payload.nome, descricao: payload.descricao } : c)));
+            setCursos(estadoAnterior => estadoAnterior.map(c => (c.id === Number(atualizarId) ? { ...c, nome: payload.nome, descricao: payload.descricao } : c))); // atualiza o curso na lista
         } catch (e) {
             setErroAtualizar(e.message ?? "Erro ao atualizar curso");
         } finally {
@@ -299,27 +251,86 @@ export default function AdminCurso() {
         }
     }
 
-    async function aoSubmeterAdicionarConhecimento(e) {
-        e.preventDefault();
-        if (!adicionarCursoId || !adicionarConhecimentoId) return;
-        setErroAdicionarConhecimento("");
-        setMensagemAdicionarConhecimento("");
+    // Obter o nome do conhecimento pelo ID para exibição
+    function obterNomeConhecimento(conhecimentoId) {
+        const conhecimento = conhecimentos.find(conhecimento => Number(conhecimento.id) === Number(conhecimentoId)); // busca conhecimento pelo ID
+        return conhecimento?.nome || `Conhecimento #${conhecimentoId}`; // retorna nome ou ID se não encontrado
+    }
+
+    // Cadastrar conhecimento
+    async function CadastrarConhecimento(e) {
+        e.preventDefault(); // evita reload da página
+        setErroConhecimento(""); setMensagemConhecimento("");
+        try {
+            setCriandoConhecimento(true);
+            const payload = { nome: novoConhecimento.trim() }; // monta o objeto que será enviado ao backend
+            // chama backend
+            const res = await authFetch(`${API_URL}/conhecimento/cadastro`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload) // converte para JSON
+            });
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            if (!res.ok) {
+                const msg = data?.detail || data?.message || `Falha ao cadastrar (HTTP ${res.status})`;
+                throw new Error(msg);
+            }
+            setMensagemConhecimento(data?.message || "Conhecimento cadastrado com sucesso");
+            // usa o id retornado pela API e atualiza a lista
+            if (data?.id) {
+                const novoConhecimentoObj = { id: data.id, nome: payload.nome }; // cria objeto do novo conhecimento
+                setConhecimentos(estadoAnterior => [novoConhecimentoObj, ...estadoAnterior]); // atualiza a lista de conhecimentos com o novo no topo
+            }
+            setNovoConhecimento("");
+        } catch (e) {
+            setErroConhecimento(e.message ?? "Erro ao cadastrar conhecimento");
+        } finally { setCriandoConhecimento(false); }
+    }
+
+    // Deletar conhecimento
+    async function DeletarConhecimento(e) {
+        e.preventDefault(); // evita reload da página
+        setErroDeletarConhecimento(""); setMensagemDeletarConhecimento("");
+        if (!deletarConhecimentoId) return; // evita submissão quando não há conhecimento válido selecionado
+        try {
+            setDeletandoConhecimento(true);
+            const res = await authFetch(`${API_URL}/conhecimento/deletar/${deletarConhecimentoId}`, { method: "DELETE" }); // chama backend
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            if (!res.ok) {
+                const msg = data?.detail || data?.message || `Falha ao deletar (HTTP ${res.status})`;
+                throw new Error(msg);
+            }
+            setMensagemDeletarConhecimento(data?.message || "Conhecimento deletado com sucesso");
+            setConhecimentos(estadoAnterior => estadoAnterior.filter(k => String(k.id) !== String(deletarConhecimentoId))); // atualiza a lista removendo o conhecimento deletado
+            setDeletarConhecimentoId("");
+        } catch (e) {
+            setErroDeletarConhecimento(e.message ?? "Erro ao deletar conhecimento");
+        } finally { setDeletandoConhecimento(false); }
+    }
+
+    // Adicionar conhecimento ao curso
+    async function AdicionarConhecimentoAoCurso(e) {
+        e.preventDefault(); // evita reload da página
+        if (!adicionarCursoId || !adicionarConhecimentoId) return; // evita submissão quando não há curso ou conhecimento válidos selecionados
+        setErroAdicionarConhecimento(""); setMensagemAdicionarConhecimento("");
         try {
             setAdicionandoConhecimento(true);
+            // chama backend
             const res = await authFetch(
                 `${API_URL}/curso/${adicionarCursoId}/adicionar-conhecimento/${adicionarConhecimentoId}`,
                 { method: "POST" }
             );
-            const data = await res.json().catch(() => ({}));
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao adicionar (HTTP ${res.status})`;
                 throw new Error(msg);
             }
             setMensagemAdicionarConhecimento("Conhecimento adicionado ao curso");
-            setConhecimentosCurso(prev => {
-                const entry = prev[adicionarCursoId];
-                if (!entry) return prev;
-                return { ...prev, [adicionarCursoId]: { ...entry, items: [...entry.items, data], loading: false } };
+            // atualiza o cache de conhecimentos do curso adicionando o conhecimento associado
+            setConhecimentosCurso(estadoAnterior => {
+                const entry = estadoAnterior[adicionarCursoId];
+                if (!entry) return estadoAnterior;
+                return { ...estadoAnterior, [adicionarCursoId]: { ...entry, items: [...entry.items, data], loading: false } };
             });
             setAdicionarConhecimentoId("");
         } catch (e) {
@@ -329,28 +340,30 @@ export default function AdminCurso() {
         }
     }
 
-    async function aoSubmeterRemoverConhecimento(e) {
-        e.preventDefault();
-        if (!removerCursoId || !removerConhecimentoId) return;
-        setErroRemoverConhecimento("");
-        setMensagemRemoverConhecimento("");
+    // Remover conhecimento do curso
+    async function RemoverConhecimentoDoCurso(e) {
+        e.preventDefault(); // evita reload da página
+        if (!removerCursoId || !removerConhecimentoId) return; // evita submissão quando não há curso ou conhecimento válidos selecionados
+        setErroRemoverConhecimento(""); setMensagemRemoverConhecimento("");
         try {
             setRemovendoConhecimento(true);
+            // chama backend
             const res = await authFetch(
                 `${API_URL}/curso/${removerCursoId}/remover-conhecimento/${removerConhecimentoId}`,
                 { method: "DELETE" }
             );
-            const data = await res.json().catch(() => ({}));
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao remover (HTTP ${res.status})`;
                 throw new Error(msg);
             }
             setMensagemRemoverConhecimento("Conhecimento removido do curso");
-            setConhecimentosCurso(prev => {
-                const entry = prev[removerCursoId];
-                if (!entry) return prev;
+            // atualiza o cache de conhecimentos do curso removendo o conhecimento desassociado
+            setConhecimentosCurso(estadoAnterior => {
+                const entry = estadoAnterior[removerCursoId];
+                if (!entry) return estadoAnterior;
                 return {
-                    ...prev,
+                    ...estadoAnterior,
                     [removerCursoId]: {
                         ...entry,
                         items: entry.items.filter(it => Number(it.conhecimento_id) !== Number(removerConhecimentoId))
@@ -365,8 +378,10 @@ export default function AdminCurso() {
         }
     }
 
+    // HTML
     return (
         <div className="min-h-screen bg-slate-900 text-slate-200">
+            {/* ====================== Cabeçalho (logo e sair) ====================== */}
             <header className="w-full border-b border-slate-800 bg-slate-950/80">
                 <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
                     <Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
@@ -381,7 +396,9 @@ export default function AdminCurso() {
                 </div>
             </header>
 
+            {/* ====================== Conteúdo principal ====================== */}
             <main className="ml-8 mr-8 mx-auto px-4 py-10">
+                {/* Ação: voltar à página anterior */}
                 <button
                     onClick={() => navigate(-1)}
                     className="mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
@@ -389,10 +406,11 @@ export default function AdminCurso() {
                     <span aria-hidden>←</span> Voltar
                 </button>
 
+                {/* Título da página */}
                 <h1 className="text-2xl font-semibold text-center mb-8">Gerenciar Cursos</h1>
 
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    {/* Listagem */}
+                    {/* ====================== Listagem de cursos ====================== */}
                     <div className="flex-1 w-full">
                         {carregando && <p className="text-slate-400">Carregando cursos…</p>}
 
@@ -463,7 +481,7 @@ export default function AdminCurso() {
                                                     className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40"
                                                     title="Excluir curso"
                                                 >
-                                                    <img src={trashIcon} alt="Excluir" className="w-5 h-5" />
+                                                    <img src={lixeiraIcon} alt="Excluir" className="w-5 h-5" />
                                                     <span className="hidden sm:inline">Excluir</span>
                                                 </button>
                                             )}
@@ -474,8 +492,9 @@ export default function AdminCurso() {
                         )}
                     </div>
 
-                    {/* Painel lateral */}
+                    {/* ====================== Painel lateral (formas e ações) ====================== */}
                     <div className="w-full lg:w-96 bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6 self-start">
+                        {/* Alternar modo do painel (criar, atualizar, conhecimentos) */}
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={() => {
@@ -549,8 +568,11 @@ export default function AdminCurso() {
                             >
                                 Remover conhecimento do curso
                             </button>
+                        </div>
+
+                        {/* Formulários do painel conforme modo selecionado */}
                         {modoPainel === "cadastrarConhecimento" && (
-                            <form onSubmit={aoSubmeterCadastrarConhecimento} className="space-y-4">
+                            <form onSubmit={CadastrarConhecimento} className="space-y-4">
                                 <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Cadastrar Conhecimento</h2>
                                 {erroConhecimento && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroConhecimento}</div>
@@ -577,7 +599,7 @@ export default function AdminCurso() {
                             </form>
                         )}
                         {modoPainel === "deletarConhecimento" && (
-                            <form onSubmit={aoSubmeterDeletarConhecimento} className="space-y-4">
+                            <form onSubmit={DeletarConhecimento} className="space-y-4">
                                 <h2 className="text-sm font-semibold text-red-300 tracking-wide mt-4">Deletar Conhecimento</h2>
                                 {erroDeletarConhecimento && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroDeletarConhecimento}</div>
@@ -608,9 +630,8 @@ export default function AdminCurso() {
                                 </button>
                             </form>
                         )}
-                        </div>
                         {modoPainel === "criar" && (
-                            <form onSubmit={aoSubmeterCriar} className="space-y-4">
+                            <form onSubmit={cadastrarCurso} className="space-y-4">
                                 <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Novo Curso</h2>
                                 {erroCriar && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
@@ -710,7 +731,7 @@ export default function AdminCurso() {
                         )}
 
                         {modoPainel === "adicionarConhecimento" && (
-                            <form onSubmit={aoSubmeterAdicionarConhecimento} className="space-y-4">
+                            <form onSubmit={AdicionarConhecimentoAoCurso} className="space-y-4">
                                 <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Adicionar Conhecimento</h2>
                                 {erroAdicionarConhecimento && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
@@ -771,7 +792,7 @@ export default function AdminCurso() {
                         )}
 
                         {modoPainel === "removerConhecimento" && (
-                            <form onSubmit={aoSubmeterRemoverConhecimento} className="space-y-4">
+                            <form onSubmit={RemoverConhecimentoDoCurso} className="space-y-4">
                                 <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Remover Conhecimento</h2>
                                 {erroRemoverConhecimento && (
                                     <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
@@ -843,6 +864,7 @@ export default function AdminCurso() {
                 </div>
             </main>
 
+            {/* ====================== Modal de confirmação de exclusão ====================== */}
             {cursoExcluir && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center"
