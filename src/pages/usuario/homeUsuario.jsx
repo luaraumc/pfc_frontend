@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"; // criar links de navegação para redirecionar o usuário
 import { useEffect, useState } from "react"; // useEffect: executar funções | useState: gerenciar estado de componentes
 import { logoutRedirecionar } from "../../utils/auth"; // logout e redirecionamento
+import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
 
 // Página inicial do usuário comum
 export default function HomeUsuario() {
@@ -20,9 +21,10 @@ export default function HomeUsuario() {
 						<div className="flex items-center gap-3">
 							<Link
 								to="/usuario/editar-perfil"
-								className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+								className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
 							>
-								Editar Perfil
+								<img src={perfilIcon} alt="Perfil" className="w-5 h-5" />
+								<span>Editar Perfil</span>
 							</Link>
 							<button
 								onClick={logoutRedirecionar}
