@@ -11,7 +11,6 @@ import EditarPerfil from './pages/usuario/editarPerfil.jsx'
 import HomeAdmin from './pages/admin/homeAdmin.jsx'
 import AdminCarreira from './pages/admin/carreira.jsx'
 import AdminCurso from './pages/admin/curso.jsx'
-import AdminConhecimento from './pages/admin/conhecimento.jsx'
 import AdminVaga from './pages/admin/vaga.jsx'
 
 // Componente principal da aplicação
@@ -31,7 +30,6 @@ function App() {
           <Route path="/homeAdmin" element={<HomeAdmin />} />
           <Route path="/admin/carreira" element={<AdminCarreira />} />
           <Route path="/admin/curso" element={<AdminCurso />} />
-          <Route path="/admin/conhecimento" element={<AdminConhecimento />} />
           <Route path="/admin/vaga" element={<AdminVaga />} />
         </Route>
     </Routes>
