@@ -128,11 +128,11 @@ export default function LoginUsuario() {
 	return (
 			<div className="min-h-screen relative bg-slate-900">
 				<button
-						onClick={() => navigate(-1)}
-						className="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-						>
-						<span aria-hidden>←</span> Voltar
-		    		</button>
+					onClick={() => navigate(-1)}
+					className="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					>
+					<span aria-hidden>←</span> Voltar
+		    	</button>
 				<div className="min-h-screen flex flex-col items-center justify-center p-4">
 					<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Entrar</h1>
 					<div className="w-full max-w-md bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
