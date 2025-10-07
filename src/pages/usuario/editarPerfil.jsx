@@ -217,6 +217,12 @@ export default function EditarPerfil() {
 				</div>
 			</header>
 			<main className="max-w-4xl mx-auto px-4 py-10">
+				<button
+					onClick={() => navigate(-1)}
+					className="absolute top-20 left-10 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					>
+					<span aria-hidden>←</span> Voltar
+		    	</button>
 				<h1 className="text-2xl font-semibold mb-8 text-center">Editar Perfil</h1>
 				<div role="tablist" aria-label="Opções de edição" className="flex justify-center gap-2 mb-10 flex-wrap">
 					{[
