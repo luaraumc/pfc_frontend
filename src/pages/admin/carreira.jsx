@@ -233,25 +233,34 @@ export default function AdminCarreira() {
             {/* HEADER */}
             <header className="w-full border-b border-slate-800 bg-slate-950/80">
                 <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-                        PFC - Admin
-                    </Link>
-                    <button
-                        onClick={logoutRedirecionar}
-                        className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-                    >
-                        Sair
-                    </button>
+                <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
+                    PFC - Admin
+                </Link>
+                <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Carreiras
+                </Link>
+                <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Cursos
+                </Link>
+                <Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Vagas
+                </Link>
+                <button
+                    onClick={logoutRedirecionar}
+                    className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+                >
+                    Sair
+                </button>
                 </div>
             </header>
 
             {/* CONTEÚDO PRINCIPAL */}
-            <main className="ml-8 mr-8 mx-auto px-4 py-10">
+            <main className="ml-8 mr-8 mx-auto px-4 py-5">
 
                 {/* BOTÃO VOLTAR */}
                 <button
-                    onClick={() => navigate("/homeAdmin")}
-                    className="mt-6 mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+                    onClick={() => navigate(-1)}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
                 >
                     <span aria-hidden>←</span> Voltar
                 </button>
