@@ -5,7 +5,9 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de cadastro de usuário comum
 export default function CadastroUsuario() {
+	
 	// Estados dos campos
+	const navigate = useNavigate(); // navegação de páginas (voltar)
 	const [nome, setNome] = useState("");
 	const [email, setEmail] = useState("");
 	const [senha, setSenha] = useState("");
@@ -18,38 +20,38 @@ export default function CadastroUsuario() {
 	const [mensagem, setMensagem] = useState("");
 	const [erro, setErro] = useState("");
 
-	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]); // validação de email (com @ e .)
+	// Definindo e-mail válido (com @ e .)
+	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]);
 
 	// Carrega carreiras e cursos em paralelo
 	useEffect(() => {
 		const ctrl = new AbortController(); // para cancelar fetch se o componente desmontar
 		async function carregarListas() {
-			setLoadingListas(true); // indica que as listas estão sendo carregadas
-			setErro(""); // limpa erros anteriores
+			setLoadingListas(true);
+			setErro("");
 			try {
-				// Requisições GET
+				// chama backend em paralelo
 				const [resCarreira, resCurso] = await Promise.all([
 					fetch(`${API_URL}/carreira/`, { signal: ctrl.signal }),
 					fetch(`${API_URL}/curso/`, { signal: ctrl.signal }),
 				]);
 				if (!resCarreira.ok) throw new Error(`Falha ao listar carreiras (${resCarreira.status})`);
 				if (!resCurso.ok) throw new Error(`Falha ao listar cursos (${resCurso.status})`);
-				// Converte respostas para JSON
+				// converte respostas em JSON
 				const [carreirasJson, cursosJson] = await Promise.all([
 					resCarreira.json(),
 					resCurso.json(),
 				]);
-				// Atualiza estado dos arrays
 				setCarreiras(carreirasJson ?? []);
 				setCursos(cursosJson ?? []);
 			} catch (e) {
 				if (e.name !== "AbortError") setErro(e.message ?? "Erro ao carregar listas");
 			} finally {
-				setLoadingListas(false); // indica que o carregamento terminou
+				setLoadingListas(false);
 			}
 		}
-		carregarListas(); // chama a função para carregar as listas
-		return () => ctrl.abort(); // cancela fetch se o componente desmontar
+		carregarListas();
+		return () => ctrl.abort();
 	}, []);
 
 	// Validação dos campos do formulário
@@ -66,17 +68,14 @@ export default function CadastroUsuario() {
 	// Envio do formulário
 	async function onSubmit(e) {
 		e.preventDefault(); // previne recarregar a página
-		setErro(""); // limpa erros anteriores
-		setMensagem(""); // limpa mensagens anteriores
-
-		// Validação dos campos
+		setErro(""); setMensagem("");
+		// validação dos campos
 		const erroValid = validarCampos();
 		if (erroValid) {
-			setErro(erroValid); // mostra o erro de validação
+			setErro(erroValid);
 			return;
 		}
-
-		// Prepara dados para envio
+		// prepara dados para envio
 		const payload = {
 			nome: nome.trim(),
 			email: email.trim(),
@@ -85,22 +84,20 @@ export default function CadastroUsuario() {
 			carreira_id: Number(carreiraId),
 			curso_id: Number(cursoId),
 		};
-
-		// Envia os dados para o backend
 		setSubmitting(true);
 		try {
+			// chama backend
 			const res = await fetch(`${API_URL}/auth/cadastro`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
 			});
-			const data = await res.json().catch(() => ({})); // tenta decodificar JSON, se falhar retorna objeto vazio
+			const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Erro ao cadastrar (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
 			setMensagem(data?.message || "Usuário cadastrado com sucesso");
-			// Limpa o formulário (exceto listas)
 			setNome("");
 			setEmail("");
 			setSenha("");
@@ -109,31 +106,43 @@ export default function CadastroUsuario() {
 		} catch (e) {
 			setErro(e.message ?? "Falha ao cadastrar");
 		} finally {
-			setSubmitting(false); // finaliza o estado de submissão
+			setSubmitting(false);
 		}
 	}
-
-	const navigate = useNavigate(); // navegação de páginas (voltar)
 
 	// HTML
 	return (
 		<div className="min-h-screen relative bg-slate-900">
-			<button
-				onClick={() => navigate(-1)}
-				className="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+
+			{/* BOTÃO VOLTAR */}
+			<div className="max-w-6xl mx-auto px-4 pt-6">
+				<button
+					onClick={() => navigate("/")}
+					className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
 				>
-				<span aria-hidden>←</span> Voltar
-		    </button>
+					<span aria-hidden>←</span> Voltar
+				</button>
+			</div>
+
+			{/* CONTEÚDO PRINCIPAL */}
 			<div className="min-h-screen flex flex-col items-center justify-center p-4">
+
+				{/* título */}
 				<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Cadastro de Usuário</h1>
+
 				<div className="w-full max-w-3xl bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
+
+					{/* feedback */}
 					{loadingListas && (
 						<div className="mb-3 p-2 rounded bg-slate-800 text-slate-300 text-sm">Carregando listas…</div>
 					)}
 					{!!erro && <div className="mb-3 p-3 rounded border border-red-600 bg-red-900 text-red-100 text-sm">{erro}</div>}
 					{!!mensagem && <div className="mb-3 p-3 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{mensagem}</div>}
 
+					{/* formulário */}
 					<form onSubmit={onSubmit} className="mt-3 space-y-3">
+
+						{/* nome */}
 						<div className="flex flex-col">
 							<label className="mb-2 text-indigo-300 text-1xl" htmlFor="nome">Nome</label>
 							<input
@@ -147,6 +156,7 @@ export default function CadastroUsuario() {
 							/>
 						</div>
 
+						{/* email */}
 						<div className="flex flex-col">
 							<label className="mb-2 text-indigo-300 text-1xl" htmlFor="email">E-mail</label>
 							<input
@@ -160,6 +170,7 @@ export default function CadastroUsuario() {
 							/>
 						</div>
 
+						{/* senha */}
 						<div className="flex flex-col">
 							<label className="mb-2 text-indigo-300 text-1xl" htmlFor="senha">Senha</label>
 							<input
@@ -173,6 +184,7 @@ export default function CadastroUsuario() {
 							/>
 						</div>
 
+						{/* carreira e curso */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 							<div className="flex flex-col">
 								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="carreira">Carreira Desejada</label>
@@ -210,11 +222,13 @@ export default function CadastroUsuario() {
 							</div>
 						</div>
 
+						{/* botão enviar */}
 						<button type="submit" className="mt-2 w-full py-3 rounded-md border border-indigo-600 bg-indigo-500 text-white font-semibold hover:bg-indigo-600 disabled:opacity-60" disabled={submitting || loadingListas}>
 							{submitting ? "Enviando…" : "Cadastrar"}
 						</button>
 					</form>
 
+					{/* link para login */}
 					<div className="mt-4">
 						<button
 							type="button"
@@ -224,6 +238,7 @@ export default function CadastroUsuario() {
 							Já possui uma conta? <span className="underline underline-offset-2">Fazer login</span>
 						</button>
 					</div>
+					
 				</div>
 			</div>
 		</div>
