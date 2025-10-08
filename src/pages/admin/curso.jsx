@@ -381,10 +381,11 @@ export default function AdminCurso() {
     // HTML
     return (
         <div className="min-h-screen bg-slate-900 text-slate-200">
-            {/* ====================== Cabeçalho (logo e sair) ====================== */}
+            
+            {/* HEADER */}
             <header className="w-full border-b border-slate-800 bg-slate-950/80">
-                <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
+                <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                    <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
                         PFC - Admin
                     </Link>
                     <button
@@ -396,36 +397,38 @@ export default function AdminCurso() {
                 </div>
             </header>
 
-            {/* ====================== Conteúdo principal ====================== */}
+            {/* CONTEÚDO PRINCIPAL */}
             <main className="ml-8 mr-8 mx-auto px-4 py-10">
-                {/* Ação: voltar à página anterior */}
+
+                {/* BOTÃO VOLTAR */}
                 <button
-                    onClick={() => navigate(-1)}
-                    className="mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+                    onClick={() => navigate("/homeAdmin")}
+                    className="mt-6 mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
                 >
                     <span aria-hidden>←</span> Voltar
                 </button>
 
-                {/* Título da página */}
+                {/* título */}
                 <h1 className="text-2xl font-semibold text-center mb-8">Gerenciar Cursos</h1>
 
+                {/* listagem à esquerda | painel à direita */}
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    {/* ====================== Listagem de cursos ====================== */}
+                    
                     <div className="flex-1 w-full">
+                        {/* feedback */}
                         {carregando && <p className="text-slate-400">Carregando cursos…</p>}
-
                         {!!mensagem && !carregando && (
                             <div className="mb-3 p-3 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">
                                 {mensagem}
                             </div>
                         )}
-
                         {!!erro && !carregando && (
                             <div className="p-3 rounded border border-red-600 bg-red-900 text-red-100 text-sm">
                                 {erro}
                             </div>
                         )}
 
+                        {/* lista de cursos */}
                         {!carregando && !erro && (
                             cursos.length === 0 ? (
                                 <p className="text-slate-400">Nenhum curso cadastrado.</p>
@@ -435,7 +438,9 @@ export default function AdminCurso() {
                                         <li key={c.id ?? c.nome} className="p-4 flex items-center justify-between">
                                             <div>
                                                 <div className="flex items-center justify-between gap-2">
+                                                    {/* nome do curso */}
                                                     <p className="font-medium">{c.nome ?? `Curso #${c.id}`}</p>
+                                                    {/* expandir conhecimentos */}
                                                     <button
                                                         type="button"
                                                         onClick={() => alternarExpandirCurso(c.id)}
@@ -451,7 +456,11 @@ export default function AdminCurso() {
                                                         />
                                                     </button>
                                                 </div>
+
+                                                {/* descrição do curso */}
                                                 {c.descricao && <p className="text-sm text-slate-400">{c.descricao}</p>}
+
+                                                {/* conhecimentos associados */}
                                                 {cursosExpandidos.includes(c.id) && (
                                                     <div className="mt-3 ml-4">
                                                         {conhecimentosCurso[c.id]?.loading ? (
@@ -475,6 +484,8 @@ export default function AdminCurso() {
                                                     </div>
                                                 )}
                                             </div>
+
+                                            {/* excluir curso */}
                                             {c.id && (
                                                 <button
                                                     onClick={() => solicitarExclusao(c)}
@@ -492,409 +503,231 @@ export default function AdminCurso() {
                         )}
                     </div>
 
-                    {/* ====================== Painel lateral (formas e ações) ====================== */}
-                    <div className="w-full lg:w-96 bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6 self-start">
-                        {/* Alternar modo do painel (criar, atualizar, conhecimentos) */}
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={() => {
-                                    setModoPainel(modoPainel === "criar" ? "nenhum" : "criar");
-                                    setMensagemCriar("");
-                                    setErroCriar("");
-                                }}
-                                className={`px-3 py-2 rounded-md text-sm font-medium border transition ${
-                                    modoPainel === "criar"
-                                        ? "bg-indigo-600 border-indigo-500 text-white"
-                                        : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
-                                }`}
-                            >
-                                Cadastrar Novo Curso
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setModoPainel(modoPainel === "atualizar" ? "nenhum" : "atualizar");
-                                    setMensagemAtualizar("");
-                                    setErroAtualizar("");
-                                }}
-                                className={`px-3 py-2 rounded-md text-sm font-medium border transition ${
-                                    modoPainel === "atualizar"
-                                        ? "bg-indigo-600 border-indigo-500 text-white"
-                                        : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
-                                }`}
-                            >
-                                Atualizar Curso
-                            </button>
-                            <button
-                                onClick={() => { setModoPainel(modoPainel === "cadastrarConhecimento" ? "nenhum" : "cadastrarConhecimento"); setMensagemConhecimento(""); setErroConhecimento(""); }}
-                                className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "cadastrarConhecimento" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
-                            >
-                                Cadastrar Conhecimento
-                            </button>
-                            <button
-                                onClick={() => { setModoPainel(modoPainel === "deletarConhecimento" ? "nenhum" : "deletarConhecimento"); setMensagemDeletarConhecimento(""); setErroDeletarConhecimento(""); }}
-                                className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "deletarConhecimento" ? "bg-red-600 border-red-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
-                            >
-                                Deletar Conhecimento
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setModoPainel(
-                                        modoPainel === "adicionarConhecimento" ? "nenhum" : "adicionarConhecimento"
-                                    );
-                                    setErroAdicionarConhecimento("");
-                                    setMensagemAdicionarConhecimento("");
-                                }}
-                                className={`px-3 py-2 rounded-md text-sm font-medium border transition ${
-                                    modoPainel === "adicionarConhecimento"
-                                        ? "bg-indigo-600 border-indigo-500 text-white"
-                                        : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
-                                }`}
-                            >
-                                Adicionar conhecimento ao curso
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setModoPainel(
-                                        modoPainel === "removerConhecimento" ? "nenhum" : "removerConhecimento"
-                                    );
-                                    setErroRemoverConhecimento("");
-                                    setMensagemRemoverConhecimento("");
-                                }}
-                                className={`px-3 py-2 rounded-md text-sm font-medium border transition ${
-                                    modoPainel === "removerConhecimento"
-                                        ? "bg-indigo-600 border-indigo-500 text-white"
-                                        : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
-                                }`}
-                            >
-                                Remover conhecimento do curso
-                            </button>
-                        </div>
+                    {/* painel lateral */}
+                    <div className="w-full lg:w-96 self-start">
 
-                        {/* Formulários do painel conforme modo selecionado */}
-                        {modoPainel === "cadastrarConhecimento" && (
-                            <form onSubmit={CadastrarConhecimento} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Cadastrar Conhecimento</h2>
-                                {erroConhecimento && (
-                                    <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroConhecimento}</div>
-                                )}
-                                {mensagemConhecimento && (
-                                    <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemConhecimento}</div>
-                                )}
-                                <div>
-                                    <label className="block text-xs mb-1">Nome</label>
-                                    <input
-                                        value={novoConhecimento}
-                                        onChange={e => setNovoConhecimento(e.target.value)}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
-                                    />
-                                </div>
-                                <button
-                                    disabled={criandoConhecimento}
-                                    type="submit"
-                                    className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
-                                >
-                                    {criandoConhecimento ? "Salvando..." : "Cadastrar"}
-                                </button>
-                            </form>
-                        )}
-                        {modoPainel === "deletarConhecimento" && (
-                            <form onSubmit={DeletarConhecimento} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-red-300 tracking-wide mt-4">Deletar Conhecimento</h2>
-                                {erroDeletarConhecimento && (
-                                    <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroDeletarConhecimento}</div>
-                                )}
-                                {mensagemDeletarConhecimento && (
-                                    <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemDeletarConhecimento}</div>
-                                )}
-                                <div>
-                                    <label className="block text-xs mb-1">Conhecimento</label>
-                                    <select
-                                        value={deletarConhecimentoId}
-                                        onChange={e => setDeletarConhecimentoId(e.target.value)}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
-                                    >
-                                        <option value="">Selecione…</option>
-                                        {conhecimentos.map(k => (
-                                            <option key={k.id} value={k.id}>{k.nome}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <button
-                                    disabled={deletandoConhecimento}
-                                    type="submit"
-                                    className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
-                                >
-                                    {deletandoConhecimento ? "Deletando..." : "Deletar"}
-                                </button>
-                            </form>
-                        )}
-                        {modoPainel === "criar" && (
-                            <form onSubmit={cadastrarCurso} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Novo Curso</h2>
-                                {erroCriar && (
-                                    <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
-                                        {erroCriar}
-                                    </div>
-                                )}
-                                {mensagemCriar && (
-                                    <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">
-                                        {mensagemCriar}
-                                    </div>
-                                )}
-                                <div>
-                                    <label className="block text-xs mb-1">Nome</label>
-                                    <input
-                                        value={novoNome}
-                                        onChange={e => setNovoNome(e.target.value)}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs mb-1">Descrição</label>
-                                    <textarea
-                                        value={novaDescricao}
-                                        onChange={e => setNovaDescricao(e.target.value)}
-                                        rows={3}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
-                                        required
-                                    />
-                                </div>
-                                <button
-                                    disabled={criando}
-                                    type="submit"
-                                    className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
-                                >
-                                    {criando ? "Salvando..." : "Cadastrar"}
-                                </button>
-                            </form>
-                        )}
+                        {/* botão atualizar página */}
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="mb-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+                            title="Atualizar a página"
+                        >
+                            <span aria-hidden>↻</span> Atualizar
+                        </button>
 
-                        {modoPainel === "atualizar" && (
-                            <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Curso</h2>
-                                {erroAtualizar && (
-                                    <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
-                                        {erroAtualizar}
-                                    </div>
-                                )}
-                                {mensagemAtualizar && (
-                                    <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">
-                                        {mensagemAtualizar}
-                                    </div>
-                                )}
-                                <div>
-                                    <label className="block text-xs mb-1">Selecionar curso</label>
-                                    <select
-                                        value={atualizarId}
-                                        onChange={aoSelecionarAtualizar}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
-                                    >
-                                        <option value="">Selecione…</option>
-                                        {cursos.map(c => (
-                                            <option key={c.id} value={c.id}>
-                                                {c.nome}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs mb-1">Nome</label>
-                                    <input
-                                        value={atualizarNome}
-                                        onChange={e => setAtualizarNome(e.target.value)}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs mb-1">Descrição</label>
-                                    <textarea
-                                        value={atualizarDescricao}
-                                        onChange={e => setAtualizarDescricao(e.target.value)}
-                                        rows={3}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
-                                        required
-                                    />
-                                </div>
+                        <div className="bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6">
+                            
+                            <div className="flex flex-col gap-3">
+                                {/* cadastrar novo curso */}
                                 <button
-                                    disabled={atualizando}
-                                    type="submit"
-                                    className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                    onClick={() => { setModoPainel(modoPainel === "criar" ? "nenhum" : "criar"); setMensagemCriar(""); setErroCriar(""); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "criar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
-                                    {atualizando ? "Atualizando..." : "Salvar Alterações"}
+                                    Cadastrar Novo Curso
                                 </button>
-                            </form>
-                        )}
+                                {/* atualizar curso */}
+                                <button
+                                    onClick={() => {setModoPainel(modoPainel === "atualizar" ? "nenhum" : "atualizar"); setMensagemAtualizar(""); setErroAtualizar(""); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "atualizar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                >
+                                    Atualizar Curso
+                                </button>
+                                {/* cadastrar conhecimento */}
+                                <button
+                                    onClick={() => { setModoPainel(modoPainel === "cadastrarConhecimento" ? "nenhum" : "cadastrarConhecimento"); setMensagemConhecimento(""); setErroConhecimento(""); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "cadastrarConhecimento" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                >
+                                    Cadastrar Conhecimento
+                                </button>
+                                {/* deletar conhecimento */}
+                                <button
+                                    onClick={() => { setModoPainel(modoPainel === "deletarConhecimento" ? "nenhum" : "deletarConhecimento"); setMensagemDeletarConhecimento(""); setErroDeletarConhecimento(""); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "deletarConhecimento" ? "bg-red-600 border-red-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                >
+                                    Deletar Conhecimento
+                                </button>
+                                {/* adicionar conhecimento ao curso */}
+                                <button
+                                    onClick={() => {setModoPainel(modoPainel === "adicionarConhecimento" ? "nenhum" : "adicionarConhecimento");setErroAdicionarConhecimento("");setMensagemAdicionarConhecimento("");}}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "adicionarConhecimento"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                >
+                                    Adicionar conhecimento ao curso
+                                </button>
+                                {/* remover conhecimento do curso */}
+                                <button
+                                    onClick={() => {setModoPainel(modoPainel === "removerConhecimento" ? "nenhum" : "removerConhecimento"); setErroRemoverConhecimento(""); setMensagemRemoverConhecimento("");}}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "removerConhecimento"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                >
+                                    Remover conhecimento do curso
+                                </button>
+                            </div>
 
-                        {modoPainel === "adicionarConhecimento" && (
-                            <form onSubmit={AdicionarConhecimentoAoCurso} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Adicionar Conhecimento</h2>
-                                {erroAdicionarConhecimento && (
-                                    <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
-                                        {erroAdicionarConhecimento}
+                            {/* formulario cadastro de conhecimento */}
+                            {modoPainel === "cadastrarConhecimento" && (
+                                <form onSubmit={CadastrarConhecimento} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Cadastrar Conhecimento</h2>
+                                    {/* feedback */}
+                                    {erroConhecimento && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroConhecimento}</div>
+                                    )}
+                                    {mensagemConhecimento && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemConhecimento}</div>
+                                    )}
+                                    {/* nome */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Nome</label>
+                                        <input
+                                            value={novoConhecimento}
+                                            onChange={e => setNovoConhecimento(e.target.value)}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        />
                                     </div>
-                                )}
-                                {mensagemAdicionarConhecimento && (
-                                    <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">
-                                        {mensagemAdicionarConhecimento}
-                                    </div>
-                                )}
-                                <div>
-                                    <label className="block text-xs mb-1">Curso</label>
-                                    <select
-                                        value={adicionarCursoId}
-                                        onChange={e => setAdicionarCursoId(e.target.value)}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
+                                    {/* botão enviar */}
+                                    <button
+                                        disabled={criandoConhecimento}
+                                        type="submit"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
                                     >
-                                        <option value="">Selecione…</option>
-                                        {cursos.map(c => (
-                                            <option key={c.id} value={c.id}>
-                                                {c.nome}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs mb-1">Conhecimento</label>
-                                    {conhecimentosLoading ? (
-                                        <p className="text-xs text-slate-400">Carregando…</p>
-                                    ) : conhecimentosErro ? (
-                                        <p className="text-xs text-red-400">{conhecimentosErro}</p>
-                                    ) : (
+                                        {criandoConhecimento ? "Salvando..." : "Cadastrar"}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* formulario de deletar conhecimento */}
+                            {modoPainel === "deletarConhecimento" && (
+                                <form onSubmit={DeletarConhecimento} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-red-300 tracking-wide mt-4">Deletar Conhecimento</h2>
+                                    {/* feedback */}
+                                    {erroDeletarConhecimento && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroDeletarConhecimento}</div>
+                                    )}
+                                    {mensagemDeletarConhecimento && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemDeletarConhecimento}</div>
+                                    )}
+                                    {/* seleção de conhecimento */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Conhecimento</label>
                                         <select
-                                            value={adicionarConhecimentoId}
-                                            onChange={e => setAdicionarConhecimentoId(e.target.value)}
+                                            value={deletarConhecimentoId}
+                                            onChange={e => setDeletarConhecimentoId(e.target.value)}
                                             className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
                                             required
                                         >
                                             <option value="">Selecione…</option>
                                             {conhecimentos.map(k => (
-                                                <option key={k.id} value={k.id}>
-                                                    {k.nome}
-                                                </option>
+                                                <option key={k.id} value={k.id}>{k.nome}</option>
                                             ))}
                                         </select>
-                                    )}
-                                </div>
-                                <button
-                                    disabled={adicionandoConhecimento}
-                                    type="submit"
-                                    className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
-                                >
-                                    {adicionandoConhecimento ? "Adicionando..." : "Adicionar"}
-                                </button>
-                            </form>
-                        )}
-
-                        {modoPainel === "removerConhecimento" && (
-                            <form onSubmit={RemoverConhecimentoDoCurso} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Remover Conhecimento</h2>
-                                {erroRemoverConhecimento && (
-                                    <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
-                                        {erroRemoverConhecimento}
                                     </div>
-                                )}
-                                {mensagemRemoverConhecimento && (
-                                    <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">
-                                        {mensagemRemoverConhecimento}
-                                    </div>
-                                )}
-                                <div>
-                                    <label className="block text-xs mb-1">Curso</label>
-                                    <select
-                                        value={removerCursoId}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            setRemoverCursoId(val); // corrigido nome do setter
-                                            setRemoverConhecimentoId("");
-                                            if (val && !conhecimentosCurso[val]) {
-                                                alternarExpandirCurso(Number(val));
-                                            }
-                                        }}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
+                                    {/* botão enviar */}
+                                    <button
+                                        disabled={deletandoConhecimento}
+                                        type="submit"
+                                        className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
                                     >
-                                        <option value="">Selecione…</option>
-                                        {cursos.map(c => (
-                                            <option key={c.id} value={c.id}>
-                                                {c.nome}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs mb-1">Conhecimento (associado)</label>
-                                    {!removerCursoId ? (
-                                        <p className="text-xs text-slate-500">Selecione um curso primeiro.</p>
-                                    ) : conhecimentosCurso[removerCursoId]?.loading ? (
-                                        <p className="text-xs text-slate-400">Carregando…</p>
-                                    ) : conhecimentosCurso[removerCursoId]?.error ? (
-                                        <p className="text-xs text-red-400">{conhecimentosCurso[removerCursoId].error}</p>
-                                    ) : (
-                                        <select
-                                            value={removerConhecimentoId}
-                                            onChange={e => setRemoverConhecimentoId(e.target.value)}
+                                        {deletandoConhecimento ? "Deletando..." : "Deletar"}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* formulario cadastro de curso */}
+                            {modoPainel === "criar" && (
+                                <form onSubmit={cadastrarCurso} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Novo Curso</h2>
+                                    {/* feedback */}
+                                    {erroCriar && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
+                                            {erroCriar}
+                                        </div>
+                                    )}
+                                    {mensagemCriar && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">
+                                            {mensagemCriar}
+                                        </div>
+                                    )}
+                                    {/* nome */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Nome</label>
+                                        <input
+                                            value={novoNome}
+                                            onChange={e => setNovoNome(e.target.value)}
                                             className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
                                             required
-                                        >
-                                            <option value="">Selecione…</option>
-                                            {(conhecimentosCurso[removerCursoId]?.items || []).map(rel => (
-                                                <option key={rel.id || rel.conhecimento_id} value={rel.conhecimento_id}>
-                                                    {rel.conhecimento_nome || obterNomeConhecimento(rel.conhecimento_id)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
-                                </div>
-                                <button
-                                    disabled={removendoConhecimento}
-                                    type="submit"
-                                    className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
-                                >
-                                    {removendoConhecimento ? "Removendo..." : "Remover"}
-                                </button>
-                            </form>
-                        )}
+                                        />
+                                    </div>
+                                    {/* descrição */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Descrição</label>
+                                        <textarea
+                                            value={novaDescricao}
+                                            onChange={e => setNovaDescricao(e.target.value)}
+                                            rows={3}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
+                                            required
+                                        />
+                                    </div>
+                                    {/* botão enviar */}
+                                    <button
+                                        disabled={criando}
+                                        type="submit"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                    >
+                                        {criando ? "Salvando..." : "Cadastrar"}
+                                    </button>
+                                </form>
+                            )}
+                        </div>
                     </div>
                 </div>
             </main>
 
-            {/* ====================== Modal de confirmação de exclusão ====================== */}
+            {/* confirmação de exclusão */}
             {cursoExcluir && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="modal-excluir-titulo"
-                >
-                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={cancelarExclusao} />
-                    <div className="relative w-full max-w-md mx-auto bg-slate-900 border border-slate-700 rounded-lg shadow-lg p-6">
-                        <h2 id="modal-excluir-titulo" className="text-lg font-semibold text-red-300 mb-3">
-                            Confirmar Exclusão
-                        </h2>
-                        <p className="text-sm text-slate-300 mb-6 leading-relaxed">
-                            Tem certeza que deseja excluir o curso <strong className="text-slate-100">{cursoExcluir.nome}</strong>? Esta ação não pode ser desfeita.
-                        </p>
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={cancelarExclusao}
-                                disabled={excluindo}
-                                className="px-4 py-2 rounded-md border border-slate-600 bg-slate-800 text-slate-200 text-sm hover:bg-slate-700 disabled:opacity-50"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={confirmarExclusao}
-                                disabled={excluindo}
-                                className="px-4 py-2 rounded-md border border-red-700 bg-red-600/90 hover:bg-red-600 text-white text-sm font-medium disabled:opacity-50"
-                            >
-                                {excluindo ? "Excluindo..." : "Excluir"}
-                            </button>
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <div className="absolute inset-0 bg-black opacity-50"></div>
+                    <div className="bg-slate-800 rounded-lg overflow-hidden shadow-lg max-w-sm w-full z-10">
+                        <div className="p-5">
+                            {/* título */}
+                            <h2 className="text-lg font-semibold text-slate-200 mb-4">Confirmar Exclusão</h2>
+                            {/* mensagem */}
+                            <p className="text-sm text-slate-400 mb-6">
+                                Tem certeza que deseja excluir o curso "<span className="font-medium text-slate-200">{cursoExcluir.nome}</span>"?
+                            </p>
+                            {/* feedback */}
+                            {erro && (
+                                <div className="mb-4 text-sm text-red-400">
+                                    {erro}
+                                </div>
+                            )}
+                            {mensagem && (
+                                <div className="mb-4 text-sm text-emerald-400">
+                                    {mensagem}
+                                </div>
+                            )}
+                            <div className="flex justify-end gap-3">
+                                {/* botão cancelar */}
+                                <button
+                                    onClick={cancelarExclusao}
+                                    className="px-4 py-2 rounded-md bg-slate-700 text-slate-200 hover:bg-slate-600 transition"
+                                >
+                                    Cancelar
+                                </button>
+                                {/* botão confirmar */}
+                                <button
+                                    onClick={confirmarExclusao}
+                                    className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-500 transition flex items-center gap-2"
+                                >
+                                    {excluindo && <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path fill="currentColor" d="M4 12h16M12 4v16" />
+                                    </svg>}
+                                    {excluindo ? "Excluindo..." : "Excluir Curso"}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
