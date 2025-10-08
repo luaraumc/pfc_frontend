@@ -231,20 +231,38 @@ export default function EditarPerfil() {
 	// HTML
   	return (
 		<div className="min-h-screen bg-slate-900 text-slate-200">
+
+			{/* HEADER */}
 			<header className="w-full border-b border-slate-800 bg-slate-950/80">
-				<div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">PFC</Link>
-					<Link to="/homeUsuario" className="text-sm text-slate-300 hover:text-slate-100">Voltar</Link>
+				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
+						PFC
+					</Link>
+					<div className="flex items-center gap-3">
+						<button
+							onClick={logoutRedirecionar}
+							className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
+							Sair
+						</button>
+					</div>
 				</div>
 			</header>
+
+			{/* CONTEÚDO PRINCIPAL */}
 			<main className="max-w-4xl mx-auto px-4 py-10">
+
+				{/* BOTÃO VOLTAR */}
 				<button
-					onClick={() => navigate(-1)}
-					className="absolute top-20 left-10 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					onClick={() => navigate("/homeUsuario")}
+					className="mt-6 mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
 					>
 					<span aria-hidden>←</span> Voltar
 		    	</button>
+
+				{/* título */}
 				<h1 className="text-2xl font-semibold mb-8 text-center">Editar Perfil</h1>
+
+				{/* abas de navegação entre seções */}
 				<div role="tablist" aria-label="Opções de edição" className="flex justify-center gap-2 mb-10 flex-wrap">
 					{[
 						{id:'dados', label:'Atualizar dados'},
@@ -257,7 +275,7 @@ export default function EditarPerfil() {
 								key={t.id}
 								role="tab"
 								aria-selected={ativo}
-								onClick={()=> { setSecao(t.id); /* limpar mensagens ao trocar */ setMessage(null); setError(null); setSenhaMsg(null); setSenhaErr(null); setExcluirMsg(null); setExcluirErr(null); }}
+								onClick={()=> { setSecao(t.id); setMessage(null); setError(null); setSenhaMsg(null); setSenhaErr(null); setExcluirMsg(null); setExcluirErr(null); }}
 								className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${ativo ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700'}`}
 							>
 								{t.label}
@@ -266,18 +284,22 @@ export default function EditarPerfil() {
 					})}
 				</div>
 
+				{/* Seção de Dados */}
 				{secao === 'dados' && (
 					<form onSubmit={handleSubmit} className="space-y-5 max-w-md mx-auto" role="tabpanel" aria-label="Formulário atualizar dados">
 						{error && <div className="text-sm text-red-400 bg-red-950/40 border border-red-700 px-3 py-2 rounded">{error}</div>}
 						{message && <div className="text-sm text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-3 py-2 rounded">{message}</div>}
+						{/* Nome */}
 						<div>
 							<label className="block text-sm mb-1">Nome</label>
 							<input value={nome} onChange={e=>setNome(e.target.value)} required className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 						</div>
+						{/* Email */}
 						<div>
 							<label className="block text-sm mb-1">Email</label>
 							<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 						</div>
+						{/* Carreira e Curso */}
 						<div className="grid grid-cols-2 gap-4">
 							<div>
 								<label className="block text-sm mb-1">Carreira</label>
@@ -298,43 +320,53 @@ export default function EditarPerfil() {
 								</select>
 							</div>
 						</div>
+						{/* Botão Salvar */}
 						<button disabled={saving} type="submit" className="w-full bg-indigo-600 disabled:opacity-50 hover:bg-indigo-500 transition-colors px-4 py-2 rounded font-medium">{saving ? 'Salvando...' : 'Salvar'}</button>
 					</form>
 				)}
 
+				{/* Seção de Senha */}
 				{secao === 'senha' && (
 					<form onSubmit={confirmarNovaSenha} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário atualizar senha">
 						{senhaErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{senhaErr}</div>}
 						{senhaMsg && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{senhaMsg}</div>}
+						{/* Email */}
 						<div>
 							<label className="block text-xs mb-1">Email</label>
 							<input type="email" value={emailSenha} onChange={e=>setEmailSenha(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
+						{/* Código */}
 						<div className="flex gap-2">
 							<button onClick={solicitarCodigoSenha} disabled={!emailSenha || senhaLoading} className="px-3 py-2 bg-indigo-600 disabled:opacity-40 rounded text-xs hover:bg-indigo-500">Enviar Código</button>
 							<input placeholder="Código" value={codigoSenha} onChange={e=>setCodigoSenha(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
+						{/* Nova Senha */}
 						<div>
 							<label className="block text-xs mb-1">Nova Senha</label>
 							<input type="password" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
+						{/* Botão Confirmar */}
 						<button type="submit" disabled={senhaLoading} className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded py-2 text-sm">{senhaLoading ? 'Processando...' : 'Atualizar Senha'}</button>
 					</form>
 				)}
 
+				{/* Seção de Exclusão */}
 				{secao === 'excluir' && (
 					<form onSubmit={excluirConta} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário excluir conta">
 						{excluirErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{excluirErr}</div>}
 						{excluirMsg && <div className="text-xs text-amber-300 bg-amber-900/30 border border-amber-600 px-2 py-1 rounded">{excluirMsg}</div>}
 						<p className="text-xs text-slate-300 leading-snug text-center">ATENÇÃO! Esta ação é definitiva e não poderá ser desfeita.</p>
+						{/* Email */}
 						<div>
 							<label className="block text-xs mb-1">Email</label>
 							<input type="email" value={emailExclusao} onChange={e=>setEmailExclusao(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
+						{/* Código */}
 						<div className="flex gap-2">
 							<button onClick={solicitarCodigoExclusao} disabled={!emailExclusao || excluirLoading} className="px-3 py-2 bg-red-600 disabled:opacity-40 rounded text-xs hover:bg-red-500">Enviar Código</button>
 							<input placeholder="Código" value={codigoExclusao} onChange={e=>setCodigoExclusao(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
+						{/* Botão Excluir */}
 						<button type="submit" disabled={excluirLoading} className="w-full bg-red-700 hover:bg-red-600 disabled:opacity-50 rounded py-2 text-sm">{excluirLoading ? 'Excluindo...' : 'Excluir Conta'}</button>
 					</form>
 				)}
