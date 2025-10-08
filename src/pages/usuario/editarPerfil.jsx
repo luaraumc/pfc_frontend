@@ -4,8 +4,11 @@ import { authFetch } from "../../utils/auth"; // fetch autenticado com renovaç�
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
+// Página de edição de perfil
 export default function EditarPerfil() {
-	const navigate = useNavigate()
+
+	// Estados dos campos
+	const navigate = useNavigate() // navegação de páginas (voltar)
 	const [nome, setNome] = useState('')
 	const [email, setEmail] = useState('')
 	const [carreiraId, setCarreiraId] = useState('')
@@ -18,40 +21,41 @@ export default function EditarPerfil() {
 	const [message, setMessage] = useState(null)
 	const [error, setError] = useState(null)
     const [secao, setSecao] = useState('dados') // 'dados' | 'senha' | 'excluir'
-		// Alterar senha
-		const [emailSenha, setEmailSenha] = useState('')
-		const [codigoSenha, setCodigoSenha] = useState('')
-		const [novaSenha, setNovaSenha] = useState('')
-		const [senhaMsg, setSenhaMsg] = useState(null)
-		const [senhaErr, setSenhaErr] = useState(null)
-		const [senhaLoading, setSenhaLoading] = useState(false)
-		// Exclusão de conta
-		const [emailExclusao, setEmailExclusao] = useState('')
-		const [codigoExclusao, setCodigoExclusao] = useState('')
-		const [excluirMsg, setExcluirMsg] = useState(null)
-		const [excluirErr, setExcluirErr] = useState(null)
-		const [excluirLoading, setExcluirLoading] = useState(false)
 
+	// Alterar senha
+	const [emailSenha, setEmailSenha] = useState('')
+	const [codigoSenha, setCodigoSenha] = useState('')
+	const [novaSenha, setNovaSenha] = useState('')
+	const [senhaMsg, setSenhaMsg] = useState(null)
+	const [senhaErr, setSenhaErr] = useState(null)
+	const [senhaLoading, setSenhaLoading] = useState(false)
+
+	// Deletar conta
+	const [emailExclusao, setEmailExclusao] = useState('')
+	const [codigoExclusao, setCodigoExclusao] = useState('')
+	const [excluirMsg, setExcluirMsg] = useState(null)
+	const [excluirErr, setExcluirErr] = useState(null)
+	const [excluirLoading, setExcluirLoading] = useState(false)
+
+	// Carrega dados do usuário
 	useEffect(() => {
-		const usuarioId = localStorage.getItem('usuario_id')
-		if(!usuarioId){
-			navigate('/login')
-			return
-		}
-		let cancelado = false
+		const usuarioId = localStorage.getItem('usuario_id') // pega id do usuário do localStorage
+		if (!usuarioId) { navigate('/login'); return } // se não tiver id, redireciona para login
+		let cancelado = false; // evitar atualização de estado após desmontar
 		setLoading(true)
-		authFetch(`${API_URL}/usuario/${usuarioId}`)
-			.then(async r => {
-				if(!r.ok){
+		authFetch(`${API_URL}/usuario/${usuarioId}`) // fetch autenticado para buscar usuario pelo id
+			// se sucesso, preenche os campos
+			.then(async res => {
+				if(!res.ok){
 					throw new Error('Falha ao carregar usuário')
 				}
-				const data = await r.json()
+				const data = await res.json() // converte resposta em JSON
 				if(cancelado) return
 				setNome(data.nome || '')
 				setEmail(data.email || '')
 				setCarreiraId(data.carreira_id ?? '')
 				setCursoId(data.curso_id ?? '')
-				// manter nome em localStorage para saudação da home
+				// manter nome e email em localStorage
 				localStorage.setItem('usuario_nome', data.nome || '')
 				localStorage.setItem('usuario_email', data.email || '')
 			})
@@ -60,12 +64,13 @@ export default function EditarPerfil() {
 		return () => { cancelado = true }
 	}, [navigate])
 
-	// Carregar listas de carreiras e cursos
+	// Carrega listas de carreiras e cursos
 	useEffect(()=> {
-		const ctrl = new AbortController()
+		const ctrl = new AbortController() // para cancelar fetch se desmontar
 		async function carregar(){
 			setLoadingListas(true)
 			try {
+				// chama backend para carreiras e cursos em paralelo
 				const [resCarreira, resCurso] = await Promise.all([
 					fetch(`${API_URL}/carreira/`, { signal: ctrl.signal }),
 					fetch(`${API_URL}/curso/`, { signal: ctrl.signal })
@@ -73,7 +78,7 @@ export default function EditarPerfil() {
 				if(!resCarreira.ok) throw new Error('Falha ao listar carreiras')
 				if(!resCurso.ok) throw new Error('Falha ao listar cursos')
 				const [carreirasJson, cursosJson] = await Promise.all([
-					resCarreira.json(), resCurso.json()
+					resCarreira.json(), resCurso.json() // converte resposta em JSON
 				])
 				setCarreiras(carreirasJson ?? [])
 				setCursos(cursosJson ?? [])
@@ -85,34 +90,34 @@ export default function EditarPerfil() {
 		return () => ctrl.abort()
 	}, [])
 
+	// Atualiza os dados do perfil
 	async function handleSubmit(e){
-		e.preventDefault()
-		setError(null)
-		setMessage(null)
-		const usuarioId = localStorage.getItem('usuario_id')
-		if(!usuarioId){
-			navigate('/login')
-			return
-		}
-		setSaving(true)
+		e.preventDefault() // evita reload da página
+		setError(null); setMessage(null)
+		const usuarioId = localStorage.getItem('usuario_id') // pega id do usuário do localStorage
+		if (!usuarioId) { navigate('/login'); return } // se não tiver id, redireciona para login
+		setSaving(true) // inicia salvamento
 		try {
+			// monta o payload (dados a serem enviados)
 			const payload = {
 				nome,
 				email,
 				carreira_id: carreiraId ? Number(carreiraId) : null,
 				curso_id: cursoId ? Number(cursoId) : null
 			}
+			// chama backend
 			const resp = await authFetch(`${API_URL}/usuario/atualizar/${usuarioId}`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload)
+				body: JSON.stringify(payload) // converte para JSON
 			})
 			if(!resp.ok){
 				const text = await resp.text()
 				throw new Error(text || `Erro ${resp.status}`)
 			}
-			const data = await resp.json().catch(()=> ({}))
+			const data = await resp.json().catch(()=> ({})) // converte resposta em JSON, se falhar retorna objeto vazio
 			setMessage(data.message || 'Atualizado com sucesso')
+			// atualiza localStorage
 			localStorage.setItem('usuario_nome', nome)
 			localStorage.setItem('usuario_email', email)
 		} catch(err){
@@ -122,93 +127,109 @@ export default function EditarPerfil() {
 		}
 	}
 
-			async function solicitarCodigoSenha(e){
-				e.preventDefault()
-				setSenhaErr(null); setSenhaMsg(null)
-				try {
-					setSenhaLoading(true)
-					const resp = await fetch(`${API_URL}/usuario/solicitar-codigo/atualizar-senha`, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ email: emailSenha })
-					})
-					if(!resp.ok) throw new Error(await resp.text() || 'Erro ao solicitar código')
-					const data = await resp.json().catch(()=> ({}))
-					setSenhaMsg(data.message || 'Código enviado para o email')
-				} catch(err){
-					setSenhaErr(err.message)
-				} finally { setSenhaLoading(false) }
-			}
+	// Solicita código para alterar senha
+	async function solicitarCodigoSenha(e){
+		e.preventDefault() // evita reload da página
+		setSenhaErr(null); setSenhaMsg(null)
+		try {
+			setSenhaLoading(true)
+			// chama backend
+			const resp = await fetch(`${API_URL}/usuario/solicitar-codigo/atualizar-senha`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: emailSenha }) // converte para JSON
+			})
+			if(!resp.ok) throw new Error(await resp.text() || 'Erro ao solicitar código')
+			const data = await resp.json().catch(()=> ({})) // converte resposta em JSON, se falhar retorna objeto vazio
+			setSenhaMsg(data.message || 'Código enviado para o email')
+		} catch(err){
+			setSenhaErr(err.message)
+		} finally { setSenhaLoading(false) }
+	}
 
-			async function confirmarNovaSenha(e){
-				e.preventDefault()
-				setSenhaErr(null); setSenhaMsg(null)
-				const usuarioId = localStorage.getItem('usuario_id')
-				if(!usuarioId){ navigate('/login'); return }
-				try {
-					setSenhaLoading(true)
-					const resp = await authFetch(`${API_URL}/usuario/atualizar-senha/${usuarioId}`, {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ email: emailSenha, codigo: codigoSenha, nova_senha: novaSenha })
-					})
-					if(!resp.ok) throw new Error(await resp.text() || 'Erro ao atualizar senha')
-					const data = await resp.json().catch(()=> ({}))
-					setSenhaMsg(data.message || 'Senha atualizada')
-					setCodigoSenha(''); setNovaSenha('')
-				} catch(err){
-					setSenhaErr(err.message)
-				} finally { setSenhaLoading(false) }
-			}
+	// Confirma a nova senha
+	async function confirmarNovaSenha(e) {
+		e.preventDefault() // evita reload da página
+		setSenhaErr(null); setSenhaMsg(null)
+		const usuarioId = localStorage.getItem('usuario_id') // pega id do usuário do localStorage
+		if (!usuarioId) { navigate('/login'); return } // se não tiver id, redireciona para login
+		try {
+		setSenhaLoading(true)
+		// chama backend
+		const resp = await authFetch(`${API_URL}/usuario/atualizar-senha/${usuarioId}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email: emailSenha, codigo: codigoSenha, nova_senha: novaSenha }) // converte para JSON
+		})
+		if (!resp.ok) throw new Error(await resp.text() || 'Erro ao atualizar senha')
+		const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
+		setSenhaMsg(data.message || 'Senha atualizada')
+		setCodigoSenha('')
+		setNovaSenha('')
+		} catch (err) {
+		setSenhaErr(err.message)
+		} finally {
+		setSenhaLoading(false)
+		}
+	}
 
-			async function solicitarCodigoExclusao(e){
-				e.preventDefault()
-				setExcluirErr(null); setExcluirMsg(null)
-				try {
-					setExcluirLoading(true)
-					const resp = await fetch(`${API_URL}/usuario/solicitar-codigo/exclusao-conta`, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ email: emailExclusao })
-					})
-					if(!resp.ok) throw new Error(await resp.text() || 'Erro ao solicitar código')
-					const data = await resp.json().catch(()=> ({}))
-					setExcluirMsg(data.message || 'Código enviado')
-				} catch(err){
-					setExcluirErr(err.message)
-				} finally { setExcluirLoading(false) }
-			}
+	// Solicita código para exclusão de conta
+	async function solicitarCodigoExclusao(e) {
+		e.preventDefault() // evita reload da página
+		setExcluirErr(null); setExcluirMsg(null)
+		try {
+		setExcluirLoading(true)
+		// chama backend
+		const resp = await fetch(`${API_URL}/usuario/solicitar-codigo/exclusao-conta`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email: emailExclusao }) // converte para JSON
+		})
+		if (!resp.ok) throw new Error(await resp.text() || 'Erro ao solicitar código')
+		const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
+		setExcluirMsg(data.message || 'Código enviado')
+		} catch (err) {
+		setExcluirErr(err.message)
+		} finally {
+		setExcluirLoading(false)
+		}
+	}
 
-			async function excluirConta(e){
-				e.preventDefault()
-				setExcluirErr(null); setExcluirMsg(null)
-				const usuarioId = localStorage.getItem('usuario_id')
-				if(!usuarioId){ navigate('/login'); return }
-				try {
-					setExcluirLoading(true)
-					const resp = await authFetch(`${API_URL}/usuario/deletar/${usuarioId}`, {
-						method: 'DELETE',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ email: emailExclusao, codigo: codigoExclusao, motivo: 'exclusao_conta' })
-					})
-					if(!resp.ok) throw new Error(await resp.text() || 'Erro ao excluir conta')
-					const data = await resp.json().catch(()=> ({}))
-					setExcluirMsg(data.message || 'Conta excluída')
-					// Limpa e redireciona após breve delay
-					setTimeout(()=> {
-						localStorage.clear()
-						navigate('/')
-					}, 1500)
-				} catch(err){
-					setExcluirErr(err.message)
-				} finally { setExcluirLoading(false) }
-			}
+	// Exclui a conta do usuário
+	async function excluirConta(e) {
+		e.preventDefault() // evita reload da página
+		setExcluirErr(null); setExcluirMsg(null)
+		const usuarioId = localStorage.getItem('usuario_id') // pega id do usuário do localStorage
+		if (!usuarioId) { navigate('/login'); return } // se não tiver id, redireciona para login
+		try {
+		setExcluirLoading(true)
+		// chama backend
+		const resp = await authFetch(`${API_URL}/usuario/deletar/${usuarioId}`, {
+			method: 'DELETE',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email: emailExclusao, codigo: codigoExclusao, motivo: 'exclusao_conta' })
+		})
+		if (!resp.ok) throw new Error(await resp.text() || 'Erro ao excluir conta')
+		const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
+		setExcluirMsg(data.message || 'Conta excluída')
+		// limpa localStorage e redireciona para home após delay de 1.5s
+		setTimeout(() => {
+			localStorage.clear()
+			navigate('/')
+		}, 1500)
+		} catch (err) {
+		setExcluirErr(err.message)
+		} finally {
+		setExcluirLoading(false)
+		}
+	}
 
 	if(loading){
-    return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-slate-300">Carregando...</div>
-  }
+    	return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-slate-300">Carregando...</div>
+  	}
 
-  return (
+	// HTML
+  	return (
 		<div className="min-h-screen bg-slate-900 text-slate-200">
 			<header className="w-full border-b border-slate-800 bg-slate-950/80">
 				<div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
