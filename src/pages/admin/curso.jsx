@@ -73,7 +73,7 @@ export default function AdminCurso() {
 
     // Carrega lista de cursos
     useEffect(() => {
-        let ativo = true; // para evitar atualização de estado após desmontar
+        let ativo = true; // evitar atualização de estado após desmontar
         (async () => {
             try {
                 const res = await authFetch(`${API_URL}/curso/`); // chama backend
@@ -93,13 +93,13 @@ export default function AdminCurso() {
 
     // Carrega lista de conhecimentos
     useEffect(() => {
-        let ativo = true; // para evitar atualização de estado após desmontar
+        let ativo = true; // evitar atualização de estado após desmontar
         (async () => {
             try {
                 setConhecimentosLoading(true); // inicia carregamento
                 const res = await authFetch(`${API_URL}/conhecimento/`); // chama backend
                 if (!res.ok) throw new Error(`Falha ao listar conhecimentos (HTTP ${res.status})`);
-                const data = await res.json(); // converte resposta em JSON, se não, rejeita e vai para catch
+                const data = await res.json(); // converte resposta em JSON
                 if (ativo) setConhecimentos(Array.isArray(data) ? data : []); // garante que é array
             } catch (e) {
                 if (ativo) setConhecimentosErro(e.message || "Erro ao carregar conhecimentos");
@@ -126,7 +126,7 @@ export default function AdminCurso() {
             (async () => {
                 try {
                     const res = await authFetch(`${API_URL}/curso/${id}/conhecimentos`); // chama backend
-                    const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+                    const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
                     if (!res.ok)
                         throw new Error(
                             data?.detail || data?.message || `Falha ao carregar conhecimentos do curso (HTTP ${res.status})`
@@ -192,7 +192,7 @@ export default function AdminCurso() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload) // converte para JSON
             });
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao cadastrar (HTTP ${res.status})`;
                 throw new Error(msg);
@@ -237,7 +237,7 @@ export default function AdminCurso() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload) // converte para JSON
             });
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao atualizar (HTTP ${res.status})`;
                 throw new Error(msg);
@@ -270,7 +270,7 @@ export default function AdminCurso() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload) // converte para JSON
             });
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao cadastrar (HTTP ${res.status})`;
                 throw new Error(msg);
@@ -295,7 +295,7 @@ export default function AdminCurso() {
         try {
             setDeletandoConhecimento(true);
             const res = await authFetch(`${API_URL}/conhecimento/deletar/${deletarConhecimentoId}`, { method: "DELETE" }); // chama backend
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao deletar (HTTP ${res.status})`;
                 throw new Error(msg);
@@ -320,7 +320,7 @@ export default function AdminCurso() {
                 `${API_URL}/curso/${adicionarCursoId}/adicionar-conhecimento/${adicionarConhecimentoId}`,
                 { method: "POST" }
             );
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao adicionar (HTTP ${res.status})`;
                 throw new Error(msg);
@@ -352,7 +352,7 @@ export default function AdminCurso() {
                 `${API_URL}/curso/${removerCursoId}/remover-conhecimento/${removerConhecimentoId}`,
                 { method: "DELETE" }
             );
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
             if (!res.ok) {
                 const msg = data?.detail || data?.message || `Falha ao remover (HTTP ${res.status})`;
                 throw new Error(msg);
