@@ -229,10 +229,11 @@ export default function AdminCarreira() {
     // HTML
     return (
         <div className="min-h-screen bg-slate-900 text-slate-200">
-            {/* Cabeçalho: logo e ação de sair */}
+
+            {/* HEADER */}
             <header className="w-full border-b border-slate-800 bg-slate-950/80">
-                <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
+                <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                    <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
                         PFC - Admin
                     </Link>
                     <button
@@ -244,55 +245,52 @@ export default function AdminCarreira() {
                 </div>
             </header>
 
-            {/* Conteúdo principal: navegação, título, listagem e painel lateral */}
+            {/* CONTEÚDO PRINCIPAL */}
             <main className="ml-8 mr-8 mx-auto px-4 py-10">
-                {/* Ação: voltar à página anterior */}
+
+                {/* BOTÃO VOLTAR */}
                 <button
-                    onClick={() => navigate(-1)}
-                    className="mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+                    onClick={() => navigate("/homeAdmin")}
+                    className="mt-6 mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
                 >
                     <span aria-hidden>←</span> Voltar
                 </button>
 
-                {/* Título da página */}
+                {/* título */}
                 <h1 className="text-2xl font-semibold text-center mb-8">Gerenciar Carreiras</h1>
 
-                {/* Layout: duas colunas (Listagem à esquerda | Painel lateral à direita) */}
+                {/* listagem à esquerda | painel à direita */}
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    {/* Listagem de carreiras e feedbacks */}
+
                     <div className="flex-1 w-full">
-                        {/* Feedback: carregando */}
+                        {/* feedback */}
                         {carregando && (
                             <p className="text-slate-400">Carregando carreiras…</p>
                         )}
-
-                        {/* Feedback: mensagem geral de sucesso */}
                         {!!mensagem && !carregando && (
                             <div className="mb-3 p-3 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">
                                 {mensagem}
                             </div>
                         )}
-
-                        {/* Feedback: mensagem geral de erro */}
                         {!!erro && !carregando && (
                             <div className="p-3 rounded border border-red-600 bg-red-900 text-red-100 text-sm">
                                 {erro}
                             </div>
                         )}
 
-                        {/* Lista de carreiras ou estado vazio */}
+                        {/* lista de carreiras */}
                         {!carregando && !erro && (
                             carreiras.length === 0 ? (
                                 <p className="text-slate-400">Nenhuma carreira cadastrada.</p>
                             ) : (
-                                /* Lista de itens de carreira com ações e habilidades */
                                 <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-950">
                                     {carreiras.map((c) => (
                                         <li key={c.id ?? c.nome} className="p-4">
-                                            {/* Cabeçalho do item: nome da carreira, expandir habilidades e excluir */}
                                             <div className="flex items-center justify-between gap-2">
                                                 <div className="flex items-center gap-2">
+                                                    {/* nome da carreira */}
                                                     <p className="font-medium">{c.nome ?? `Carreira #${c.id}`}</p>
+                                                    {/* expandir habilidades */}
                                                     {c.id && (
                                                         <button
                                                             type="button"
@@ -308,6 +306,7 @@ export default function AdminCarreira() {
                                                         </button>
                                                     )}
                                                 </div>
+                                                {/* excluir carreira */}
                                                 {c.id && (
                                                     <button
                                                         onClick={() => solicitarExclusao(c)}
@@ -320,15 +319,14 @@ export default function AdminCarreira() {
                                                 )}
                                             </div>
 
-                                            {/* Descrição da carreira (opcional) */}
+                                            {/* descrição da carreira */}
                                             {c.descricao && (
                                                 <p className="text-sm text-slate-400 mt-1">{c.descricao}</p>
                                             )}
 
-                                            {/* Seção: Habilidades associadas (expandível) */}
+                                            {/* habilidades associadas */}
                                             {carreirasExpandidas.includes(c.id) && (
                                                 <div className="mt-3 ml-4">
-                                                    {/* Estados da lista de habilidades: carregando, erro ou itens */}
                                                     {habilidadesCarreira[c.id]?.loading ? (
                                                         <p className="text-xs text-slate-400">Carregando habilidades…</p>
                                                     ) : habilidadesCarreira[c.id]?.error ? (
@@ -356,123 +354,141 @@ export default function AdminCarreira() {
                         )}
                     </div>
 
-                    {/* Painel lateral: alterna entre criar e atualizar carreira */}
-                    <div className="w-full lg:w-96 bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6 self-start">
-                        {/* Ações do painel: escolher modo (criar | atualizar) */}
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={() => { setModoPainel(modoPainel === 'criar' ? 'nenhum' : 'criar'); setMensagemCriar(''); setErroCriar(''); }}
-                                className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === 'criar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
-                            >
-                                Cadastrar Nova Carreira
-                            </button>
-                            <button
-                                onClick={() => { setModoPainel(modoPainel === 'atualizar' ? 'nenhum' : 'atualizar'); setMensagemAtualizar(''); setErroAtualizar(''); }}
-                                className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === 'atualizar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
-                            >
-                                Atualizar Carreira
-                            </button>
-                        </div>
+                    {/* painel lateral */}
+                    <div className="w-full lg:w-96 self-start">
 
-                        {/* Formulário: cadastro de nova carreira */}
-                        {modoPainel === 'criar' && (
-                            <form onSubmit={cadastrarCarreira} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Nova Carreira</h2>
-                                {/* Feedback do formulário de cadastro */}
-                                {erroCriar && (
-                                    <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroCriar}</div>
-                                )}
-                                {mensagemCriar && (
-                                    <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemCriar}</div>
-                                )}
-                                {/* Campos do formulário de cadastro */}
-                                <div>
-                                    <label className="block text-xs mb-1">Nome</label>
-                                    <input
-                                        value={novoNome}
-                                        onChange={e => setNovoNome(e.target.value)}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs mb-1">Descrição</label>
-                                    <textarea
-                                        value={novaDescricao}
-                                        onChange={e => setNovaDescricao(e.target.value)}
-                                        rows={3}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
-                                    />
-                                </div>
-                                {/* Ação: submeter cadastro */}
+                        {/* botão atualizar página */}
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="mb-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+                            title="Atualizar a página"
+                        >
+                            <span aria-hidden>↻</span> Atualizar
+                        </button>
+
+                        <div className="bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6">
+                            <div className="flex flex-col gap-3">
+                                {/* cadastrar nova carreira */}
                                 <button
-                                    disabled={criando}
-                                    type="submit"
-                                    className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                    onClick={() => { setModoPainel(modoPainel === 'criar' ? 'nenhum' : 'criar'); setMensagemCriar(''); setErroCriar(''); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === 'criar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                 >
-                                    {criando ? 'Salvando...' : 'Cadastrar'}
+                                    Cadastrar Nova Carreira
                                 </button>
-                            </form>
-                        )}
+                                {/* atualizar carreira */}
+                                <button
+                                    onClick={() => { setModoPainel(modoPainel === 'atualizar' ? 'nenhum' : 'atualizar'); setMensagemAtualizar(''); setErroAtualizar(''); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === 'atualizar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
+                                >
+                                    Atualizar Carreira
+                                </button>
+                            </div>
 
-                        {/* Formulário: atualização de carreira existente */}
-                        {modoPainel === 'atualizar' && (
-                            <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
-                                <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Carreira</h2>
-                                {/* Feedback do formulário de atualização */}
-                                {erroAtualizar && (
-                                    <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroAtualizar}</div>
-                                )}
-                                {mensagemAtualizar && (
-                                    <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemAtualizar}</div>
-                                )}
-                                {/* Campos do formulário de atualização */}
-                                <div>
-                                    <label className="block text-xs mb-1">Selecionar carreira</label>
-                                    <select
-                                        value={atualizarId}
-                                        onChange={aoSelecionarAtualizar}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
+                            {/* formulário cadastro de carreira */}
+                            {modoPainel === 'criar' && (
+                                <form onSubmit={cadastrarCarreira} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Nova Carreira</h2>
+                                    {/* feedback */}
+                                    {erroCriar && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroCriar}</div>
+                                    )}
+                                    {mensagemCriar && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemCriar}</div>
+                                    )}
+                                    {/* nome */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Nome</label>
+                                        <input
+                                            value={novoNome}
+                                            onChange={e => setNovoNome(e.target.value)}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        />
+                                    </div>
+                                    {/* descrição */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Descrição</label>
+                                        <textarea
+                                            value={novaDescricao}
+                                            onChange={e => setNovaDescricao(e.target.value)}
+                                            rows={3}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
+                                        />
+                                    </div>
+                                    {/* botão cadastrar */}
+                                    <button
+                                        disabled={criando}
+                                        type="submit"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
                                     >
-                                        <option value="">Selecione…</option>
-                                        {carreiras.map(c => (
-                                            <option key={c.id} value={c.id}>{c.nome}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs mb-1">Nome</label>
-                                    <input
-                                        value={atualizarNome}
-                                        onChange={e => setAtualizarNome(e.target.value)}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs mb-1">Descrição</label>
-                                    <textarea
-                                        value={atualizarDescricao}
-                                        onChange={e => setAtualizarDescricao(e.target.value)}
-                                        rows={3}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
-                                    />
-                                </div>
-                                {/* Ação: submeter atualização */}
-                                <button
-                                    disabled={atualizando}
-                                    type="submit"
-                                    className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
-                                >
-                                    {atualizando ? 'Atualizando...' : 'Salvar Alterações'}
-                                </button>
-                            </form>
-                        )}
+                                        {criando ? 'Salvando...' : 'Cadastrar'}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* formulário atualização de carreira */}
+                            {modoPainel === 'atualizar' && (
+                                <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Carreira</h2>
+                                    {/* feedback */}
+                                    {erroAtualizar && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroAtualizar}</div>
+                                    )}
+                                    {mensagemAtualizar && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemAtualizar}</div>
+                                    )}
+                                    {/* seleção de carreira */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Selecionar carreira</label>
+                                        <select
+                                            value={atualizarId}
+                                            onChange={aoSelecionarAtualizar}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        >
+                                            <option value="">Selecione…</option>
+                                            {carreiras.map(c => (
+                                                <option key={c.id} value={c.id}>{c.nome}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {/* nome */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Nome</label>
+                                        <input
+                                            value={atualizarNome}
+                                            onChange={e => setAtualizarNome(e.target.value)}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        />
+                                    </div>
+                                    {/* descrição */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Descrição</label>
+                                        <textarea
+                                            value={atualizarDescricao}
+                                            onChange={e => setAtualizarDescricao(e.target.value)}
+                                            rows={3}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
+                                        />
+                                    </div>
+                                    {/* botão atualizar */}
+                                    <button
+                                        disabled={atualizando}
+                                        type="submit"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                    >
+                                        {atualizando ? 'Atualizando...' : 'Salvar Alterações'}
+                                    </button>
+                                </form>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Modal de confirmação de exclusão (aparece quando há carreira selecionada para excluir) */}
+                {/* confirmação de exclusão */}
                 {carreiraExcluir && (
                     <div
                         className="fixed inset-0 z-50 flex items-center justify-center"
@@ -480,16 +496,18 @@ export default function AdminCarreira() {
                         aria-modal="true"
                         aria-labelledby="modal-excluir-carreira-titulo"
                     >
-                        {/* Fundo escuro/blur: fecha ao clicar fora */}
+                        {/* fundo escuro/blur */}
                         <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={cancelarExclusao} />
-                        {/* Conteúdo do modal: título, mensagem e ações */}
+                        
                         <div className="relative w-full max-w-md mx-auto bg-slate-900 border border-slate-700 rounded-lg shadow-lg p-6">
+                            {/* título */}
                             <h2 id="modal-excluir-carreira-titulo" className="text-lg font-semibold text-red-300 mb-3">Confirmar Exclusão</h2>
+                            {/* mensagem de confirmação */}
                             <p className="text-sm text-slate-300 mb-6 leading-relaxed">
                                 Tem certeza que deseja excluir a carreira <strong className="text-slate-100">{carreiraExcluir.nome}</strong>? Esta ação não pode ser desfeita.
                             </p>
-                            {/* Ações do modal: cancelar ou confirmar exclusão */}
                             <div className="flex justify-end gap-3">
+                                {/* botão cancelar */}
                                 <button
                                     onClick={cancelarExclusao}
                                     disabled={excluindo}
@@ -497,6 +515,7 @@ export default function AdminCarreira() {
                                 >
                                     Cancelar
                                 </button>
+                                {/* botão confirmar */}
                                 <button
                                     onClick={confirmarExclusao}
                                     disabled={excluindo}
