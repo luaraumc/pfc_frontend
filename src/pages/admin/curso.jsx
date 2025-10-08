@@ -280,6 +280,9 @@ export default function AdminCurso() {
             if (data?.id) {
                 const novoConhecimentoObj = { id: data.id, nome: payload.nome }; // cria objeto do novo conhecimento
                 setConhecimentos(estadoAnterior => [novoConhecimentoObj, ...estadoAnterior]); // atualiza a lista de conhecimentos com o novo no topo
+                // Força atualização do estado de loading para garantir que os dropdowns sejam atualizados
+                setConhecimentosLoading(false);
+                setConhecimentosErro("");
             }
             setNovoConhecimento("");
         } catch (e) {
@@ -333,6 +336,9 @@ export default function AdminCurso() {
                 return { ...estadoAnterior, [adicionarCursoId]: { ...entry, items: [...entry.items, data], loading: false } };
             });
             setAdicionarConhecimentoId("");
+            // Força atualização da lista de conhecimentos
+            setConhecimentosLoading(false);
+            setConhecimentosErro("");
         } catch (e) {
             setErroAdicionarConhecimento(e.message || "Erro ao adicionar");
         } finally {
@@ -383,27 +389,36 @@ export default function AdminCurso() {
         <div className="min-h-screen bg-slate-900 text-slate-200">
             
             {/* HEADER */}
-            <header className="w-full border-b border-slate-800 bg-slate-950/80">
-                <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-                        PFC - Admin
-                    </Link>
-                    <button
-                        onClick={logoutRedirecionar}
-                        className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-                    >
-                        Sair
-                    </button>
-                </div>
-            </header>
+			<header className="w-full border-b border-slate-800 bg-slate-950/80">
+				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+				<Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
+					PFC - Admin
+				</Link>
+				<Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
+					Carreiras
+				</Link>
+				<Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
+					Cursos
+				</Link>
+				<Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
+					Vagas
+				</Link>
+				<button
+					onClick={logoutRedirecionar}
+					className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					>
+					Sair
+				</button>
+				</div>
+			</header>
 
             {/* CONTEÚDO PRINCIPAL */}
-            <main className="ml-8 mr-8 mx-auto px-4 py-10">
+            <main className="ml-8 mr-8 mx-auto px-4 py-5">
 
                 {/* BOTÃO VOLTAR */}
                 <button
-                    onClick={() => navigate("/homeAdmin")}
-                    className="mt-6 mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+                    onClick={() => navigate(-1)}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
                 >
                     <span aria-hidden>←</span> Voltar
                 </button>
@@ -551,14 +566,14 @@ export default function AdminCurso() {
                                     onClick={() => {setModoPainel(modoPainel === "adicionarConhecimento" ? "nenhum" : "adicionarConhecimento");setErroAdicionarConhecimento("");setMensagemAdicionarConhecimento("");}}
                                     className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "adicionarConhecimento"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
-                                    Adicionar conhecimento ao curso
+                                    Adicionar Conhecimento ao Curso
                                 </button>
                                 {/* remover conhecimento do curso */}
                                 <button
                                     onClick={() => {setModoPainel(modoPainel === "removerConhecimento" ? "nenhum" : "removerConhecimento"); setErroRemoverConhecimento(""); setMensagemRemoverConhecimento("");}}
                                     className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "removerConhecimento"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
-                                    Remover conhecimento do curso
+                                    Remover Conhecimento do Curso
                                 </button>
                             </div>
 
@@ -677,6 +692,216 @@ export default function AdminCurso() {
                                         className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
                                     >
                                         {criando ? "Salvando..." : "Cadastrar"}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* formulario atualizar curso */}
+                            {modoPainel === "atualizar" && (
+                                <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Curso</h2>
+                                    {/* feedback */}
+                                    {erroAtualizar && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
+                                            {erroAtualizar}
+                                        </div>
+                                    )}
+                                    {mensagemAtualizar && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">
+                                            {mensagemAtualizar}
+                                        </div>
+                                    )}
+                                    {/* seleção de curso */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Selecionar curso</label>
+                                        <select
+                                            value={atualizarId}
+                                            onChange={aoSelecionarAtualizar}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        >
+                                            <option value="">Selecione…</option>
+                                            {cursos.map(c => (
+                                                <option key={c.id} value={c.id}>
+                                                    {c.nome}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {/* nome */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Nome</label>
+                                        <input
+                                            value={atualizarNome}
+                                            onChange={e => setAtualizarNome(e.target.value)}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        />
+                                    </div>
+                                    {/* descrição */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Descrição</label>
+                                        <textarea
+                                            value={atualizarDescricao}
+                                            onChange={e => setAtualizarDescricao(e.target.value)}
+                                            rows={3}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm resize-y"
+                                            required
+                                        />
+                                    </div>
+                                    {/* botão enviar */}
+                                    <button
+                                        disabled={atualizando}
+                                        type="submit"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                    >
+                                        {atualizando ? "Atualizando..." : "Salvar Alterações"}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* formulario adicionar conhecimento ao curso */}
+                            {modoPainel === "adicionarConhecimento" && (
+                                <form onSubmit={AdicionarConhecimentoAoCurso} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Adicionar Conhecimento</h2>
+                                    {/* feedback */}
+                                    {erroAdicionarConhecimento && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
+                                            {erroAdicionarConhecimento}
+                                        </div>
+                                    )}
+                                    {mensagemAdicionarConhecimento && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">
+                                            {mensagemAdicionarConhecimento}
+                                        </div>
+                                    )}
+                                    {/* seleção de curso */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Curso</label>
+                                        <select
+                                            value={adicionarCursoId}
+                                            onChange={e => setAdicionarCursoId(e.target.value)}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        >
+                                            <option value="">Selecione…</option>
+                                            {cursos.map(c => (
+                                                <option key={c.id} value={c.id}>
+                                                    {c.nome}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {/* seleção de conhecimento */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Conhecimento</label>
+                                        {conhecimentosLoading ? (
+                                            <p className="text-xs text-slate-400">Carregando…</p>
+                                        ) : conhecimentosErro ? (
+                                            <p className="text-xs text-red-400">{conhecimentosErro}</p>
+                                        ) : conhecimentos.length === 0 ? (
+                                            <p className="text-xs text-slate-500">Nenhum conhecimento disponível.</p>
+                                        ) : (
+                                            <select
+                                                value={adicionarConhecimentoId}
+                                                onChange={e => setAdicionarConhecimentoId(e.target.value)}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                                required
+                                            >
+                                                <option value="">Selecione…</option>
+                                                {conhecimentos.map(k => (
+                                                    <option key={k.id} value={k.id}>
+                                                        {k.nome}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                    {/* botão enviar */}
+                                    <button
+                                        disabled={adicionandoConhecimento}
+                                        type="submit"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                    >
+                                        {adicionandoConhecimento ? "Adicionando..." : "Adicionar"}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* formulario remover conhecimento do curso */}
+                            {modoPainel === "removerConhecimento" && (
+                                <form onSubmit={RemoverConhecimentoDoCurso} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Remover Conhecimento</h2>
+                                    {/* feedback */}
+                                    {erroRemoverConhecimento && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
+                                            {erroRemoverConhecimento}
+                                        </div>
+                                    )}
+                                    {mensagemRemoverConhecimento && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">
+                                            {mensagemRemoverConhecimento}
+                                        </div>
+                                    )}
+                                    {/* seleção de curso */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Curso</label>
+                                        <select
+                                            value={removerCursoId}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setRemoverCursoId(val);
+                                                setRemoverConhecimentoId("");
+                                                if (val && !conhecimentosCurso[val]) {
+                                                    alternarExpandirCurso(Number(val));
+                                                }
+                                            }}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        >
+                                            <option value="">Selecione…</option>
+                                            {cursos.map(c => (
+                                                <option key={c.id} value={c.id}>
+                                                    {c.nome}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {/* seleção de conhecimento */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Conhecimento (associado)</label>
+                                        {!removerCursoId ? (
+                                            <p className="text-xs text-slate-500">Selecione um curso primeiro.</p>
+                                        ) : conhecimentosCurso[removerCursoId]?.loading ? (
+                                            <p className="text-xs text-slate-400">Carregando…</p>
+                                        ) : conhecimentosCurso[removerCursoId]?.error ? (
+                                            <p className="text-xs text-red-400">{conhecimentosCurso[removerCursoId].error}</p>
+                                        ) : (
+                                            <select
+                                                value={removerConhecimentoId}
+                                                onChange={e => setRemoverConhecimentoId(e.target.value)}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                                required
+                                            >
+                                                <option value="">Selecione…</option>
+                                                {(conhecimentosCurso[removerCursoId]?.items || []).map(rel => (
+                                                    <option key={rel.id || rel.conhecimento_id} value={rel.conhecimento_id}>
+                                                        {rel.conhecimento_nome || obterNomeConhecimento(rel.conhecimento_id)}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                    {/* botão enviar */}
+                                    <button
+                                        disabled={removendoConhecimento}
+                                        type="submit"
+                                        className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                    >
+                                        {removendoConhecimento ? "Removendo..." : "Remover"}
                                     </button>
                                 </form>
                             )}
