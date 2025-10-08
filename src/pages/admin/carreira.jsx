@@ -49,7 +49,7 @@ export default function AdminCarreira() {
 
     // Carrega lista de carreiras
     useEffect(() => {
-        let ativo = true; // para evitar atualização de estado após desmontar
+        let ativo = true; // evitar atualização de estado após desmontar
         (async () => {
             try {
                 const res = await authFetch(`${API_URL}/carreira/`); // chama backend
@@ -69,13 +69,13 @@ export default function AdminCarreira() {
 
     // Carrega lista de habilidades
     useEffect(() => {
-        let ativo = true; // para evitar atualização de estado após desmontar
+        let ativo = true; // evitar atualização de estado após desmontar
         (async () => {
             try {
                 setHabilidadesLoading(true); // inicia carregamento
                 const res = await authFetch(`${API_URL}/habilidade/`); // chama backend
                 if (!res.ok) throw new Error(`Falha ao listar habilidades (HTTP ${res.status})`);
-                const data = await res.json();  // converte resposta em JSON, se não, rejeita e vai para catch
+                const data = await res.json();  // converte resposta em JSON
                 if (ativo) setHabilidades(Array.isArray(data) ? data : []); // garante que é array
             } catch (e) {
                 if (ativo) setHabilidadesErro(e.message || "Erro ao carregar habilidades");
@@ -102,7 +102,7 @@ export default function AdminCarreira() {
             (async () => {
                 try {
                     const res = await authFetch(`${API_URL}/carreira/${id}/habilidades`); // chama backend
-                    const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+                    const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
                     if (!res.ok)
                         throw new Error(
                             data?.detail || data?.message || `Falha ao carregar habilidades da carreira (HTTP ${res.status})`
@@ -135,7 +135,7 @@ export default function AdminCarreira() {
         setExcluindo(true); setErro(''); setMensagem('');
         try {
             const res = await authFetch(`${API_URL}/carreira/deletar/${carreiraExcluir.id}`, { method: 'DELETE' }); // chama backend
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
             if(!res.ok){
                 const msg = data?.detail || data?.message || `Falha ao excluir (HTTP ${res.status})`;
                 throw new Error(msg);
@@ -167,7 +167,7 @@ export default function AdminCarreira() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload) // converte para JSON
             });
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
             if(!res.ok){
                 const msg = data?.detail || data?.message || `Falha ao cadastrar (HTTP ${res.status})`;
                 throw new Error(msg);
@@ -208,7 +208,7 @@ export default function AdminCarreira() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload) // converte para JSON
             });
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON sem cair no catch
+            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
             if(!res.ok){
                 const msg = data?.detail || data?.message || `Falha ao atualizar (HTTP ${res.status})`;
                 throw new Error(msg);
