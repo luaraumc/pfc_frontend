@@ -134,7 +134,7 @@ export default function LoginUsuario() {
 				{/* BOTÃO VOLTAR */}
 				<div className="max-w-6xl mx-auto px-4 pt-6">
 					<button
-						onClick={() => navigate("/")}
+						onClick={() => navigate(-1)}
 						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
 					>
 						<span aria-hidden>←</span> Voltar
@@ -142,7 +142,7 @@ export default function LoginUsuario() {
 				</div>
 
 				{/* CONTEÚDO PRINCIPAL */}
-				<div className="min-h-screen flex flex-col items-center justify-center p-4">
+				<div className="flex flex-col items-center pt-5 pb-8 px-4">
 
 					{/* título */}
 					<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Entrar</h1>
