@@ -3,8 +3,10 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'; // URL 
 
 // Pega os dados de um JWT e transforma em JSON
 export function transformarJwt(token) {
+    
     // Entrada: uma string JWT no formato header.payload.signature (dois “.”)
     // Saída: objeto JSON com os dados do payload ou null se falhar
+    
     try {
         const base64Url = token.split('.')[1]; // pega o payload (parte do meio) do JWT
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // converte para base64 padrão
