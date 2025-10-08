@@ -101,16 +101,26 @@ export default function RecuperarSenha() {
 	// HTML
 	return (
 		<div className="min-h-screen relative bg-slate-900">
-			<button
-				onClick={() => navigate(-1)}
-				className="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+
+			{/* BOTÃO VOLTAR */}
+			<div className="max-w-6xl mx-auto px-4 pt-6">
+				<button
+					onClick={() => navigate("/login")}
+					className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
 				>
-				<span aria-hidden>←</span> Voltar
-		    </button>
+					<span aria-hidden>←</span> Voltar
+				</button>
+			</div>
+
+			{/* CONTEÚDO PRINCIPAL */}
 			<div className="min-h-screen flex flex-col items-center justify-center p-4">
+
+				{/* título */}
 				<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Recuperar senha</h1>
+
 				<div className="w-full max-w-md bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
 
+					{/* feedback */}
 					{!!erro && (
 						<div className="mb-3 p-3 rounded border border-red-600 bg-red-900 text-red-100 text-sm">{erro}</div>
 					)}
@@ -118,8 +128,10 @@ export default function RecuperarSenha() {
 						<div className="mb-3 p-3 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{mensagem}</div>
 					)}
 
+					{/* formulário de solicitação de código */}
 					{step === "request" && (
 						<div className="space-y-3">
+							{/* email */}
 							<div className="flex flex-col">
 								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="email">E-mail</label>
 								<input
@@ -132,6 +144,8 @@ export default function RecuperarSenha() {
 									className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 								/>
 							</div>
+
+							{/* botão enviar código */}
 							<button
 								type="button"
 								onClick={solicitarCodigo}
@@ -140,11 +154,15 @@ export default function RecuperarSenha() {
 							>
 								{submitting ? "Enviando…" : "Enviar código"}
 							</button>
+
 						</div>
+
 					)}
 
+					{/* formulário de redefinição de senha */}
 					{step === "reset" && (
 						<form onSubmit={redefinirSenha} className="space-y-3">
+							{/* email */}
 							<div className="flex flex-col">
 								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="email">E-mail</label>
 								<input
@@ -158,6 +176,7 @@ export default function RecuperarSenha() {
 								/>
 							</div>
 
+							{/* código */}
 							<div className="flex flex-col">
 								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="codigo">Código</label>
 								<input
@@ -173,6 +192,7 @@ export default function RecuperarSenha() {
 								/>
 							</div>
 
+							{/* nova senha */}
 							<div className="flex flex-col">
 								<label className="mb-2 text-indigo-300 text-sm" htmlFor="novaSenha">Nova senha</label>
 								<input
@@ -186,6 +206,7 @@ export default function RecuperarSenha() {
 								/>
 							</div>
 
+							{/* confirmar nova senha */}
 							<div className="flex flex-col">
 								<label className="mb-2 text-indigo-300 text-sm" htmlFor="confirmarSenha">Confirmar nova senha</label>
 								<input
@@ -199,7 +220,9 @@ export default function RecuperarSenha() {
 								/>
 							</div>
 
+							
 							<div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+								{/* botão reenviar código */}
 								<button
 									type="button"
 									onClick={solicitarCodigo}
@@ -208,6 +231,8 @@ export default function RecuperarSenha() {
 								>
 									Reenviar código
 								</button>
+
+								{/* botão redefinir senha */}
 								<button
 									type="submit"
 									disabled={submitting}
@@ -219,7 +244,9 @@ export default function RecuperarSenha() {
 						</form>
 					)}
 
+					{/* links para login e cadastro */}
 					<div className="mt-4 flex flex-col gap-2">
+						{/* botão voltar ao login */}
 						<button
 							type="button"
 							onClick={() => (window.location.href = "/login")}
@@ -227,6 +254,7 @@ export default function RecuperarSenha() {
 						>
 							Voltar ao login
 						</button>
+						{/* botão ir para cadastro */}
 						<button
 							type="button"
 							onClick={() => (window.location.href = "/cadastro")}
