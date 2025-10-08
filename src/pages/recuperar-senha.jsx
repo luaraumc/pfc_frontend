@@ -5,8 +5,10 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de recuperação de senha
 export default function RecuperarSenha() {
+
 	// Estados dos campos
-	const [step, setStep] = useState("request");
+	const navigate = useNavigate(); // navegação de páginas (voltar)
+	const [step, setStep] = useState("request"); // etapas: request (solicitar código) | reset (redefinir senha)
 	const [email, setEmail] = useState("");
 	const [codigo, setCodigo] = useState("");
 	const [novaSenha, setNovaSenha] = useState("");
@@ -15,14 +17,16 @@ export default function RecuperarSenha() {
 	const [mensagem, setMensagem] = useState("");
 	const [erro, setErro] = useState("");
 
-	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]); // validação de email (com @ e .)
+	// Definindo e-mail válido (com @ e .)
+	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]);
 
-	function validarRequest() {
+	// Validando e-mail
+	function validarEmail() {
 		if (!email.trim() || !emailValido) return "Informe um e-mail válido"; // trim() remove espaços em branco no início e fim
 		return null;
 	}
 
-	// Validação do formulário
+	// Validação do formulário de redefinição de senha
 	function validarReset() {
 		if (!email.trim() || !emailValido) return "Informe um e-mail válido";
 		if (!codigo.trim() || codigo.trim().length !== 6) return "Informe o código de 6 dígitos";
@@ -32,27 +36,24 @@ export default function RecuperarSenha() {
 		return null;
 	}
 
-	// Solicita o código de recuperação de senha
+	// Solicita o código
 	async function solicitarCodigo() {
-		setErro(""); // limpa erros anteriores
-		setMensagem(""); // limpa mensagens anteriores
-
-		// validação dos campos
-		const err = validarRequest();
+		setErro("");setMensagem("");
+		// validação do e-mail
+		const err = validarEmail();
 		if (err) {
 			setErro(err);
 			return;
 		}
-
-		// Requisição para solicitar código ao backend
 		setSubmitting(true);
 		try {
+			// chama backend
 			const res = await fetch(`${API_URL}/auth/solicitar-codigo/recuperar-senha`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email: email.trim() }),
+				body: JSON.stringify({ email: email.trim() }), // converte para JSON
 			});
-			const data = await res.json().catch(() => ({})); // tenta converter a resposta em JSON, se falhar retorna objeto vazio
+			const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Falha ao solicitar código (HTTP ${res.status})`;
 				throw new Error(msg);
@@ -62,32 +63,29 @@ export default function RecuperarSenha() {
 		} catch (e) {
 			setErro(e.message ?? "Erro ao solicitar código");
 		} finally {
-			setSubmitting(false); // finaliza o estado de submissão
+			setSubmitting(false);
 		}
 	}
 
 	// Redefine a senha usando o código enviado por e-mail
 	async function redefinirSenha(e) {
-		e.preventDefault(); // previne recarregar a página
-		setErro(""); // limpa erros anteriores
-		setMensagem(""); // limpa mensagens anteriores
-
+		e.preventDefault(); // evita reload da página
+		setErro(""); setMensagem("");
 		// validação dos campos
 		const err = validarReset();
 		if (err) {
 			setErro(err);
 			return;
 		}
-
-		// Requisição para redefinir a senha no backend
 		setSubmitting(true);
 		try {
+			// chama backend
 			const res = await fetch(`${API_URL}/auth/recuperar-senha`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email: email.trim(), codigo: codigo.trim(), nova_senha: novaSenha }),
+				body: JSON.stringify({ email: email.trim(), codigo: codigo.trim(), nova_senha: novaSenha }), // converte para JSON
 			});
-			const data = await res.json().catch(() => ({})); // tenta converter a resposta em JSON, se falhar retorna objeto vazio
+			const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Falha ao atualizar senha (HTTP ${res.status})`;
 				throw new Error(msg);
@@ -96,11 +94,9 @@ export default function RecuperarSenha() {
 		} catch (e) {
 			setErro(e.message ?? "Erro ao atualizar senha");
 		} finally {
-			setSubmitting(false); // finaliza o estado de submissão
+			setSubmitting(false);
 		}
 	}
-
-	const navigate = useNavigate(); // navegação de páginas (voltar)
 
 	// HTML
 	return (
