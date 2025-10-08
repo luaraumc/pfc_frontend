@@ -117,7 +117,7 @@ export default function CadastroUsuario() {
 			{/* BOTÃO VOLTAR */}
 			<div className="max-w-6xl mx-auto px-4 pt-6">
 				<button
-					onClick={() => navigate("/")}
+					onClick={() => navigate(-1)}
 					className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
 				>
 					<span aria-hidden>←</span> Voltar
@@ -125,12 +125,12 @@ export default function CadastroUsuario() {
 			</div>
 
 			{/* CONTEÚDO PRINCIPAL */}
-			<div className="min-h-screen flex flex-col items-center justify-center p-4">
+			<div className="min-h-screen flex flex-col items-center pb-15 px-4">
 
 				{/* título */}
 				<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Cadastro de Usuário</h1>
 
-				<div className="w-full max-w-3xl bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
+				<div className="w-full max-w-md bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
 
 					{/* feedback */}
 					{loadingListas && (
@@ -185,7 +185,7 @@ export default function CadastroUsuario() {
 						</div>
 
 						{/* carreira e curso */}
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+						<div className="space-y-3">
 							<div className="flex flex-col">
 								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="carreira">Carreira Desejada</label>
 								<select
