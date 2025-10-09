@@ -14,11 +14,17 @@ export default function HomeAdmin() {
                 <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
                     PFC - Admin
                 </Link>
+                <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Cursos
+                </Link>
+                <Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Conhecimentos
+                </Link>
                 <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
                     Carreiras
                 </Link>
-                <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
-                    Cursos
+                <Link to="/admin/habilidade" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Habilidades
                 </Link>
                 <Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
                     Vagas
@@ -54,12 +60,21 @@ export default function HomeAdmin() {
                     </Link>
 
                     {/* cursos */}
-                    <Link
-                        to="/admin/curso"
-                        className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm"
-                    >
+                    <Link to="/admin/curso" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
                         <h2 className="text-xl font-medium">Gerenciar Cursos</h2>
-                        <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova cursos e conhecimentos.</p>
+                        <p className="mt-1 text-slate-400 text-sm">Cadastre/edite cursos e gerencie conhecimentos por curso.</p>
+                    </Link>
+
+                    {/* conhecimentos */}
+                    <Link to="/admin/conhecimento" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
+                        <h2 className="text-xl font-medium">Gerenciar Conhecimentos</h2>
+                        <p className="mt-1 text-slate-400 text-sm">Liste, cadastre, atualize e exclua conhecimentos.</p>
+                    </Link>
+
+                    {/* habilidades */}
+                    <Link to="/admin/habilidade" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
+                        <h2 className="text-xl font-medium">Gerenciar Habilidades</h2>
+                        <p className="mt-1 text-slate-400 text-sm">Liste e exclua habilidades existentes.</p>
                     </Link>
 
                     {/* vagas */}
