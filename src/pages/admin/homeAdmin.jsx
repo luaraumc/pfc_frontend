@@ -14,6 +14,15 @@ export default function HomeAdmin() {
                 <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
                     PFC - Admin
                 </Link>
+                <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Carreiras
+                </Link>
+                <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Cursos
+                </Link>
+                <Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Vagas
+                </Link>
                 <button
                     onClick={logoutRedirecionar}
                     className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
@@ -33,7 +42,7 @@ export default function HomeAdmin() {
                 <p className="mt-2 text-slate-300 text-center">Gerencie carreiras, habilidades, vagas, cursos e conhecimentos.</p>
 
                 {/* links para páginas de gerenciamento */}
-                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="mt-8 ml-60 mr-60 grid grid-cols-1 sm:grid-cols-1 gap-6">
 
                     {/* carreiras */}
                     <Link
@@ -50,8 +59,7 @@ export default function HomeAdmin() {
                         className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm"
                     >
                         <h2 className="text-xl font-medium">Gerenciar Cursos</h2>
-                        <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova cursos.</p>
-                        <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova conhecimentos.</p>
+                        <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova cursos e conhecimentos.</p>
                     </Link>
 
                     {/* vagas */}
