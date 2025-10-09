@@ -112,6 +112,8 @@ export default function AdminCurso() {
         };
     }, []);
 
+    // ======================================= CURSO =======================================
+
     // Alterna expansão e carrega conhecimentos do curso (cache)
     function alternarExpandirCurso(id) {
         setCursosExpandidos(estadoAnterior => (estadoAnterior.includes(id) // verifica se já está expandido
@@ -250,6 +252,8 @@ export default function AdminCurso() {
             setAtualizando(false);
         }
     }
+
+    // ======================================= CONHECIMENTO =======================================
 
     // Obter o nome do conhecimento pelo ID para exibição
     function obterNomeConhecimento(conhecimentoId) {
