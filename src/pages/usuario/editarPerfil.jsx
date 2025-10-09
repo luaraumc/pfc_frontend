@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"; // criar links de navegação para redirecionar o usuário e voltar
 import { useEffect, useState } from "react"; // estados e efeitos
 import { authFetch } from "../../utils/auth"; // fetch autenticado com renovação automática de token
+import { logoutRedirecionar } from "../../utils/auth"; // logout e redirecionamento
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -249,21 +250,21 @@ export default function EditarPerfil() {
 			</header>
 
 			{/* CONTEÚDO PRINCIPAL */}
-			<main className="max-w-4xl mx-auto px-4 py-10">
+			<main className="max-w-6xl mx-auto px-4 py-5">
 
 				{/* BOTÃO VOLTAR */}
 				<button
-					onClick={() => navigate("/homeUsuario")}
-					className="mt-6 mb-6 inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					onClick={() => navigate(-1)}
+					className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
 					>
 					<span aria-hidden>←</span> Voltar
 		    	</button>
 
 				{/* título */}
-				<h1 className="text-2xl font-semibold mb-8 text-center">Editar Perfil</h1>
+				<h1 className="text-2xl font-semibold mb-6 text-center">Editar Perfil</h1>
 
 				{/* abas de navegação entre seções */}
-				<div role="tablist" aria-label="Opções de edição" className="flex justify-center gap-2 mb-10 flex-wrap">
+				<div role="tablist" aria-label="Opções de edição" className="flex justify-center gap-2 mb-7 flex-wrap">
 					{[
 						{id:'dados', label:'Atualizar dados'},
 						{id:'senha', label:'Atualizar senha'},
@@ -286,7 +287,7 @@ export default function EditarPerfil() {
 
 				{/* Seção de Dados */}
 				{secao === 'dados' && (
-					<form onSubmit={handleSubmit} className="space-y-5 max-w-md mx-auto" role="tabpanel" aria-label="Formulário atualizar dados">
+					<form onSubmit={handleSubmit} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário atualizar dados">
 						{error && <div className="text-sm text-red-400 bg-red-950/40 border border-red-700 px-3 py-2 rounded">{error}</div>}
 						{message && <div className="text-sm text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-3 py-2 rounded">{message}</div>}
 						{/* Nome */}
