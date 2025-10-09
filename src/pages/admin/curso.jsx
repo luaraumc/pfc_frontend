@@ -16,8 +16,9 @@ export default function AdminCurso() {
     const [erro, setErro] = useState("");
     const [mensagem, setMensagem] = useState("");
 
-    // Painel Lateral
-    const [modoPainel, setModoPainel] = useState("nenhum");
+    // Painéis Laterais
+    const [modoPainelCurso, setModoPainelCurso] = useState("nenhum");
+    const [modoPainelConhecimento, setModoPainelConhecimento] = useState("nenhum");
 
     // Cadastrar Curso
     const [novoNome, setNovoNome] = useState("");
@@ -37,23 +38,6 @@ export default function AdminCurso() {
     // Pop-up Exclusão de Curso
     const [cursoExcluir, setCursoExcluir] = useState(null);
     const [excluindo, setExcluindo] = useState(false);
-    
-    // Cadastrar e Deletar Conhecimento
-    const [novoConhecimento, setNovoConhecimento] = useState("");
-    const [criandoConhecimento, setCriandoConhecimento] = useState(false);
-    const [mensagemConhecimento, setMensagemConhecimento] = useState("");
-    const [erroConhecimento, setErroConhecimento] = useState("");
-    const [deletarConhecimentoId, setDeletarConhecimentoId] = useState("");
-    const [deletandoConhecimento, setDeletandoConhecimento] = useState(false);
-    const [mensagemDeletarConhecimento, setMensagemDeletarConhecimento] = useState("");
-    const [erroDeletarConhecimento, setErroDeletarConhecimento] = useState("");
-    
-    // Atualizar Conhecimento
-    const [atualizarConhecimentoId, setAtualizarConhecimentoId] = useState("");
-    const [atualizarConhecimentoNome, setAtualizarConhecimentoNome] = useState("");
-    const [atualizandoConhecimento, setAtualizandoConhecimento] = useState(false);
-    const [mensagemAtualizarConhecimento, setMensagemAtualizarConhecimento] = useState("");
-    const [erroAtualizarConhecimento, setErroAtualizarConhecimento] = useState("");
     
     // Conhecimentos globais
     const [conhecimentos, setConhecimentos] = useState([]);
@@ -268,121 +252,6 @@ export default function AdminCurso() {
         return conhecimento?.nome || `Conhecimento #${conhecimentoId}`; // retorna nome ou ID se não encontrado
     }
 
-    // Cadastrar conhecimento
-    async function CadastrarConhecimento(e) {
-        e.preventDefault(); // evita reload da página
-        setErroConhecimento(""); setMensagemConhecimento("");
-        try {
-            setCriandoConhecimento(true);
-            const payload = { nome: novoConhecimento.trim() }; // monta o objeto que será enviado ao backend
-            // chama backend
-            const res = await authFetch(`${API_URL}/conhecimento/cadastro`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload) // converte para JSON
-            });
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
-            if (!res.ok) {
-                const msg = data?.detail || data?.message || `Falha ao cadastrar (HTTP ${res.status})`;
-                throw new Error(msg);
-            }
-            setMensagemConhecimento(data?.message || "Conhecimento cadastrado com sucesso");
-            // usa o id retornado pela API e atualiza a lista
-            if (data?.id) {
-                const novoConhecimentoObj = { id: data.id, nome: payload.nome }; // cria objeto do novo conhecimento
-                setConhecimentos(estadoAnterior => [novoConhecimentoObj, ...estadoAnterior]); // atualiza a lista de conhecimentos com o novo no topo
-                // Força atualização do estado de loading para garantir que os dropdowns sejam atualizados
-                setConhecimentosLoading(false);
-                setConhecimentosErro("");
-            }
-            setNovoConhecimento("");
-        } catch (e) {
-            setErroConhecimento(e.message ?? "Erro ao cadastrar conhecimento");
-        } finally { setCriandoConhecimento(false); }
-    }
-
-    // Deletar conhecimento
-    async function DeletarConhecimento(e) {
-        e.preventDefault(); // evita reload da página
-        setErroDeletarConhecimento(""); setMensagemDeletarConhecimento("");
-        if (!deletarConhecimentoId) return; // evita submissão quando não há conhecimento válido selecionado
-        try {
-            setDeletandoConhecimento(true);
-            const res = await authFetch(`${API_URL}/conhecimento/deletar/${deletarConhecimentoId}`, { method: "DELETE" }); // chama backend
-            const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
-            if (!res.ok) {
-                const msg = data?.detail || data?.message || `Falha ao deletar (HTTP ${res.status})`;
-                throw new Error(msg);
-            }
-            setMensagemDeletarConhecimento(data?.message || "Conhecimento deletado com sucesso");
-            setConhecimentos(estadoAnterior => estadoAnterior.filter(k => String(k.id) !== String(deletarConhecimentoId))); // atualiza a lista removendo o conhecimento deletado
-            setDeletarConhecimentoId("");
-        } catch (e) {
-            setErroDeletarConhecimento(e.message ?? "Erro ao deletar conhecimento");
-        } finally { setDeletandoConhecimento(false); }
-    }
-
-    // Selecionar conhecimento para atualizar (preenche o nome atual)
-    function aoSelecionarAtualizarConhecimento(e) {
-        const id = e.target.value;
-        setAtualizarConhecimentoId(id);
-        setMensagemAtualizarConhecimento("");
-        setErroAtualizarConhecimento("");
-        if (!id) { setAtualizarConhecimentoNome(""); return; }
-        const k = conhecimentos.find(k => String(k.id) === String(id));
-        setAtualizarConhecimentoNome(k?.nome || "");
-    }
-
-    // Atualizar conhecimento
-    async function AtualizarConhecimento(e) {
-        e.preventDefault();
-        if (!atualizarConhecimentoId) return;
-        setErroAtualizarConhecimento(""); setMensagemAtualizarConhecimento("");
-        try {
-            setAtualizandoConhecimento(true);
-            const payload = { nome: atualizarConhecimentoNome.trim() };
-            const res = await authFetch(`${API_URL}/conhecimento/atualizar/${atualizarConhecimentoId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) {
-                const msg = data?.detail || data?.message || `Falha ao atualizar (HTTP ${res.status})`;
-                throw new Error(msg);
-            }
-            // feedback
-            setMensagemAtualizarConhecimento(data?.message || "Conhecimento atualizado com sucesso");
-            // atualiza lista global de conhecimentos
-            setConhecimentos(prev => prev.map(k => String(k.id) === String(atualizarConhecimentoId) ? { ...k, nome: payload.nome } : k));
-            // atualiza cache de conhecimentos por curso (quando item carrega conhecimento_nome)
-            setConhecimentosCurso(prev => {
-                const novo = { ...prev };
-                for (const cursoId of Object.keys(novo)) {
-                    const entry = novo[cursoId];
-                    if (!entry?.items?.length) continue;
-                    novo[cursoId] = {
-                        ...entry,
-                        items: entry.items.map(rel => {
-                            if (Number(rel?.conhecimento_id) === Number(atualizarConhecimentoId)) {
-                                // atualiza a propriedade conhecimento_nome se existir
-                                if (Object.prototype.hasOwnProperty.call(rel, "conhecimento_nome")) {
-                                    return { ...rel, conhecimento_nome: payload.nome };
-                                }
-                            }
-                            return rel;
-                        })
-                    };
-                }
-                return novo;
-            });
-        } catch (e) {
-            setErroAtualizarConhecimento(e.message ?? "Erro ao atualizar conhecimento");
-        } finally {
-            setAtualizandoConhecimento(false);
-        }
-    }
-
     // Adicionar conhecimento ao curso
     async function AdicionarConhecimentoAoCurso(e) {
         e.preventDefault(); // evita reload da página
@@ -472,6 +341,12 @@ export default function AdminCurso() {
 				<Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
 					Cursos
 				</Link>
+                <Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Conhecimentos
+                </Link>
+                <Link to="/admin/habilidade" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Habilidades
+                </Link>
 				<Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
 					Vagas
 				</Link>
@@ -590,7 +465,7 @@ export default function AdminCurso() {
                         )}
                     </div>
 
-                    {/* painel lateral */}
+                    {/* Painel Lateral: Curso + Conhecimentos por Curso */}
                     <div className="w-full lg:w-96 self-start">
 
                         {/* botão atualizar página */}
@@ -607,176 +482,42 @@ export default function AdminCurso() {
                             <div className="flex flex-col gap-3">
                                 {/* cadastrar novo curso */}
                                 <button
-                                    onClick={() => { setModoPainel(modoPainel === "criar" ? "nenhum" : "criar"); setMensagemCriar(""); setErroCriar(""); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "criar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                    onClick={() => { setModoPainelCurso(modoPainelCurso === "criar" ? "nenhum" : "criar"); setMensagemCriar(""); setErroCriar(""); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainelCurso === "criar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Cadastrar Novo Curso
                                 </button>
                                 {/* atualizar curso */}
                                 <button
-                                    onClick={() => {setModoPainel(modoPainel === "atualizar" ? "nenhum" : "atualizar"); setMensagemAtualizar(""); setErroAtualizar(""); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "atualizar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                    onClick={() => {setModoPainelCurso(modoPainelCurso === "atualizar" ? "nenhum" : "atualizar"); setMensagemAtualizar(""); setErroAtualizar(""); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainelCurso === "atualizar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Atualizar Curso
                                 </button>
-                                {/* cadastrar conhecimento */}
+
+                                {/* separador */}
+                                <div className="h-px bg-slate-800 my-2" />
+
+                                {/* Gerenciar Conhecimentos por Curso */}
                                 <button
-                                    onClick={() => { setModoPainel(modoPainel === "cadastrarConhecimento" ? "nenhum" : "cadastrarConhecimento"); setMensagemConhecimento(""); setErroConhecimento(""); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "cadastrarConhecimento" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
-                                >
-                                    Cadastrar Conhecimento
-                                </button>
-                                {/* atualizar conhecimento */}
-                                <button
-                                    onClick={() => { setModoPainel(modoPainel === "atualizarConhecimento" ? "nenhum" : "atualizarConhecimento"); setMensagemAtualizarConhecimento(""); setErroAtualizarConhecimento(""); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "atualizarConhecimento" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
-                                >
-                                    Atualizar Conhecimento
-                                </button>
-                                {/* deletar conhecimento */}
-                                <button
-                                    onClick={() => { setModoPainel(modoPainel === "deletarConhecimento" ? "nenhum" : "deletarConhecimento"); setMensagemDeletarConhecimento(""); setErroDeletarConhecimento(""); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "deletarConhecimento" ? "bg-red-600 border-red-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
-                                >
-                                    Deletar Conhecimento
-                                </button>
-                                {/* adicionar conhecimento ao curso */}
-                                <button
-                                    onClick={() => {setModoPainel(modoPainel === "adicionarConhecimento" ? "nenhum" : "adicionarConhecimento");setErroAdicionarConhecimento("");setMensagemAdicionarConhecimento("");}}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "adicionarConhecimento"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                    onClick={() => { setModoPainelConhecimento(modoPainelConhecimento === "adicionar" ? "nenhum" : "adicionar"); setMensagemAdicionarConhecimento(""); setErroAdicionarConhecimento(""); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainelConhecimento === "adicionar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Adicionar Conhecimento ao Curso
                                 </button>
-                                {/* remover conhecimento do curso */}
                                 <button
-                                    onClick={() => {setModoPainel(modoPainel === "removerConhecimento" ? "nenhum" : "removerConhecimento"); setErroRemoverConhecimento(""); setMensagemRemoverConhecimento("");}}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "removerConhecimento"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                    onClick={() => { setModoPainelConhecimento(modoPainelConhecimento === "remover" ? "nenhum" : "remover"); setMensagemRemoverConhecimento(""); setErroRemoverConhecimento(""); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainelConhecimento === "remover"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Remover Conhecimento do Curso
                                 </button>
                             </div>
 
                             {/* formulario cadastro de conhecimento */}
-                            {modoPainel === "cadastrarConhecimento" && (
-                                <form onSubmit={CadastrarConhecimento} className="space-y-4">
-                                    {/* título */}
-                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Cadastrar Conhecimento</h2>
-                                    {/* feedback */}
-                                    {erroConhecimento && (
-                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroConhecimento}</div>
-                                    )}
-                                    {mensagemConhecimento && (
-                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemConhecimento}</div>
-                                    )}
-                                    {/* nome */}
-                                    <div>
-                                        <label className="block text-xs mb-1">Nome</label>
-                                        <input
-                                            value={novoConhecimento}
-                                            onChange={e => setNovoConhecimento(e.target.value)}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                            required
-                                        />
-                                    </div>
-                                    {/* botão enviar */}
-                                    <button
-                                        disabled={criandoConhecimento}
-                                        type="submit"
-                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
-                                    >
-                                        {criandoConhecimento ? "Salvando..." : "Cadastrar"}
-                                    </button>
-                                </form>
-                            )}
-
-                            {/* formulario de deletar conhecimento */}
-                            {modoPainel === "deletarConhecimento" && (
-                                <form onSubmit={DeletarConhecimento} className="space-y-4">
-                                    {/* título */}
-                                    <h2 className="text-sm font-semibold text-red-300 tracking-wide mt-4">Deletar Conhecimento</h2>
-                                    {/* feedback */}
-                                    {erroDeletarConhecimento && (
-                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroDeletarConhecimento}</div>
-                                    )}
-                                    {mensagemDeletarConhecimento && (
-                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemDeletarConhecimento}</div>
-                                    )}
-                                    {/* seleção de conhecimento */}
-                                    <div>
-                                        <label className="block text-xs mb-1">Conhecimento</label>
-                                        <select
-                                            value={deletarConhecimentoId}
-                                            onChange={e => setDeletarConhecimentoId(e.target.value)}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                            required
-                                        >
-                                            <option value="">Selecione…</option>
-                                            {conhecimentos.map(k => (
-                                                <option key={k.id} value={k.id}>{k.nome}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    {/* botão enviar */}
-                                    <button
-                                        disabled={deletandoConhecimento}
-                                        type="submit"
-                                        className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
-                                    >
-                                        {deletandoConhecimento ? "Deletando..." : "Deletar"}
-                                    </button>
-                                </form>
-                            )}
-
-                            {/* formulario atualizar conhecimento */}
-                            {modoPainel === "atualizarConhecimento" && (
-                                <form onSubmit={AtualizarConhecimento} className="space-y-4">
-                                    {/* título */}
-                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Conhecimento</h2>
-                                    {/* feedback */}
-                                    {erroAtualizarConhecimento && (
-                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroAtualizarConhecimento}</div>
-                                    )}
-                                    {mensagemAtualizarConhecimento && (
-                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemAtualizarConhecimento}</div>
-                                    )}
-                                    {/* seleção de conhecimento */}
-                                    <div>
-                                        <label className="block text-xs mb-1">Conhecimento</label>
-                                        <select
-                                            value={atualizarConhecimentoId}
-                                            onChange={aoSelecionarAtualizarConhecimento}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                            required
-                                        >
-                                            <option value="">Selecione…</option>
-                                            {conhecimentos.map(k => (
-                                                <option key={k.id} value={k.id}>{k.nome}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    {/* novo nome */}
-                                    <div>
-                                        <label className="block text-xs mb-1">Novo nome</label>
-                                        <input
-                                            value={atualizarConhecimentoNome}
-                                            onChange={e => setAtualizarConhecimentoNome(e.target.value)}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
-                                            required
-                                        />
-                                    </div>
-                                    {/* botão enviar */}
-                                    <button
-                                        disabled={atualizandoConhecimento}
-                                        type="submit"
-                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
-                                    >
-                                        {atualizandoConhecimento ? "Atualizando..." : "Salvar Alterações"}
-                                    </button>
-                                </form>
-                            )}
+                            {/* Removidos os formulários de CRUD de conhecimento desta página */}
 
                             {/* formulario cadastro de curso */}
-                            {modoPainel === "criar" && (
+                            {modoPainelCurso === "criar" && (
                                 <form onSubmit={cadastrarCurso} className="space-y-4">
                                     {/* título */}
                                     <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Novo Curso</h2>
@@ -824,7 +565,7 @@ export default function AdminCurso() {
                             )}
 
                             {/* formulario atualizar curso */}
-                            {modoPainel === "atualizar" && (
+                            {modoPainelCurso === "atualizar" && (
                                 <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
                                     {/* título */}
                                     <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Curso</h2>
@@ -889,7 +630,7 @@ export default function AdminCurso() {
                             )}
 
                             {/* formulario adicionar conhecimento ao curso */}
-                            {modoPainel === "adicionarConhecimento" && (
+                            {modoPainelConhecimento === "adicionar" && (
                                 <form onSubmit={AdicionarConhecimentoAoCurso} className="space-y-4">
                                     {/* título */}
                                     <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Adicionar Conhecimento</h2>
@@ -958,7 +699,7 @@ export default function AdminCurso() {
                             )}
 
                             {/* formulario remover conhecimento do curso */}
-                            {modoPainel === "removerConhecimento" && (
+                            {modoPainelConhecimento === "remover" && (
                                 <form onSubmit={RemoverConhecimentoDoCurso} className="space-y-4">
                                     {/* título */}
                                     <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Remover Conhecimento</h2>
