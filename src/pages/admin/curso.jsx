@@ -48,6 +48,13 @@ export default function AdminCurso() {
     const [mensagemDeletarConhecimento, setMensagemDeletarConhecimento] = useState("");
     const [erroDeletarConhecimento, setErroDeletarConhecimento] = useState("");
     
+    // Atualizar Conhecimento
+    const [atualizarConhecimentoId, setAtualizarConhecimentoId] = useState("");
+    const [atualizarConhecimentoNome, setAtualizarConhecimentoNome] = useState("");
+    const [atualizandoConhecimento, setAtualizandoConhecimento] = useState(false);
+    const [mensagemAtualizarConhecimento, setMensagemAtualizarConhecimento] = useState("");
+    const [erroAtualizarConhecimento, setErroAtualizarConhecimento] = useState("");
+    
     // Conhecimentos globais
     const [conhecimentos, setConhecimentos] = useState([]);
     const [conhecimentosErro, setConhecimentosErro] = useState("");
@@ -315,6 +322,67 @@ export default function AdminCurso() {
         } finally { setDeletandoConhecimento(false); }
     }
 
+    // Selecionar conhecimento para atualizar (preenche o nome atual)
+    function aoSelecionarAtualizarConhecimento(e) {
+        const id = e.target.value;
+        setAtualizarConhecimentoId(id);
+        setMensagemAtualizarConhecimento("");
+        setErroAtualizarConhecimento("");
+        if (!id) { setAtualizarConhecimentoNome(""); return; }
+        const k = conhecimentos.find(k => String(k.id) === String(id));
+        setAtualizarConhecimentoNome(k?.nome || "");
+    }
+
+    // Atualizar conhecimento
+    async function AtualizarConhecimento(e) {
+        e.preventDefault();
+        if (!atualizarConhecimentoId) return;
+        setErroAtualizarConhecimento(""); setMensagemAtualizarConhecimento("");
+        try {
+            setAtualizandoConhecimento(true);
+            const payload = { nome: atualizarConhecimentoNome.trim() };
+            const res = await authFetch(`${API_URL}/conhecimento/atualizar/${atualizarConhecimentoId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                const msg = data?.detail || data?.message || `Falha ao atualizar (HTTP ${res.status})`;
+                throw new Error(msg);
+            }
+            // feedback
+            setMensagemAtualizarConhecimento(data?.message || "Conhecimento atualizado com sucesso");
+            // atualiza lista global de conhecimentos
+            setConhecimentos(prev => prev.map(k => String(k.id) === String(atualizarConhecimentoId) ? { ...k, nome: payload.nome } : k));
+            // atualiza cache de conhecimentos por curso (quando item carrega conhecimento_nome)
+            setConhecimentosCurso(prev => {
+                const novo = { ...prev };
+                for (const cursoId of Object.keys(novo)) {
+                    const entry = novo[cursoId];
+                    if (!entry?.items?.length) continue;
+                    novo[cursoId] = {
+                        ...entry,
+                        items: entry.items.map(rel => {
+                            if (Number(rel?.conhecimento_id) === Number(atualizarConhecimentoId)) {
+                                // atualiza a propriedade conhecimento_nome se existir
+                                if (Object.prototype.hasOwnProperty.call(rel, "conhecimento_nome")) {
+                                    return { ...rel, conhecimento_nome: payload.nome };
+                                }
+                            }
+                            return rel;
+                        })
+                    };
+                }
+                return novo;
+            });
+        } catch (e) {
+            setErroAtualizarConhecimento(e.message ?? "Erro ao atualizar conhecimento");
+        } finally {
+            setAtualizandoConhecimento(false);
+        }
+    }
+
     // Adicionar conhecimento ao curso
     async function AdicionarConhecimentoAoCurso(e) {
         e.preventDefault(); // evita reload da página
@@ -558,6 +626,13 @@ export default function AdminCurso() {
                                 >
                                     Cadastrar Conhecimento
                                 </button>
+                                {/* atualizar conhecimento */}
+                                <button
+                                    onClick={() => { setModoPainel(modoPainel === "atualizarConhecimento" ? "nenhum" : "atualizarConhecimento"); setMensagemAtualizarConhecimento(""); setErroAtualizarConhecimento(""); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "atualizarConhecimento" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                >
+                                    Atualizar Conhecimento
+                                </button>
                                 {/* deletar conhecimento */}
                                 <button
                                     onClick={() => { setModoPainel(modoPainel === "deletarConhecimento" ? "nenhum" : "deletarConhecimento"); setMensagemDeletarConhecimento(""); setErroDeletarConhecimento(""); }}
@@ -648,6 +723,54 @@ export default function AdminCurso() {
                                         className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
                                     >
                                         {deletandoConhecimento ? "Deletando..." : "Deletar"}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* formulario atualizar conhecimento */}
+                            {modoPainel === "atualizarConhecimento" && (
+                                <form onSubmit={AtualizarConhecimento} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Conhecimento</h2>
+                                    {/* feedback */}
+                                    {erroAtualizarConhecimento && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroAtualizarConhecimento}</div>
+                                    )}
+                                    {mensagemAtualizarConhecimento && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemAtualizarConhecimento}</div>
+                                    )}
+                                    {/* seleção de conhecimento */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Conhecimento</label>
+                                        <select
+                                            value={atualizarConhecimentoId}
+                                            onChange={aoSelecionarAtualizarConhecimento}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        >
+                                            <option value="">Selecione…</option>
+                                            {conhecimentos.map(k => (
+                                                <option key={k.id} value={k.id}>{k.nome}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {/* novo nome */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Novo nome</label>
+                                        <input
+                                            value={atualizarConhecimentoNome}
+                                            onChange={e => setAtualizarConhecimentoNome(e.target.value)}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        />
+                                    </div>
+                                    {/* botão enviar */}
+                                    <button
+                                        disabled={atualizandoConhecimento}
+                                        type="submit"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                    >
+                                        {atualizandoConhecimento ? "Atualizando..." : "Salvar Alterações"}
                                     </button>
                                 </form>
                             )}
