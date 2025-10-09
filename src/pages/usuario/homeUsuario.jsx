@@ -31,6 +31,12 @@ export default function HomeUsuario() {
 						<img src={perfilIcon} alt="Perfil" className="w-5 h-5" />
 						<span>Editar Perfil</span>
 					</Link>
+	                <Link
+	                    to="/usuario/cadastro-habilidade"
+	                    className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+	                >
+	                    Cadastro de Habilidade
+	                </Link>
 					<button
 						onClick={logoutRedirecionar}
 						className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
@@ -53,4 +59,3 @@ export default function HomeUsuario() {
 		</div>
 	);
 }
-
