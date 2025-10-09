@@ -286,6 +286,12 @@ export default function AdminCarreira() {
                 <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
                     Cursos
                 </Link>
+                <Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Conhecimentos
+                </Link>
+                <Link to="/admin/habilidade" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Habilidades
+                </Link>
                 <Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
                     Vagas
                 </Link>
