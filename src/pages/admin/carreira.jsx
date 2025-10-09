@@ -47,6 +47,13 @@ export default function AdminCarreira() {
     const [carreirasExpandidas, setCarreirasExpandidas] = useState([]);
     const [habilidadesCarreira, setHabilidadesCarreira] = useState({});
 
+    // Remover Habilidade da Carreira
+    const [removerCarreiraId, setRemoverCarreiraId] = useState("");
+    const [removerHabilidadeId, setRemoverHabilidadeId] = useState("");
+    const [removendoHabilidade, setRemovendoHabilidade] = useState(false);
+    const [mensagemRemoverHabilidade, setMensagemRemoverHabilidade] = useState("");
+    const [erroRemoverHabilidade, setErroRemoverHabilidade] = useState("");
+
     // Carrega lista de carreiras
     useEffect(() => {
         let ativo = true; // evitar atualização de estado após desmontar
@@ -226,6 +233,43 @@ export default function AdminCarreira() {
         return habilidade?.nome || `Habilidade #${habilidadeId}`; // retorna nome ou ID se não encontrado
     }
 
+    // Remover habilidade da carreira
+    async function RemoverHabilidadeDaCarreira(e) {
+        e.preventDefault(); // evita reload da página
+        if (!removerCarreiraId || !removerHabilidadeId) return; // valida seleção
+        setErroRemoverHabilidade(""); setMensagemRemoverHabilidade("");
+        try {
+            setRemovendoHabilidade(true);
+            const res = await authFetch(
+                `${API_URL}/carreira/${removerCarreiraId}/remover-habilidade/${removerHabilidadeId}`,
+                { method: "DELETE" }
+            );
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                const msg = data?.detail || data?.message || `Falha ao remover (HTTP ${res.status})`;
+                throw new Error(msg);
+            }
+            setMensagemRemoverHabilidade("Habilidade removida da carreira");
+            // Atualiza cache local da carreira removendo o item
+            setHabilidadesCarreira(prev => {
+                const entry = prev[removerCarreiraId];
+                if (!entry) return prev;
+                return {
+                    ...prev,
+                    [removerCarreiraId]: {
+                        ...entry,
+                        items: (entry.items || []).filter(rel => Number(rel.habilidade_id ?? rel.id) !== Number(removerHabilidadeId))
+                    }
+                };
+            });
+            setRemoverHabilidadeId("");
+        } catch (e) {
+            setErroRemoverHabilidade(e.message || "Erro ao remover habilidade da carreira");
+        } finally {
+            setRemovendoHabilidade(false);
+        }
+    }
+
     // HTML
     return (
         <div className="min-h-screen bg-slate-900 text-slate-200">
@@ -391,6 +435,13 @@ export default function AdminCarreira() {
                                 >
                                     Atualizar Carreira
                                 </button>
+                                {/* remover habilidade da carreira */}
+                                <button
+                                    onClick={() => { setModoPainel(modoPainel === 'removerHabilidade' ? 'nenhum' : 'removerHabilidade'); setErroRemoverHabilidade(''); setMensagemRemoverHabilidade(''); }}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === 'removerHabilidade' ? 'bg-red-600 border-red-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
+                                >
+                                    Remover Habilidade da Carreira
+                                </button>
                             </div>
 
                             {/* formulário cadastro de carreira */}
@@ -490,6 +541,76 @@ export default function AdminCarreira() {
                                         className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
                                     >
                                         {atualizando ? 'Atualizando...' : 'Salvar Alterações'}
+                                    </button>
+                                </form>
+                            )}
+
+                            {/* formulário remover habilidade da carreira */}
+                            {modoPainel === 'removerHabilidade' && (
+                                <form onSubmit={RemoverHabilidadeDaCarreira} className="space-y-4">
+                                    {/* título */}
+                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Remover Habilidade da Carreira</h2>
+                                    {/* feedback */}
+                                    {erroRemoverHabilidade && (
+                                        <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroRemoverHabilidade}</div>
+                                    )}
+                                    {mensagemRemoverHabilidade && (
+                                        <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemRemoverHabilidade}</div>
+                                    )}
+                                    {/* seleção de carreira */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Carreira</label>
+                                        <select
+                                            value={removerCarreiraId}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setRemoverCarreiraId(val);
+                                                setRemoverHabilidadeId("");
+                                                if (val && !habilidadesCarreira[val]) {
+                                                    alternarExpandirCarreira(Number(val));
+                                                }
+                                            }}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                            required
+                                        >
+                                            <option value="">Selecione…</option>
+                                            {carreiras.map(c => (
+                                                <option key={c.id} value={c.id}>{c.nome}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {/* seleção de habilidade associada */}
+                                    <div>
+                                        <label className="block text-xs mb-1">Habilidade (associada)</label>
+                                        {!removerCarreiraId ? (
+                                            <p className="text-xs text-slate-500">Selecione uma carreira primeiro.</p>
+                                        ) : habilidadesCarreira[removerCarreiraId]?.loading ? (
+                                            <p className="text-xs text-slate-400">Carregando…</p>
+                                        ) : habilidadesCarreira[removerCarreiraId]?.error ? (
+                                            <p className="text-xs text-red-400">{habilidadesCarreira[removerCarreiraId].error}</p>
+                                        ) : (
+                                            <select
+                                                value={removerHabilidadeId}
+                                                onChange={e => setRemoverHabilidadeId(e.target.value)}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                                required
+                                            >
+                                                <option value="">Selecione…</option>
+                                                {(habilidadesCarreira[removerCarreiraId]?.items || []).map(rel => (
+                                                    <option key={rel.id || rel.habilidade_id} value={rel.habilidade_id ?? rel.id}>
+                                                        {rel.habilidade_nome || rel.nome || obterNomeHabilidade(rel.habilidade_id ?? rel.id)}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                    {/* botão enviar */}
+                                    <button
+                                        disabled={removendoHabilidade}
+                                        type="submit"
+                                        className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                    >
+                                        {removendoHabilidade ? "Removendo..." : "Remover"}
                                     </button>
                                 </form>
                             )}
