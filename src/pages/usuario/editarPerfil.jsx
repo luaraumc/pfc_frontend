@@ -240,6 +240,12 @@ export default function EditarPerfil() {
 						PFC
 					</Link>
 					<div className="flex items-center gap-3">
+						<Link
+							to="/usuario/cadastro-habilidade"
+							className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+						>
+							Cadastro de Habilidade
+						</Link>
 						<button
 							onClick={logoutRedirecionar}
 							className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
