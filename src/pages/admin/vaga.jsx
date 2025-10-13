@@ -79,25 +79,25 @@ export default function Vaga() {
 
 			{/* HEADER */}
 			<header className="w-full border-b border-slate-800 bg-slate-950/80">
-				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
 				<Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-					PFC - Admin
-				</Link>
-				<Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
-					Carreiras
-				</Link>
-				<Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
-					Cursos
-				</Link>
-				<Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
-					Conhecimentos
-				</Link>
-				<Link to="/admin/habilidade" className="text-lg font-medium text-white hover:text-indigo-200">
-					Habilidades
-				</Link>
-				<Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
-					Vagas
-				</Link>
+                    PFC - Admin
+                </Link>
+                <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Carreiras
+                </Link>
+                <Link to="/admin/habilidade" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Habilidades
+                </Link>
+                <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Cursos
+                </Link>
+                <Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Conhecimentos
+                </Link>
+                <Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Vagas
+                </Link>
 				<button
 					onClick={logoutRedirecionar}
 					className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
@@ -108,7 +108,7 @@ export default function Vaga() {
 			</header>
 
 			{/* CONTEÚDO PRINCIPAL */}
-			<main className="max-w-6xl mx-auto px-4 py-5">
+			<main className="ml-8 mr-8 mx-auto px-4 py-5">
 
 				{/* BOTÃO VOLTAR */}
 				<button
@@ -123,8 +123,8 @@ export default function Vaga() {
 
 				{/* formulário de cadastro de vaga */}
 				<div className="mt-8 grid md:grid-cols-2 gap-8">
-					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5">
-						<h2 className="text-lg font-semibold text-indigo-300 mb-4">Cadastrar Vaga</h2>
+					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5 ml-30">
+						<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Cadastrar Vaga</h2>
 
 						{erro && (
 							<div className="mb-3 p-2 rounded border border-red-700 bg-red-900 text-red-100 text-sm">{erro}</div>
@@ -135,7 +135,7 @@ export default function Vaga() {
 
 						<form onSubmit={cadastrarVaga} className="space-y-4">
 							<div>
-								<label className="block text-xs mb-1">Título</label>
+								<label className="block text-lg mb-1">Título</label>
 								<input
 									value={titulo}
 									onChange={e => setTitulo(e.target.value)}
@@ -144,7 +144,7 @@ export default function Vaga() {
 								/>
 							</div>
 							<div>
-								<label className="block text-xs mb-1">Descrição da vaga</label>
+								<label className="block text-lg mb-1">Descrição da vaga</label>
 								<textarea
 									value={descricao}
 									onChange={e => setDescricao(e.target.value)}
@@ -155,7 +155,7 @@ export default function Vaga() {
 								/>
 							</div>
 							<div>
-								<label className="block text-xs mb-1">Carreira (opcional)</label>
+								<label className="block text-lg mb-1">Carreira</label>
 								{carreirasLoading ? (
 									<p className="text-xs text-slate-400">Carregando carreiras…</p>
 								) : carreirasErro ? (
@@ -177,7 +177,7 @@ export default function Vaga() {
 								<button
 									disabled={carregando}
 									type="submit"
-									className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-medium"
+									className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-base font-medium mt-3"
 								>
 									{carregando ? "Cadastrando..." : "Cadastrar Vaga"}
 								</button>
@@ -185,10 +185,10 @@ export default function Vaga() {
 						</form>
 					</div>
 
-					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5">
-						<h2 className="text-lg font-semibold text-indigo-300 mb-4">Resultado da Extração</h2>
+					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5 mr-30">
+						<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Resultado da Extração</h2>
 						{!resultado ? (
-							<p className="text-sm text-slate-400">Após cadastrar, as habilidades extraídas aparecerão aqui.</p>
+							<p className="text-lg text-slate-400 text-center">Após cadastrar, as habilidades extraídas aparecerão aqui.</p>
 						) : (
 							<div className="space-y-4">
 								<div>

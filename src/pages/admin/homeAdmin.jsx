@@ -10,21 +10,21 @@ export default function HomeAdmin() {
 
             {/* HEADER */}
             <header className="w-full border-b border-slate-800 bg-slate-950/80">
-                <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                <div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
                 <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
                     PFC - Admin
-                </Link>
-                <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
-                    Cursos
-                </Link>
-                <Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
-                    Conhecimentos
                 </Link>
                 <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
                     Carreiras
                 </Link>
                 <Link to="/admin/habilidade" className="text-lg font-medium text-white hover:text-indigo-200">
                     Habilidades
+                </Link>
+                <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Cursos
+                </Link>
+                <Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
+                    Conhecimentos
                 </Link>
                 <Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
                     Vagas
@@ -56,27 +56,26 @@ export default function HomeAdmin() {
                         className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm"
                     >
                         <h2 className="text-xl font-medium">Gerenciar Carreiras</h2>
-                        <p className="mt-1 text-slate-400 text-sm">Cadastre, edite e remova carreiras.</p>
-                    </Link>
-
-                    {/* cursos */}
-                    <Link to="/admin/curso" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
-                        <h2 className="text-xl font-medium">Gerenciar Cursos</h2>
-                        <p className="mt-1 text-slate-400 text-sm">Cadastre/edite cursos e gerencie conhecimentos por curso.</p>
-                    </Link>
-
-                    {/* conhecimentos */}
-                    <Link to="/admin/conhecimento" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
-                        <h2 className="text-xl font-medium">Gerenciar Conhecimentos</h2>
-                        <p className="mt-1 text-slate-400 text-sm">Liste, cadastre, atualize e exclua conhecimentos.</p>
+                        <p className="mt-1 text-slate-300 text-sm">Cadastre, edite e exclua carreiras. Remova habilidades de carreiras.</p>
                     </Link>
 
                     {/* habilidades */}
                     <Link to="/admin/habilidade" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
                         <h2 className="text-xl font-medium">Gerenciar Habilidades</h2>
-                        <p className="mt-1 text-slate-400 text-sm">Liste e exclua habilidades existentes.</p>
+                        <p className="mt-1 text-slate-300 text-sm">Edite e exclua habilidades existentes.</p>
                     </Link>
 
+                    {/* cursos */}
+                    <Link to="/admin/curso" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
+                        <h2 className="text-xl font-medium">Gerenciar Cursos</h2>
+                        <p className="mt-1 text-slate-300 text-sm">Cadastre, edite e exclua cursos. Adicione e remova conhecimentos por curso.</p>
+                    </Link>
+
+                    {/* conhecimentos */}
+                    <Link to="/admin/conhecimento" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
+                        <h2 className="text-xl font-medium">Gerenciar Conhecimentos</h2>
+                        <p className="mt-1 text-slate-300 text-sm">Cadastre, edite e exclua conhecimentos.</p>
+                    </Link>
                     {/* vagas */}
                     <Link
                         to="/admin/vaga"

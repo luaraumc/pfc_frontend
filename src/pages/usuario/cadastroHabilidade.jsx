@@ -205,15 +205,12 @@ export default function CadastroHabilidade() {
 
 					{/* Painel lateral: adicionar habilidade */}
 					<div className="w-full lg:w-96 self-start">
-						<button onClick={() => window.location.reload()} className="mb-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800" title="Atualizar a página">
-							<span aria-hidden>↻</span> Atualizar
-						</button>
 
 						<div className="bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6">
-							<h2 className="text-sm font-semibold text-indigo-300 tracking-wide">Adicionar Habilidade</h2>
+							<h2 className="text-lg font-semibold text-indigo-300 tracking-wide text-center">Adicionar Habilidade</h2>
 							<form onSubmit={adicionarHabilidade} className="mt-4 space-y-3">
 								<div>
-									<label className="block text-xs text-slate-400 mb-1">Selecione uma habilidade</label>
+									<label className="block text-sm text-slate-300 mb-1">Selecione uma habilidade</label>
 									<select
 										value={habilidadeParaAdicionar}
 										onChange={(e) => setHabilidadeParaAdicionar(e.target.value)}
@@ -232,7 +229,7 @@ export default function CadastroHabilidade() {
 								<button
 									type="submit"
 									disabled={!habilidadeParaAdicionar || adicionando}
-									className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-indigo-700 text-indigo-200 hover:bg-indigo-900/40 disabled:opacity-50"
+									className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-indigo-700 text-indigo-200 hover:bg-indigo-900/40"
 								>
 									{adicionando ? 'Adicionando…' : 'Adicionar'}
 								</button>
