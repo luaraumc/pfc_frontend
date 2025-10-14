@@ -399,14 +399,14 @@ export default function AdminCurso() {
                                     {cursos.map(c => (
                                         <li key={c.id ?? c.nome} className="p-4 flex items-center justify-between">
                                             <div>
-                                                <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center">
                                                     {/* nome do curso */}
                                                     <p className="font-medium">{c.nome ?? `Curso #${c.id}`}</p>
                                                     {/* expandir conhecimentos */}
                                                     <button
                                                         type="button"
                                                         onClick={() => alternarExpandirCurso(c.id)}
-                                                        className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800"
+                                                        className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 ml-1"
                                                         title="Ver conhecimentos"
                                                     >
                                                         <img
@@ -430,7 +430,7 @@ export default function AdminCurso() {
                                                         ) : conhecimentosCurso[c.id]?.error ? (
                                                             <p className="text-xs text-red-400">{conhecimentosCurso[c.id].error}</p>
                                                         ) : (
-                                                            <ul className="list-disc pl-5">
+                                                            <ul className="list-disc">
                                                                 {conhecimentosCurso[c.id]?.items?.length ? (
                                                                     conhecimentosCurso[c.id].items.map(rel => (
                                                                         <li key={rel.id || rel.conhecimento_id} className="text-sm text-slate-200 mb-1 flex items-center gap-2">

@@ -345,7 +345,7 @@ export default function AdminCarreira() {
                                 <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-950">
                                     {carreiras.map((c) => (
                                         <li key={c.id ?? c.nome} className="p-4">
-                                            <div className="flex items-center justify-between gap-2">
+                                            <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     {/* nome da carreira */}
                                                     <p className="font-medium">{c.nome ?? `Carreira #${c.id}`}</p>
@@ -354,7 +354,7 @@ export default function AdminCarreira() {
                                                         <button
                                                             type="button"
                                                             onClick={() => alternarExpandirCarreira(c.id)}
-                                                            className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 ml-2"
+                                                            className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 ml-1"
                                                             title="Ver habilidades"
                                                         >
                                                             <img
@@ -391,7 +391,7 @@ export default function AdminCarreira() {
                                                     ) : habilidadesCarreira[c.id]?.error ? (
                                                         <p className="text-xs text-red-400">{habilidadesCarreira[c.id].error}</p>
                                                     ) : (
-                                                        <ul className="list-disc pl-5">
+                                                        <ul className="list-disc">
                                                             {habilidadesCarreira[c.id]?.items.length > 0 ? (
                                                                 habilidadesCarreira[c.id].items.map(hab => (
                                                                     <li key={hab.id || hab.habilidade_id} className="text-sm text-slate-200 mb-1 flex items-center gap-2">
