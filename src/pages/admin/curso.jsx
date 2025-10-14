@@ -482,14 +482,14 @@ export default function AdminCurso() {
                             <div className="flex flex-col gap-3">
                                 {/* cadastrar novo curso */}
                                 <button
-                                    onClick={() => { setModoPainelCurso(modoPainelCurso === "criar" ? "nenhum" : "criar"); setMensagemCriar(""); setErroCriar(""); }}
+                                    onClick={() => { setModoPainelCurso(modoPainelCurso === "criar" ? "nenhum" : "criar"); setMensagemCriar(""); setErroCriar(""); setModoPainelConhecimento("nenhum"); }}
                                     className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainelCurso === "criar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Cadastrar Curso
                                 </button>
                                 {/* atualizar curso */}
                                 <button
-                                    onClick={() => {setModoPainelCurso(modoPainelCurso === "atualizar" ? "nenhum" : "atualizar"); setMensagemAtualizar(""); setErroAtualizar(""); }}
+                                    onClick={() => {setModoPainelCurso(modoPainelCurso === "atualizar" ? "nenhum" : "atualizar"); setMensagemAtualizar(""); setErroAtualizar(""); setModoPainelConhecimento("nenhum"); }}
                                     className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainelCurso === "atualizar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Editar Curso
@@ -500,13 +500,13 @@ export default function AdminCurso() {
 
                                 {/* Gerenciar Conhecimentos por Curso */}
                                 <button
-                                    onClick={() => { setModoPainelConhecimento(modoPainelConhecimento === "adicionar" ? "nenhum" : "adicionar"); setMensagemAdicionarConhecimento(""); setErroAdicionarConhecimento(""); }}
+                                    onClick={() => { setModoPainelConhecimento(modoPainelConhecimento === "adicionar" ? "nenhum" : "adicionar"); setMensagemAdicionarConhecimento(""); setErroAdicionarConhecimento(""); setModoPainelCurso("nenhum"); }}
                                     className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainelConhecimento === "adicionar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Adicionar Conhecimento ao Curso
                                 </button>
                                 <button
-                                    onClick={() => { setModoPainelConhecimento(modoPainelConhecimento === "remover" ? "nenhum" : "remover"); setMensagemRemoverConhecimento(""); setErroRemoverConhecimento(""); }}
+                                    onClick={() => { setModoPainelConhecimento(modoPainelConhecimento === "remover" ? "nenhum" : "remover"); setMensagemRemoverConhecimento(""); setErroRemoverConhecimento(""); setModoPainelCurso("nenhum"); }}
                                     className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainelConhecimento === "remover"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Remover Conhecimento do Curso
