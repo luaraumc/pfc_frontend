@@ -397,8 +397,8 @@ export default function AdminCurso() {
                             ) : (
                                 <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-950">
                                     {cursos.map(c => (
-                                        <li key={c.id ?? c.nome} className="p-4 flex items-center justify-between">
-                                            <div>
+                                        <li key={c.id ?? c.nome} className="p-4 flex justify-between items-start">
+                                            <div className="max-w-[calc(80%-1rem)]">
                                                 <div className="flex items-center">
                                                     {/* nome do curso */}
                                                     <p className="font-medium">{c.nome ?? `Curso #${c.id}`}</p>
@@ -451,7 +451,7 @@ export default function AdminCurso() {
                                             {c.id && (
                                                 <button
                                                     onClick={() => solicitarExclusao(c)}
-                                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40"
+                                                    className="self-start inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40"
                                                     title="Excluir curso"
                                                 >
                                                     <img src={lixeiraIcon} alt="Excluir" className="w-5 h-5" />
