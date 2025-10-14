@@ -429,21 +429,25 @@ export default function AdminCarreira() {
                             <div className="flex flex-col gap-3">
                                 {/* cadastrar nova carreira */}
                                 <button
-                                    onClick={() => { setModoPainel(modoPainel === 'criar' ? 'nenhum' : 'criar'); setMensagemCriar(''); setErroCriar(''); }}
+                                    onClick={() => { setModoPainel(modoPainel === 'criar' ? 'nenhum' : 'criar'); setMensagemCriar(''); setErroCriar(''); if(modoPainel!=='criar') setModoPainel('criar'); }}
                                     className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === 'criar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                 >
                                     Cadastrar Carreira
                                 </button>
                                 {/* Editar carreira */}
                                 <button
-                                    onClick={() => { setModoPainel(modoPainel === 'atualizar' ? 'nenhum' : 'atualizar'); setMensagemAtualizar(''); setErroAtualizar(''); }}
+                                    onClick={() => { setModoPainel(modoPainel === 'atualizar' ? 'nenhum' : 'atualizar'); setMensagemAtualizar(''); setErroAtualizar(''); if(modoPainel!=='atualizar') setModoPainel('atualizar'); }}
                                     className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === 'atualizar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                 >
                                     Editar Carreira
                                 </button>
+
+                                {/* separador */}
+                                <div className="h-px bg-slate-800 my-2" />
+
                                 {/* remover habilidade da carreira */}
                                 <button
-                                    onClick={() => { setModoPainel(modoPainel === 'removerHabilidade' ? 'nenhum' : 'removerHabilidade'); setErroRemoverHabilidade(''); setMensagemRemoverHabilidade(''); }}
+                                    onClick={() => { setModoPainel(modoPainel === 'removerHabilidade' ? 'nenhum' : 'removerHabilidade'); setErroRemoverHabilidade(''); setMensagemRemoverHabilidade(''); if(modoPainel!=='removerHabilidade') setModoPainel('removerHabilidade'); }}
                                     className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === 'removerHabilidade' ? 'bg-red-600 border-red-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                 >
                                     Remover Habilidade da Carreira
