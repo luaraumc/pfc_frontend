@@ -195,30 +195,27 @@ export default function AdminConhecimento() {
 
           {/* Painel lateral */}
           <div className="w-full lg:w-96 self-start">
-            <button onClick={() => window.location.reload()} className="mb-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800" title="Atualizar a página">
-              <span aria-hidden>↻</span> Atualizar
-            </button>
 
             <div className="bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6">
               <div className="flex flex-col gap-3">
-                <button onClick={() => { setModoPainel(modoPainel === "criar" ? "nenhum" : "criar"); setErroCriar(""); setMensagemCriar(""); }} className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "criar" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}>
+                <button onClick={() => { setModoPainel(modoPainel === "criar" ? "nenhum" : "criar"); setErroCriar(""); setMensagemCriar(""); }} className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === "criar" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}>
                   Cadastrar Conhecimento
                 </button>
-                <button onClick={() => { setModoPainel(modoPainel === "atualizar" ? "nenhum" : "atualizar"); setErroAtualizar(""); setMensagemAtualizar(""); }} className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === "atualizar" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}>
+                <button onClick={() => { setModoPainel(modoPainel === "atualizar" ? "nenhum" : "atualizar"); setErroAtualizar(""); setMensagemAtualizar(""); }} className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === "atualizar" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}>
                   Editar Conhecimento
                 </button>
               </div>
 
               {modoPainel === "criar" && (
                 <form onSubmit={cadastrarConhecimento} className="space-y-4">
-                  <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Novo Conhecimento</h2>
+                  <h2 className="text-base font-semibold text-indigo-300 tracking-wide mt-4 text-center">Novo Conhecimento</h2>
                   {erroCriar && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroCriar}</div>}
                   {mensagemCriar && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemCriar}</div>}
                   <div>
-                    <label className="block text-xs mb-1">Nome</label>
+                    <label className="block text-base mb-1">Nome</label>
                     <input value={novoNome} onChange={e => setNovoNome(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
                   </div>
-                  <button disabled={criando} type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium">
+                  <button disabled={criando} type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-base font-medium">
                     {criando ? "Salvando..." : "Cadastrar"}
                   </button>
                 </form>
@@ -226,21 +223,21 @@ export default function AdminConhecimento() {
 
               {modoPainel === "atualizar" && (
                 <form onSubmit={atualizarConhecimento} className="space-y-4">
-                  <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Conhecimento</h2>
+                  <h2 className="text-base font-semibold text-indigo-300 tracking-wide mt-4 text-center">Editar Conhecimento</h2>
                   {erroAtualizar && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroAtualizar}</div>}
                   {mensagemAtualizar && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{mensagemAtualizar}</div>}
                   <div>
-                    <label className="block text-xs mb-1">Selecionar conhecimento</label>
+                    <label className="block text-base mb-1">Selecionar conhecimento</label>
                     <select value={atualizarId} onChange={aoSelecionarAtualizar} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required>
                       <option value="">Selecione…</option>
                       {conhecimentos.map(k => (<option key={k.id} value={k.id}>{k.nome}</option>))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs mb-1">Nome</label>
+                    <label className="block text-base mb-1">Novo nome</label>
                     <input value={atualizarNome} onChange={e => setAtualizarNome(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
                   </div>
-                  <button disabled={atualizando} type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium">
+                  <button disabled={atualizando} type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-base font-medium">
                     {atualizando ? "Atualizando..." : "Salvar Alterações"}
                   </button>
                 </form>
