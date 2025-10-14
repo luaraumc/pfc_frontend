@@ -119,7 +119,7 @@ export default function Vaga() {
 				</button>
 
 				{/* título */}
-				<h1 className="text-3xl font-bold text-slate-100 text-center">Página de vagas</h1>
+				<h1 className="text-2xl font-semibold text-center mb-8">Cadastrar Vagas</h1>
 
 				{/* formulário de cadastro de vaga */}
 				<div className="mt-8 grid md:grid-cols-2 gap-8">
@@ -166,7 +166,7 @@ export default function Vaga() {
 										onChange={e => setCarreiraId(e.target.value)}
 										className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
 									>
-										<option value="">Sem associação</option>
+										<option value="">Selecione...</option>
 										{carreiras.map(c => (
 											<option key={c.id} value={c.id}>{c.nome}</option>
 										))}
