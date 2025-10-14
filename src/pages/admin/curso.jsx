@@ -374,7 +374,7 @@ export default function AdminCurso() {
                 <h1 className="text-2xl font-semibold text-center mb-8">Gerenciar Cursos</h1>
 
                 {/* listagem à esquerda | painel à direita */}
-                <div className="flex flex-col lg:flex-row gap-8 items-start">
+                <div className="flex flex-col lg:flex-row gap-8 items-start mb-10">
                     
                     <div className="flex-1 w-full">
                         {/* feedback */}
@@ -483,16 +483,16 @@ export default function AdminCurso() {
                                 {/* cadastrar novo curso */}
                                 <button
                                     onClick={() => { setModoPainelCurso(modoPainelCurso === "criar" ? "nenhum" : "criar"); setMensagemCriar(""); setErroCriar(""); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainelCurso === "criar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                    className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainelCurso === "criar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
-                                    Cadastrar Novo Curso
+                                    Cadastrar Curso
                                 </button>
                                 {/* atualizar curso */}
                                 <button
                                     onClick={() => {setModoPainelCurso(modoPainelCurso === "atualizar" ? "nenhum" : "atualizar"); setMensagemAtualizar(""); setErroAtualizar(""); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainelCurso === "atualizar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                    className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainelCurso === "atualizar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
-                                    Atualizar Curso
+                                    Editar Curso
                                 </button>
 
                                 {/* separador */}
@@ -501,13 +501,13 @@ export default function AdminCurso() {
                                 {/* Gerenciar Conhecimentos por Curso */}
                                 <button
                                     onClick={() => { setModoPainelConhecimento(modoPainelConhecimento === "adicionar" ? "nenhum" : "adicionar"); setMensagemAdicionarConhecimento(""); setErroAdicionarConhecimento(""); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainelConhecimento === "adicionar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                    className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainelConhecimento === "adicionar"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Adicionar Conhecimento ao Curso
                                 </button>
                                 <button
                                     onClick={() => { setModoPainelConhecimento(modoPainelConhecimento === "remover" ? "nenhum" : "remover"); setMensagemRemoverConhecimento(""); setErroRemoverConhecimento(""); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainelConhecimento === "remover"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
+                                    className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainelConhecimento === "remover"? "bg-indigo-600 border-indigo-500 text-white": "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}
                                 >
                                     Remover Conhecimento do Curso
                                 </button>
@@ -520,7 +520,7 @@ export default function AdminCurso() {
                             {modoPainelCurso === "criar" && (
                                 <form onSubmit={cadastrarCurso} className="space-y-4">
                                     {/* título */}
-                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Novo Curso</h2>
+                                    <h2 className="text-lg font-semibold text-indigo-300 tracking-wide mt-4 text-center">Novo Curso</h2>
                                     {/* feedback */}
                                     {erroCriar && (
                                         <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
@@ -534,7 +534,7 @@ export default function AdminCurso() {
                                     )}
                                     {/* nome */}
                                     <div>
-                                        <label className="block text-xs mb-1">Nome</label>
+                                        <label className="block text-base mb-1">Nome</label>
                                         <input
                                             value={novoNome}
                                             onChange={e => setNovoNome(e.target.value)}
@@ -544,7 +544,7 @@ export default function AdminCurso() {
                                     </div>
                                     {/* descrição */}
                                     <div>
-                                        <label className="block text-xs mb-1">Descrição</label>
+                                        <label className="block text-base mb-1">Descrição</label>
                                         <textarea
                                             value={novaDescricao}
                                             onChange={e => setNovaDescricao(e.target.value)}
@@ -557,7 +557,7 @@ export default function AdminCurso() {
                                     <button
                                         disabled={criando}
                                         type="submit"
-                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-base font-medium"
                                     >
                                         {criando ? "Salvando..." : "Cadastrar"}
                                     </button>
@@ -568,7 +568,7 @@ export default function AdminCurso() {
                             {modoPainelCurso === "atualizar" && (
                                 <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
                                     {/* título */}
-                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Curso</h2>
+                                    <h2 className="text-lg font-semibold text-indigo-300 tracking-wide mt-4 text-center">Editar Curso</h2>
                                     {/* feedback */}
                                     {erroAtualizar && (
                                         <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
@@ -582,7 +582,7 @@ export default function AdminCurso() {
                                     )}
                                     {/* seleção de curso */}
                                     <div>
-                                        <label className="block text-xs mb-1">Selecionar curso</label>
+                                        <label className="block text-base mb-1">Selecionar curso</label>
                                         <select
                                             value={atualizarId}
                                             onChange={aoSelecionarAtualizar}
@@ -599,7 +599,7 @@ export default function AdminCurso() {
                                     </div>
                                     {/* nome */}
                                     <div>
-                                        <label className="block text-xs mb-1">Nome</label>
+                                        <label className="block text-base mb-1">Novo nome</label>
                                         <input
                                             value={atualizarNome}
                                             onChange={e => setAtualizarNome(e.target.value)}
@@ -609,7 +609,7 @@ export default function AdminCurso() {
                                     </div>
                                     {/* descrição */}
                                     <div>
-                                        <label className="block text-xs mb-1">Descrição</label>
+                                        <label className="block text-base mb-1">Nova descrição</label>
                                         <textarea
                                             value={atualizarDescricao}
                                             onChange={e => setAtualizarDescricao(e.target.value)}
@@ -622,7 +622,7 @@ export default function AdminCurso() {
                                     <button
                                         disabled={atualizando}
                                         type="submit"
-                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-base font-medium"
                                     >
                                         {atualizando ? "Atualizando..." : "Salvar Alterações"}
                                     </button>
@@ -633,7 +633,7 @@ export default function AdminCurso() {
                             {modoPainelConhecimento === "adicionar" && (
                                 <form onSubmit={AdicionarConhecimentoAoCurso} className="space-y-4">
                                     {/* título */}
-                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Adicionar Conhecimento</h2>
+                                    <h2 className="text-lg font-semibold text-indigo-300 tracking-wide mt-4 text-center">Adicionar Conhecimento</h2>
                                     {/* feedback */}
                                     {erroAdicionarConhecimento && (
                                         <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
@@ -647,7 +647,7 @@ export default function AdminCurso() {
                                     )}
                                     {/* seleção de curso */}
                                     <div>
-                                        <label className="block text-xs mb-1">Curso</label>
+                                        <label className="block text-base mb-1">Curso</label>
                                         <select
                                             value={adicionarCursoId}
                                             onChange={e => setAdicionarCursoId(e.target.value)}
@@ -664,7 +664,7 @@ export default function AdminCurso() {
                                     </div>
                                     {/* seleção de conhecimento */}
                                     <div>
-                                        <label className="block text-xs mb-1">Conhecimento</label>
+                                        <label className="block text-base mb-1">Conhecimento</label>
                                         {conhecimentosLoading ? (
                                             <p className="text-xs text-slate-400">Carregando…</p>
                                         ) : conhecimentosErro ? (
@@ -691,7 +691,7 @@ export default function AdminCurso() {
                                     <button
                                         disabled={adicionandoConhecimento}
                                         type="submit"
-                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-base font-medium"
                                     >
                                         {adicionandoConhecimento ? "Adicionando..." : "Adicionar"}
                                     </button>
@@ -702,7 +702,7 @@ export default function AdminCurso() {
                             {modoPainelConhecimento === "remover" && (
                                 <form onSubmit={RemoverConhecimentoDoCurso} className="space-y-4">
                                     {/* título */}
-                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Remover Conhecimento</h2>
+                                    <h2 className="text-lg font-semibold text-indigo-300 tracking-wide mt-4 text-center">Remover Conhecimento</h2>
                                     {/* feedback */}
                                     {erroRemoverConhecimento && (
                                         <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">
@@ -716,7 +716,7 @@ export default function AdminCurso() {
                                     )}
                                     {/* seleção de curso */}
                                     <div>
-                                        <label className="block text-xs mb-1">Curso</label>
+                                        <label className="block text-base mb-1">Curso</label>
                                         <select
                                             value={removerCursoId}
                                             onChange={e => {
@@ -740,9 +740,9 @@ export default function AdminCurso() {
                                     </div>
                                     {/* seleção de conhecimento */}
                                     <div>
-                                        <label className="block text-xs mb-1">Conhecimento (associado)</label>
+                                        <label className="block text-base mb-1">Conhecimento Associado</label>
                                         {!removerCursoId ? (
-                                            <p className="text-xs text-slate-500">Selecione um curso primeiro.</p>
+                                            <p className="text-base text-slate-500">Selecione um curso primeiro.</p>
                                         ) : conhecimentosCurso[removerCursoId]?.loading ? (
                                             <p className="text-xs text-slate-400">Carregando…</p>
                                         ) : conhecimentosCurso[removerCursoId]?.error ? (
@@ -767,7 +767,7 @@ export default function AdminCurso() {
                                     <button
                                         disabled={removendoConhecimento}
                                         type="submit"
-                                        className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                        className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-base font-medium"
                                     >
                                         {removendoConhecimento ? "Removendo..." : "Remover"}
                                     </button>
