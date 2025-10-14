@@ -150,13 +150,6 @@ export default function AdminHabilidade() {
                       </div>
                       {h.id && (
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => { setAtualizarId(String(h.id)); setAtualizarNome(h.nome || ""); setMensagemAtualizar(""); setErroAtualizar(""); document.getElementById("painel-atualizar-habilidade")?.scrollIntoView({ behavior: "smooth" }); }}
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-indigo-700 text-indigo-200 hover:bg-indigo-900/40"
-                            title="Editar"
-                          >
-                            Editar
-                          </button>
                           <button onClick={() => deletar(h.id)} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40" title="Excluir">
                             Excluir
                           </button>
@@ -171,30 +164,27 @@ export default function AdminHabilidade() {
 
           {/* Painel lateral */}
           <div className="w-full lg:w-96 self-start">
-            <button onClick={() => window.location.reload()} className="mb-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800" title="Atualizar a página">
-              <span aria-hidden>↻</span> Atualizar
-            </button>
 
             <div id="painel-atualizar-habilidade" className="bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6">
-              <h2 className="text-sm font-semibold text-indigo-300 tracking-wide">Atualizar Habilidade</h2>
+              <h2 className="text-lg font-semibold text-indigo-300 tracking-wide text-center">Atualizar Habilidade</h2>
               <form onSubmit={aoSubmeterAtualizar} className="mt-4 space-y-3">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Selecione a habilidade</label>
+                  <label className="block text-base text-slate-200 mb-1">Selecionar habilidade</label>
                   <select value={atualizarId} onChange={aoSelecionarAtualizar} className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200">
-                    <option value="">— Selecione —</option>
+                    <option value="">Selecione...</option>
                     {habilidades.map(h => (
                       <option key={h.id} value={h.id}>{h.nome ?? `Habilidade #${h.id}`}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Novo nome</label>
+                  <label className="block text-base text-slate-200 mb-1">Novo nome</label>
                   <input
                     type="text"
                     value={atualizarNome}
                     onChange={(e) => setAtualizarNome(e.target.value)}
                     placeholder="Digite o novo nome"
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200 mb-3"
                     disabled={!atualizarId}
                   />
                 </div>
@@ -208,7 +198,7 @@ export default function AdminHabilidade() {
                   <button
                     type="submit"
                     disabled={!atualizarId || !atualizarNome.trim() || atualizando}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-indigo-700 text-indigo-200 hover:bg-indigo-900/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500  disabled:cursor-not-allowed"
                   >
                     {atualizando ? "Salvando…" : "Salvar alterações"}
                   </button>
