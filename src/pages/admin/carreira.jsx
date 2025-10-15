@@ -354,7 +354,7 @@ export default function AdminCarreira() {
                                                         <button
                                                             type="button"
                                                             onClick={() => alternarExpandirCarreira(c.id)}
-                                                            className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-800 ml-2"
+                                                            className="w-3 h-3 flex items-center justify-center rounded hover:bg-slate-800 ml-2"
                                                             title="Ver habilidades"
                                                         >
                                                             <img
