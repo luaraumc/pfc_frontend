@@ -396,7 +396,7 @@ export default function AdminCarreira() {
                                                                 habilidadesCarreira[c.id].items.map(hab => (
                                                                     <li key={hab.id || hab.habilidade_id} className="text-sm text-slate-200 mb-1 flex items-center gap-2">
                                                                         <span className="inline-block w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
-                                                                        {hab.habilidade_nome || hab.nome || (hab.habilidade_id ? obterNomeHabilidade(hab.habilidade_id) : '-')}
+                                                                        {hab.habilidade_nome || hab.nome || hab.nome_habilidade || hab.nomeHabilidade || (habilidades.find(h => Number(h.id) === Number(hab.habilidade_id ?? hab.id))?.nome) || '-'}
                                                                     </li>
                                                                 ))
                                                             ) : (
