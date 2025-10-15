@@ -95,7 +95,7 @@ export default function Vaga() {
                 <Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
                     Conhecimentos
                 </Link>
-                <Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
+                <Link to="/admin/vaga" className="text-lg font-medium underline decoration-slate-500 text-slate-300 hover:text-indigo-200">
                     Vagas
                 </Link>
 				<button
