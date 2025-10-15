@@ -341,7 +341,7 @@ export default function AdminCurso() {
                 <Link to="/admin/habilidade" className="text-lg font-medium text-white hover:text-indigo-200">
                     Habilidades
                 </Link>
-                <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
+                <Link to="/admin/curso" className="text-lg font-medium underline decoration-slate-500 text-slate-300 hover:text-indigo-200">
                     Cursos
                 </Link>
                 <Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
