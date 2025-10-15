@@ -280,7 +280,7 @@ export default function AdminCarreira() {
                 <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
                     PFC - Admin
                 </Link>
-                <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
+                <Link to="/admin/carreira" className="text-lg font-medium underline decoration-slate-500 text-slate-300 hover:text-indigo-200">
                     Carreiras
                 </Link>
                 <Link to="/admin/habilidade" className="text-lg font-medium text-white hover:text-indigo-200">
