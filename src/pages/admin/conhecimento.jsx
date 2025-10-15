@@ -124,7 +124,7 @@ export default function AdminConhecimento() {
       <header className="w-full border-b border-slate-800 bg-slate-950/80">
         <div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
           <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-            PFC - Admin
+            Home
           </Link>
           <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
             Carreiras
@@ -135,7 +135,7 @@ export default function AdminConhecimento() {
           <Link to="/admin/curso" className="text-lg font-medium text-white hover:text-indigo-200">
             Cursos
           </Link>
-          <Link to="/admin/conhecimento" className="text-lg font-medium underline decoration-slate-500 text-slate-300 hover:text-indigo-200">
+          <Link to="/admin/conhecimento" className="text-lg font-medium underline decoration-slate-500 decoration-3 underline-offset-8 text-indigo-300 hover:text-indigo-200">
             Conhecimentos
           </Link>
           <Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
