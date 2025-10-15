@@ -143,20 +143,22 @@ export default function AdminHabilidade() {
                 <p className="text-slate-400">Nenhuma habilidade cadastrada.</p>
               ) : (
                 <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-950">
-                  {habilidades.map(h => (
-                    <li key={h.id ?? h.nome} className="p-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{h.nome ?? `Habilidade #${h.id}`}</p>
-                      </div>
-                      {h.id && (
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => deletar(h.id)} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40" title="Excluir">
-                            Excluir
-                          </button>
+                  {[...habilidades]
+                    .sort((a, b) => (a?.nome ?? '').localeCompare(b?.nome ?? '', 'pt-BR', { sensitivity: 'base', numeric: true }))
+                    .map(h => (
+                      <li key={h.id ?? h.nome} className="p-4 flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{h.nome ?? `Habilidade #${h.id}`}</p>
                         </div>
-                      )}
-                    </li>
-                  ))}
+                        {h.id && (
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => deletar(h.id)} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40" title="Excluir">
+                              Excluir
+                            </button>
+                          </div>
+                        )}
+                      </li>
+                    ))}
                 </ul>
               )
             )}
@@ -172,9 +174,11 @@ export default function AdminHabilidade() {
                   <label className="block text-base text-slate-200 mb-1">Selecionar habilidade</label>
                   <select value={atualizarId} onChange={aoSelecionarAtualizar} className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200">
                     <option value="">Selecione...</option>
-                    {habilidades.map(h => (
-                      <option key={h.id} value={h.id}>{h.nome ?? `Habilidade #${h.id}`}</option>
-                    ))}
+                    {[...habilidades]
+                      .sort((a, b) => (a?.nome ?? '').localeCompare(b?.nome ?? '', 'pt-BR', { sensitivity: 'base', numeric: true }))
+                      .map(h => (
+                        <option key={h.id} value={h.id}>{h.nome ?? `Habilidade #${h.id}`}</option>
+                      ))}
                   </select>
                 </div>
                 <div>

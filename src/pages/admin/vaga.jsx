@@ -140,6 +140,7 @@ export default function Vaga() {
 									value={titulo}
 									onChange={e => setTitulo(e.target.value)}
 									className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+									placeholder="Informe o título da vaga."
 									required
 								/>
 							</div>
