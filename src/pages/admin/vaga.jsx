@@ -81,7 +81,7 @@ export default function Vaga() {
 			<header className="w-full border-b border-slate-800 bg-slate-950/80">
 				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
 				<Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-                    PFC - Admin
+                    Home
                 </Link>
                 <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
                     Carreiras
@@ -95,7 +95,7 @@ export default function Vaga() {
                 <Link to="/admin/conhecimento" className="text-lg font-medium text-white hover:text-indigo-200">
                     Conhecimentos
                 </Link>
-                <Link to="/admin/vaga" className="text-lg font-medium text-white hover:text-indigo-200">
+                <Link to="/admin/vaga" className="text-lg font-medium underline decoration-slate-500 decoration-3 underline-offset-8 text-indigo-300 hover:text-indigo-200">
                     Vagas
                 </Link>
 				<button
@@ -119,7 +119,7 @@ export default function Vaga() {
 				</button>
 
 				{/* título */}
-				<h1 className="text-3xl font-bold text-slate-100 text-center">Página de vagas</h1>
+				<h1 className="text-2xl font-semibold text-center mb-8">Cadastrar Vagas</h1>
 
 				{/* formulário de cadastro de vaga */}
 				<div className="mt-8 grid md:grid-cols-2 gap-8">
@@ -140,6 +140,7 @@ export default function Vaga() {
 									value={titulo}
 									onChange={e => setTitulo(e.target.value)}
 									className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+									placeholder="Informe o título da vaga."
 									required
 								/>
 							</div>
@@ -166,7 +167,7 @@ export default function Vaga() {
 										onChange={e => setCarreiraId(e.target.value)}
 										className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
 									>
-										<option value="">Sem associação</option>
+										<option value="">Selecione...</option>
 										{carreiras.map(c => (
 											<option key={c.id} value={c.id}>{c.nome}</option>
 										))}

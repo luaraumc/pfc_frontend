@@ -103,7 +103,7 @@ export default function RecuperarSenha() {
 		<div className="min-h-screen relative bg-slate-900">
 
 			{/* BOTÃO VOLTAR */}
-			<div className="max-w-6xl mx-auto px-4 pt-6">
+			<div className="ml-8 mx-auto px-4 pt-8">
 				<button
 					onClick={() => navigate(-1)}
 					className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
@@ -194,7 +194,7 @@ export default function RecuperarSenha() {
 
 							{/* nova senha */}
 							<div className="flex flex-col">
-								<label className="mb-2 text-indigo-300 text-sm" htmlFor="novaSenha">Nova senha</label>
+								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="novaSenha">Nova senha</label>
 								<input
 									id="novaSenha"
 									type="password"
@@ -208,7 +208,7 @@ export default function RecuperarSenha() {
 
 							{/* confirmar nova senha */}
 							<div className="flex flex-col">
-								<label className="mb-2 text-indigo-300 text-sm" htmlFor="confirmarSenha">Confirmar nova senha</label>
+								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="confirmarSenha">Confirmar nova senha</label>
 								<input
 									id="confirmarSenha"
 									type="password"

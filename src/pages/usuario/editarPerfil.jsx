@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom"; // criar links de navegaç
 import { useEffect, useState } from "react"; // estados e efeitos
 import { authFetch } from "../../utils/auth"; // fetch autenticado com renovação automática de token
 import { logoutRedirecionar } from "../../utils/auth"; // logout e redirecionamento
+import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -235,28 +236,35 @@ export default function EditarPerfil() {
 
 			{/* HEADER */}
 			<header className="w-full border-b border-slate-800 bg-slate-950/80">
-				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
 					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-						PFC
+						Home
 					</Link>
 					<div className="flex items-center gap-3">
-						<Link
-							to="/usuario/cadastro-habilidade"
-							className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-						>
-							Cadastro de Habilidade
-						</Link>
-						<button
-							onClick={logoutRedirecionar}
-							className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
-							Sair
-						</button>
+					<Link
+						to="/usuario/cadastro-habilidade"
+						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					>
+						Cadastrar Habilidade
+					</Link>
+					<Link
+						to="/usuario/editar-perfil"
+						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					>
+						<img src={perfilIcon} alt="Perfil" className="w-5 h-5" />
+						<span>Editar Perfil</span>
+					</Link>
+					<button
+						onClick={logoutRedirecionar}
+						className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
+						Sair
+					</button>
 					</div>
 				</div>
 			</header>
 
 			{/* CONTEÚDO PRINCIPAL */}
-			<main className="max-w-6xl mx-auto px-4 py-5">
+			<main className="ml-8 mr-8 mx-auto px-4 py-5">
 
 				{/* BOTÃO VOLTAR */}
 				<button

@@ -278,9 +278,9 @@ export default function AdminCarreira() {
             <header className="w-full border-b border-slate-800 bg-slate-950/80">
                 <div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
                 <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-                    PFC - Admin
+                    Home
                 </Link>
-                <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
+                <Link to="/admin/carreira" className="text-lg font-medium underline decoration-slate-500 decoration-3 underline-offset-8 text-indigo-300 hover:text-indigo-200">
                     Carreiras
                 </Link>
                 <Link to="/admin/habilidade" className="text-lg font-medium text-white hover:text-indigo-200">
@@ -326,7 +326,7 @@ export default function AdminCarreira() {
                         {carregando && (
                             <p className="text-slate-400">Carregando carreiras…</p>
                         )}
-                        {!!mensagem && !carregando && (
+                        {!!mensagem && !carregando && ( 
                             <div className="mb-3 p-3 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">
                                 {mensagem}
                             </div>
@@ -345,7 +345,7 @@ export default function AdminCarreira() {
                                 <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-950">
                                     {carreiras.map((c) => (
                                         <li key={c.id ?? c.nome} className="p-4">
-                                            <div className="flex items-center justify-between gap-2">
+                                            <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     {/* nome da carreira */}
                                                     <p className="font-medium">{c.nome ?? `Carreira #${c.id}`}</p>
@@ -391,12 +391,12 @@ export default function AdminCarreira() {
                                                     ) : habilidadesCarreira[c.id]?.error ? (
                                                         <p className="text-xs text-red-400">{habilidadesCarreira[c.id].error}</p>
                                                     ) : (
-                                                        <ul className="list-disc pl-5">
+                                                        <ul className="list-disc">
                                                             {habilidadesCarreira[c.id]?.items.length > 0 ? (
                                                                 habilidadesCarreira[c.id].items.map(hab => (
                                                                     <li key={hab.id || hab.habilidade_id} className="text-sm text-slate-200 mb-1 flex items-center gap-2">
                                                                         <span className="inline-block w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
-                                                                        {hab.habilidade_nome || hab.nome || (hab.habilidade_id ? obterNomeHabilidade(hab.habilidade_id) : '-')}
+                                                                        {hab.habilidade_nome || hab.nome || hab.nome_habilidade || hab.nomeHabilidade || (habilidades.find(h => Number(h.id) === Number(hab.habilidade_id ?? hab.id))?.nome) || '-'}
                                                                     </li>
                                                                 ))
                                                             ) : (
@@ -429,22 +429,26 @@ export default function AdminCarreira() {
                             <div className="flex flex-col gap-3">
                                 {/* cadastrar nova carreira */}
                                 <button
-                                    onClick={() => { setModoPainel(modoPainel === 'criar' ? 'nenhum' : 'criar'); setMensagemCriar(''); setErroCriar(''); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === 'criar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
+                                    onClick={() => { setModoPainel(modoPainel === 'criar' ? 'nenhum' : 'criar'); setMensagemCriar(''); setErroCriar(''); if(modoPainel!=='criar') setModoPainel('criar'); }}
+                                    className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === 'criar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                 >
-                                    Cadastrar Nova Carreira
+                                    Cadastrar Carreira
                                 </button>
                                 {/* Editar carreira */}
                                 <button
-                                    onClick={() => { setModoPainel(modoPainel === 'atualizar' ? 'nenhum' : 'atualizar'); setMensagemAtualizar(''); setErroAtualizar(''); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === 'atualizar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
+                                    onClick={() => { setModoPainel(modoPainel === 'atualizar' ? 'nenhum' : 'atualizar'); setMensagemAtualizar(''); setErroAtualizar(''); if(modoPainel!=='atualizar') setModoPainel('atualizar'); }}
+                                    className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === 'atualizar' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                 >
                                     Editar Carreira
                                 </button>
+
+                                {/* separador */}
+                                <div className="h-px bg-slate-800 my-2" />
+
                                 {/* remover habilidade da carreira */}
                                 <button
-                                    onClick={() => { setModoPainel(modoPainel === 'removerHabilidade' ? 'nenhum' : 'removerHabilidade'); setErroRemoverHabilidade(''); setMensagemRemoverHabilidade(''); }}
-                                    className={`px-3 py-2 rounded-md text-sm font-medium border transition ${modoPainel === 'removerHabilidade' ? 'bg-red-600 border-red-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
+                                    onClick={() => { setModoPainel(modoPainel === 'removerHabilidade' ? 'nenhum' : 'removerHabilidade'); setErroRemoverHabilidade(''); setMensagemRemoverHabilidade(''); if(modoPainel!=='removerHabilidade') setModoPainel('removerHabilidade'); }}
+                                    className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === 'removerHabilidade' ? 'bg-red-600 border-red-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`}
                                 >
                                     Remover Habilidade da Carreira
                                 </button>
@@ -454,7 +458,7 @@ export default function AdminCarreira() {
                             {modoPainel === 'criar' && (
                                 <form onSubmit={cadastrarCarreira} className="space-y-4">
                                     {/* título */}
-                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Nova Carreira</h2>
+                                    <h2 className="text-lg font-semibold text-indigo-300 tracking-wide mt-4 text-center">Nova Carreira</h2>
                                     {/* feedback */}
                                     {erroCriar && (
                                         <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroCriar}</div>
@@ -464,7 +468,7 @@ export default function AdminCarreira() {
                                     )}
                                     {/* nome */}
                                     <div>
-                                        <label className="block text-xs mb-1">Nome</label>
+                                        <label className="block text-base mb-1">Nome</label>
                                         <input
                                             value={novoNome}
                                             onChange={e => setNovoNome(e.target.value)}
@@ -474,7 +478,7 @@ export default function AdminCarreira() {
                                     </div>
                                     {/* descrição */}
                                     <div>
-                                        <label className="block text-xs mb-1">Descrição</label>
+                                        <label className="block text-base mb-1">Descrição</label>
                                         <textarea
                                             value={novaDescricao}
                                             onChange={e => setNovaDescricao(e.target.value)}
@@ -486,7 +490,7 @@ export default function AdminCarreira() {
                                     <button
                                         disabled={criando}
                                         type="submit"
-                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-base font-medium"
                                     >
                                         {criando ? 'Salvando...' : 'Cadastrar'}
                                     </button>
@@ -497,7 +501,7 @@ export default function AdminCarreira() {
                             {modoPainel === 'atualizar' && (
                                 <form onSubmit={aoSubmeterAtualizar} className="space-y-4">
                                     {/* título */}
-                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Atualizar Carreira</h2>
+                                    <h2 className="text-lg font-semibold text-indigo-300 tracking-wide mt-4 text-center">Editar Carreira</h2>
                                     {/* feedback */}
                                     {erroAtualizar && (
                                         <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroAtualizar}</div>
@@ -507,7 +511,7 @@ export default function AdminCarreira() {
                                     )}
                                     {/* seleção de carreira */}
                                     <div>
-                                        <label className="block text-xs mb-1">Selecionar carreira</label>
+                                        <label className="block text-base mb-1">Selecionar carreira</label>
                                         <select
                                             value={atualizarId}
                                             onChange={aoSelecionarAtualizar}
@@ -522,7 +526,7 @@ export default function AdminCarreira() {
                                     </div>
                                     {/* nome */}
                                     <div>
-                                        <label className="block text-xs mb-1">Nome</label>
+                                        <label className="block text-base mb-1">Novo nome</label>
                                         <input
                                             value={atualizarNome}
                                             onChange={e => setAtualizarNome(e.target.value)}
@@ -532,7 +536,7 @@ export default function AdminCarreira() {
                                     </div>
                                     {/* descrição */}
                                     <div>
-                                        <label className="block text-xs mb-1">Descrição</label>
+                                        <label className="block text-base mb-1">Nova descrição</label>
                                         <textarea
                                             value={atualizarDescricao}
                                             onChange={e => setAtualizarDescricao(e.target.value)}
@@ -544,7 +548,7 @@ export default function AdminCarreira() {
                                     <button
                                         disabled={atualizando}
                                         type="submit"
-                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded py-2 text-base font-medium"
                                     >
                                         {atualizando ? 'Atualizando...' : 'Salvar Alterações'}
                                     </button>
@@ -555,7 +559,7 @@ export default function AdminCarreira() {
                             {modoPainel === 'removerHabilidade' && (
                                 <form onSubmit={RemoverHabilidadeDaCarreira} className="space-y-4">
                                     {/* título */}
-                                    <h2 className="text-sm font-semibold text-indigo-300 tracking-wide mt-4">Remover Habilidade da Carreira</h2>
+                                    <h2 className="text-lg font-semibold text-indigo-300 tracking-wide mt-4 text-center">Remover Habilidade da Carreira</h2>
                                     {/* feedback */}
                                     {erroRemoverHabilidade && (
                                         <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{erroRemoverHabilidade}</div>
@@ -565,7 +569,7 @@ export default function AdminCarreira() {
                                     )}
                                     {/* seleção de carreira */}
                                     <div>
-                                        <label className="block text-xs mb-1">Carreira</label>
+                                        <label className="block text-base mb-1">Carreira</label>
                                         <select
                                             value={removerCarreiraId}
                                             onChange={e => {
@@ -587,13 +591,13 @@ export default function AdminCarreira() {
                                     </div>
                                     {/* seleção de habilidade associada */}
                                     <div>
-                                        <label className="block text-xs mb-1">Habilidade (associada)</label>
+                                        <label className="block text-base mb-1">Habilidade Associada</label>
                                         {!removerCarreiraId ? (
-                                            <p className="text-xs text-slate-500">Selecione uma carreira primeiro.</p>
+                                            <p className="text-base text-slate-500">Selecione uma carreira primeiro.</p>
                                         ) : habilidadesCarreira[removerCarreiraId]?.loading ? (
-                                            <p className="text-xs text-slate-400">Carregando…</p>
+                                            <p className="text-base text-slate-400">Carregando…</p>
                                         ) : habilidadesCarreira[removerCarreiraId]?.error ? (
-                                            <p className="text-xs text-red-400">{habilidadesCarreira[removerCarreiraId].error}</p>
+                                            <p className="text-base text-red-400">{habilidadesCarreira[removerCarreiraId].error}</p>
                                         ) : (
                                             <select
                                                 value={removerHabilidadeId}
@@ -614,7 +618,7 @@ export default function AdminCarreira() {
                                     <button
                                         disabled={removendoHabilidade}
                                         type="submit"
-                                        className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-sm font-medium"
+                                        className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 rounded py-2 text-base font-medium"
                                     >
                                         {removendoHabilidade ? "Removendo..." : "Remover"}
                                     </button>

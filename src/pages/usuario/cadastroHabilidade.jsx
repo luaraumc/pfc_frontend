@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { authFetch, logoutRedirecionar } from "../../utils/auth";
+import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -131,28 +132,35 @@ export default function CadastroHabilidade() {
 		<div className="min-h-screen bg-slate-900 text-slate-200">
 			{/* HEADER */}
 			<header className="w-full border-b border-slate-800 bg-slate-950/80">
-				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">PFC</Link>
-								<div className="flex items-center gap-3">
-									<Link
-										to="/usuario/editar-perfil"
-										className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-									>
-										Editar Perfil
-									</Link>
-									<Link
-										to="/usuario/cadastro-habilidade"
-										className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-									>
-										Cadastro de Habilidade
-									</Link>
-									<button onClick={logoutRedirecionar} className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">Sair</button>
-								</div>
+				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
+					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
+						Home
+					</Link>
+					<div className="flex items-center gap-3">
+					<Link
+						to="/usuario/cadastro-habilidade"
+						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					>
+						Cadastrar Habilidade
+					</Link>
+					<Link
+						to="/usuario/editar-perfil"
+						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					>
+						<img src={perfilIcon} alt="Perfil" className="w-5 h-5" />
+						<span>Editar Perfil</span>
+					</Link>
+					<button
+						onClick={logoutRedirecionar}
+						className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
+						Sair
+					</button>
+					</div>
 				</div>
 			</header>
 
 			{/* MAIN */}
-			<main className="max-w-6xl mx-auto px-4 py-6">
+			<main className="ml-8 mr-8 mx-auto px-4 py-5">
 				<button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
 					<span aria-hidden>←</span> Voltar
 				</button>
