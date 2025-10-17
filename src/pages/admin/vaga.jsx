@@ -12,13 +12,39 @@ export default function Vaga() {
 	const [titulo, setTitulo] = useState("");
 	const [descricao, setDescricao] = useState("");
 	const [carreiraId, setCarreiraId] = useState("");
-	const [carregando, setCarregando] = useState(false);
-	const [mensagem, setMensagem] = useState("");
-	const [erro, setErro] = useState("");
+	const [carregando, setCarregando] = useState(false); // loading do cadastro básico
+	const [mensagem, setMensagem] = useState(""); // msg geral
+	const [erro, setErro] = useState(""); // erro geral
 	const [carreiras, setCarreiras] = useState([]);
 	const [carreirasErro, setCarreirasErro] = useState("");
 	const [carreirasLoading, setCarreirasLoading] = useState(true);
-	const [resultado, setResultado] = useState(null);
+	// estados do fluxo em 2 etapas
+	const [vagaId, setVagaId] = useState(null); // id da vaga criada no cadastro básico
+	const [previewLoading, setPreviewLoading] = useState(false); // loading da extração
+	const [habilidadesPreview, setHabilidadesPreview] = useState([]); // lista editável
+	const [confirmLoading, setConfirmLoading] = useState(false); // loading confirmação
+	const [confirmMsg, setConfirmMsg] = useState("");
+	const [confirmErro, setConfirmErro] = useState("");
+	const [confirmResultado, setConfirmResultado] = useState(null); // dados de retorno após confirmar (criadas/ja_existiam)
+	const [jaConfirmado, setJaConfirmado] = useState(false); // trava o botão após sucesso
+
+	// Limpar toda a tela/estado para o estado inicial
+	function limparTela() {
+		setTitulo("");
+		setDescricao("");
+		setCarreiraId("");
+		setCarregando(false);
+		setMensagem("");
+		setErro("");
+		setVagaId(null);
+		setPreviewLoading(false);
+		setHabilidadesPreview([]);
+		setConfirmLoading(false);
+		setConfirmMsg("");
+		setConfirmErro("");
+		setConfirmResultado(null);
+		setJaConfirmado(false);
+	}
 
 	// Carregar carreiras para o select
 	useEffect(() => {
@@ -39,37 +65,86 @@ export default function Vaga() {
 		return () => { ativo = false; };
 	}, []);
 
-	// Cadastrar vaga
+	// Cadastrar vaga (básico) e carregar preview de habilidades editáveis
 	async function cadastrarVaga(e) {
-		e.preventDefault(); // evita reload da página
-		setErro(""); setMensagem(""); setResultado(null);
+		e.preventDefault();
+		setErro(""); setMensagem(""); setConfirmMsg(""); setConfirmErro(""); setConfirmResultado(null);
+		setVagaId(null); setHabilidadesPreview([]); setJaConfirmado(false);
 		try {
 			setCarregando(true);
-			// monta o objeto que será enviado ao backend
-			const payload = {
-				titulo: titulo.trim(),
-				descricao: descricao.trim(),
-				carreira_id: carreiraId ? Number(carreiraId) : null
-			};
-			// chama backend
-			const res = await authFetch(`${API_URL}/vaga/cadastro`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload) // converte para JSON
+			const payload = { titulo: titulo.trim(), descricao: descricao.trim(), carreira_id: carreiraId ? Number(carreiraId) : null };
+			const res = await authFetch(`${API_URL}/vaga/cadastro-basico`, {
+				method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
 			});
-			const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
+			const vaga = await res.json().catch(() => ({}));
 			if (!res.ok) {
-				const msg = data?.detail || data?.message || `Falha ao cadastrar (HTTP ${res.status})`;
+				const msg = vaga?.detail || vaga?.message || `Falha ao cadastrar (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
-			setMensagem("Vaga cadastrada com sucesso");
-			setResultado(data);
-			setTitulo("");
-			setDescricao("");
+			setVagaId(vaga?.id);
+			setMensagem("Vaga cadastrada. Edite as habilidades extraídas antes de confirmar.");
+			// limpa campos do formulário
+			setTitulo(""); setDescricao("");
+			// busca preview
+			await carregarPreview(vaga?.id);
 		} catch (e) {
 			setErro(e.message || "Erro ao cadastrar vaga");
 		} finally {
 			setCarregando(false);
+		}
+	}
+
+	async function carregarPreview(id) {
+		if (!id) return;
+		setPreviewLoading(true);
+		try {
+			const res = await authFetch(`${API_URL}/vaga/${id}/preview-habilidades`);
+			const data = await res.json().catch(() => []);
+			if (!res.ok) {
+				const msg = (data && data.detail) || `Falha ao extrair habilidades (HTTP ${res.status})`;
+				throw new Error(msg);
+			}
+			// lista editável
+			setHabilidadesPreview(Array.isArray(data) ? data : []);
+		} catch (e) {
+			setErro(e.message || "Erro ao extrair habilidades");
+		} finally {
+			setPreviewLoading(false);
+		}
+	}
+
+	function editarHabilidadePreview(index, novoValor) {
+		setHabilidadesPreview(prev => prev.map((h, i) => i === index ? novoValor : h));
+	}
+
+	function removerHabilidadePreview(index) {
+		setHabilidadesPreview(prev => prev.filter((_, i) => i !== index));
+	}
+
+	async function confirmarHabilidades() {
+		if (!vagaId) return;
+		setConfirmErro(""); setConfirmMsg(""); setConfirmResultado(null);
+		try {
+			setConfirmLoading(true);
+			const payload = { habilidades: habilidadesPreview };
+			const res = await authFetch(`${API_URL}/vaga/${vagaId}/confirmar-habilidades`, {
+				method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+			});
+			const data = await res.json().catch(() => ({}));
+			if (!res.ok) {
+				const msg = data?.detail || data?.message || `Falha ao confirmar (HTTP ${res.status})`;
+				throw new Error(msg);
+			}
+			// Após salvar com sucesso, manter resultado visível e bloquear o botão
+			// Limpar também campos de edição das habilidades extraídas
+			setConfirmResultado(data);
+			setConfirmMsg("Habilidades confirmadas e salvas.");
+			setHabilidadesPreview([]);
+			setJaConfirmado(true);
+		} catch (e) {
+			setConfirmErro(e.message || "Erro ao confirmar habilidades");
+		} finally {
+			setConfirmLoading(false);
 		}
 	}
 
@@ -180,56 +255,105 @@ export default function Vaga() {
 									type="submit"
 									className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-base font-medium mt-3"
 								>
-									{carregando ? "Cadastrando..." : "Cadastrar Vaga"}
+									{carregando ? "Cadastrando..." : "Cadastrar e Extrair"}
 								</button>
 							</div>
 						</form>
 					</div>
 
 					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5 mr-30">
-						<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Resultado da Extração</h2>
-						{!resultado ? (
-							<p className="text-lg text-slate-400 text-center">Após cadastrar, as habilidades extraídas aparecerão aqui.</p>
+						<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Pré-visualização e Confirmação</h2>
+						{confirmMsg && (
+							<div className="mb-3 p-2 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{confirmMsg}</div>
+						)}
+						{!vagaId ? (
+							<p className="text-lg text-slate-400 text-center">Após cadastrar, as habilidades extraídas aparecerão aqui para edição.</p>
 						) : (
 							<div className="space-y-4">
+								{/* Info da vaga */}
 								<div>
-									<p className="text-sm text-slate-300"><span className="text-slate-400">Vaga:</span> {resultado.titulo}</p>
-									{resultado.carreira_nome && (
-										<p className="text-sm text-slate-300"><span className="text-slate-400">Carreira:</span> {resultado.carreira_nome}</p>
-									)}
+									<p className="text-sm text-slate-300"><span className="text-slate-400">Vaga ID:</span> {vagaId}</p>
 								</div>
-								<div>
-									<h3 className="text-sm font-semibold text-slate-200 mb-1">Habilidades extraídas</h3>
-									{resultado.habilidades_extraidas?.length ? (
-										<ul className="list-disc pl-5 text-sm text-slate-200">
-											{resultado.habilidades_extraidas.map((h, i) => <li key={i}>{h}</li>)}
-										</ul>
-									) : (
-										<p className="text-xs text-slate-500">Nenhuma habilidade detectada.</p>
-									)}
-								</div>
-								<div className="grid md:grid-cols-2 gap-4">
+
+								{/* Lista editável - visível apenas enquanto não confirmado */}
+								{!jaConfirmado && (
 									<div>
-										<h3 className="text-sm font-semibold text-slate-200 mb-1">Criadas</h3>
-										{resultado.habilidades_criadas?.length ? (
-											<ul className="list-disc pl-5 text-sm text-emerald-300">
-												{resultado.habilidades_criadas.map((h, i) => <li key={i}>{h}</li>)}
-											</ul>
+										<h3 className="text-sm font-semibold text-slate-200 mb-2">Habilidades extraídas (edite/remova):</h3>
+										{previewLoading ? (
+											<p className="text-xs text-slate-400">Extraindo…</p>
 										) : (
-											<p className="text-xs text-slate-500">Nenhuma.</p>
+											<>
+												{habilidadesPreview?.length ? (
+													<ul className="space-y-2">
+														{habilidadesPreview.map((h, i) => (
+															<li key={i} className="flex items-center gap-2">
+																<input
+																	value={h}
+																	onChange={e => editarHabilidadePreview(i, e.target.value)}
+																	className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm"
+																/>
+																<button
+																	onClick={() => removerHabilidadePreview(i)}
+																	className="px-2 py-1 text-xs rounded border border-red-700 text-red-200 hover:bg-red-900/40"
+																>Remover</button>
+															</li>
+														))}
+													</ul>
+												) : (
+													<p className="text-xs text-slate-500">Nenhuma habilidade detectada.</p>
+												)}
+											</>
 										)}
 									</div>
-									<div>
-										<h3 className="text-sm font-semibold text-slate-200 mb-1">Já existiam</h3>
-										{resultado.habilidades_ja_existiam?.length ? (
-											<ul className="list-disc pl-5 text-sm text-slate-300">
-												{resultado.habilidades_ja_existiam.map((h, i) => <li key={i}>{h}</li>)}
-											</ul>
-										) : (
-											<p className="text-xs text-slate-500">Nenhuma.</p>
-										)}
-									</div>
+								)}
+
+								{/* Ações */}
+								<div className="flex justify-end gap-2">
+									<button
+										type="button"
+										onClick={limparTela}
+										className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+									>
+										Cancelar
+									</button>
+									<button
+										type="button"
+										onClick={confirmarHabilidades}
+										disabled={confirmLoading || jaConfirmado}
+										className="px-3 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50"
+									>{confirmLoading ? 'Confirmando…' : (jaConfirmado ? 'Confirmado' : 'Confirmar e Salvar')}</button>
 								</div>
+
+								{/* Feedback confirmação */}
+								{confirmErro && (
+									<div className="p-2 rounded border border-red-700 bg-red-900 text-red-100 text-sm">{confirmErro}</div>
+								)}
+
+								{/* Resultado após confirmação */}
+								{confirmResultado && (
+									<div className="grid md:grid-cols-2 gap-4">
+										<div>
+											<h3 className="text-sm font-semibold text-slate-200 mb-1">Criadas</h3>
+											{confirmResultado.habilidades_criadas?.length ? (
+												<ul className="list-disc pl-5 text-sm text-emerald-300">
+													{confirmResultado.habilidades_criadas.map((h, i) => <li key={i}>{h}</li>)}
+												</ul>
+											) : (
+												<p className="text-xs text-slate-500">Nenhuma.</p>
+											)}
+										</div>
+										<div>
+											<h3 className="text-sm font-semibold text-slate-200 mb-1">Já existiam</h3>
+											{confirmResultado.habilidades_ja_existiam?.length ? (
+												<ul className="list-disc pl-5 text-sm text-slate-300">
+													{confirmResultado.habilidades_ja_existiam.map((h, i) => <li key={i}>{h}</li>)}
+												</ul>
+											) : (
+												<p className="text-xs text-slate-500">Nenhuma.</p>
+											)}
+										</div>
+									</div>
+								)}
 							</div>
 						)}
 					</div>
