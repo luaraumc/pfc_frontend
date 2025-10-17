@@ -36,6 +36,13 @@ export default function Vaga() {
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 
+	// Categorias disponíveis para seleção na pré-visualização
+	const [categoriasDisponiveis, setCategoriasDisponiveis] = useState([]);
+
+	// Pop-up Exclusão de Vaga
+	const [vagaExcluir, setVagaExcluir] = useState(null);
+	const [excluindo, setExcluindo] = useState(false);
+
 	// Limpar toda a tela/estado para o estado inicial
 	function limparTela() {
 		setTitulo("");
@@ -55,6 +62,11 @@ export default function Vaga() {
 		// também limpa mensagens da lista
 		setVagasMsg("");
 		setVagasErro("");
+	}
+
+	// Normaliza descrição localmente para comparar duplicidade (trim, espaço único, minúsculas)
+	function normalizarDescricaoLocal(texto) {
+		return (texto ?? "").toString().trim().replace(/\s+/g, " ").toLowerCase();
 	}
 
 	// Carregar carreiras para o select
@@ -87,6 +99,13 @@ export default function Vaga() {
 				setErro("Selecione uma carreira para cadastrar a vaga.");
 				return;
 			}
+			// validação: descrição duplicada (local) -> mensagem amigável e não envia
+			const descNorm = normalizarDescricaoLocal(descricao);
+			const existeDuplicada = (vagas || []).some(v => normalizarDescricaoLocal(v?.descricao) === descNorm);
+			if (existeDuplicada) {
+				setErro("Já existe uma vaga com a mesma descrição. Altere a descrição para prosseguir.");
+				return;
+			}
 			setCarregando(true);
 			const payload = { titulo: titulo.trim(), descricao: descricao.trim(), carreira_id: Number(carreiraId) };
 			const res = await authFetch(`${API_URL}/vaga/cadastro-basico`, {
@@ -94,7 +113,11 @@ export default function Vaga() {
 			});
 			const vaga = await res.json().catch(() => ({}));
 			if (!res.ok) {
-				const msg = vaga?.detail || vaga?.message || `Falha ao cadastrar (HTTP ${res.status})`;
+				let msg = vaga?.detail || vaga?.message || `Falha ao cadastrar (HTTP ${res.status})`;
+				const m = (msg || "").toLowerCase();
+				if (res.status === 409 || m.includes("duplic") || m.includes("já existe") || m.includes("duplicate") || m.includes("unique")) {
+					msg = "Já existe uma vaga com a mesma descrição. Altere a descrição para prosseguir.";
+				}
 				throw new Error(msg);
 			}
 			setVagaId(vaga?.id);
@@ -138,29 +161,56 @@ export default function Vaga() {
 		carregarVagas();
 	}, []);
 
-	// Exclusão de vaga com confirmação
-	async function excluirVaga(id) {
-		const confirmar = window.confirm("Tem certeza que deseja excluir esta vaga? Esta ação ajustará as frequências das habilidades.");
-		if (!confirmar) return;
+		// Carregar categorias para popular o select na pré-visualização
+		useEffect(() => {
+			let ativo = true;
+			(async () => {
+				try {
+					const res = await authFetch(`${API_URL}/habilidade/categorias`);
+					const data = await res.json().catch(() => []);
+					if (!res.ok) { if (ativo) setCategoriasDisponiveis([]); return; }
+					if (ativo) setCategoriasDisponiveis(Array.isArray(data) ? data : []);
+				} catch (_) {
+					if (ativo) setCategoriasDisponiveis([]);
+				}
+			})();
+			return () => { ativo = false; };
+		}, []);
+
+	// Exclusão de vaga com modal (igual ao de carreiras)
+	function solicitarExclusaoVaga(v) {
+		setVagasErro(""); setVagasMsg("");
+		setVagaExcluir({ id: v.id, titulo: v.titulo });
+	}
+
+	async function confirmarExclusaoVaga() {
+		if (!vagaExcluir) return;
+		setExcluindo(true); setVagasErro(""); setVagasMsg("");
 		try {
-			const res = await authFetch(`${API_URL}/vaga/${id}`, { method: "DELETE" });
+			const res = await authFetch(`${API_URL}/vaga/${vagaExcluir.id}`, { method: "DELETE" });
 			const data = await res.json().catch(() => ({}));
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Falha ao excluir (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
-			// Atualiza lista localmente
 			setVagas(prev => {
-				const nova = prev.filter(v => v.id !== id);
-				// Ajusta página se necessário
+				const nova = prev.filter(v => v.id !== vagaExcluir.id);
 				const totalPagesDepois = Math.max(1, Math.ceil(nova.length / pageSize));
 				if (page > totalPagesDepois) setPage(totalPagesDepois);
 				return nova;
 			});
-			setVagasMsg("Vaga excluída com sucesso.");
+			setVagasMsg(data?.message || 'Vaga deletada com sucesso.');
+			setVagaExcluir(null);
 		} catch (e) {
 			setVagasErro(e.message || "Erro ao excluir vaga");
+		} finally {
+			setExcluindo(false);
 		}
+	}
+
+	function cancelarExclusaoVaga() {
+		if (excluindo) return;
+		setVagaExcluir(null);
 	}
 
 	// Paginação derivada
@@ -185,8 +235,14 @@ export default function Vaga() {
 				const msg = (data && data.detail) || `Falha ao extrair habilidades (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
-			// lista editável
-			setHabilidadesPreview(Array.isArray(data) ? data : []);
+			// Transforma em objetos para permitir edição de categoria
+			const itens = Array.isArray(data) ? data : [];
+			const objetos = itens.map(h => (typeof h === 'string' ? { nome: h, categoria_id: '', categoria_nome: '' } : {
+				nome: h?.nome ?? '',
+				categoria_id: h?.categoria_id ?? '',
+				categoria_nome: h?.categoria ?? h?.category ?? ''
+			}));
+			setHabilidadesPreview(objetos);
 		} catch (e) {
 			setErro(e.message || "Erro ao extrair habilidades");
 		} finally {
@@ -195,11 +251,30 @@ export default function Vaga() {
 	}
 
 	function editarHabilidadePreview(index, novoValor) {
-		setHabilidadesPreview(prev => prev.map((h, i) => i === index ? novoValor : h));
+		setHabilidadesPreview(prev => prev.map((h, i) => {
+			if (i !== index) return h;
+			// Mantém como objeto padronizado
+			if (typeof h === 'string') {
+				return { nome: novoValor, categoria_id: '', categoria_nome: '' };
+			}
+			return { ...h, nome: novoValor };
+		}));
 	}
 
 	function removerHabilidadePreview(index) {
 		setHabilidadesPreview(prev => prev.filter((_, i) => i !== index));
+	}
+
+	function alterarCategoriaPreview(index, novaCategoriaId) {
+		setHabilidadesPreview(prev => prev.map((h, i) => {
+			if (i !== index) return h;
+			const catObj = (categoriasDisponiveis || []).find(c => String(c.id) === String(novaCategoriaId));
+			return {
+				...(typeof h === 'string' ? { nome: h } : h),
+				categoria_id: novaCategoriaId,
+				categoria_nome: catObj?.nome || ''
+			};
+		}));
 	}
 
 	async function confirmarHabilidades() {
@@ -207,7 +282,9 @@ export default function Vaga() {
 		setConfirmErro(""); setConfirmMsg(""); setConfirmResultado(null);
 		try {
 			setConfirmLoading(true);
-			const payload = { habilidades: habilidadesPreview };
+			// Garante compatibilidade: envia lista de nomes de habilidades
+		const nomes = (habilidadesPreview || []).map(h => typeof h === 'string' ? h : (h.nome ?? h.name ?? ''));
+			const payload = { habilidades: nomes };
 			const res = await authFetch(`${API_URL}/vaga/${vagaId}/confirmar-habilidades`, {
 				method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
 			});
@@ -367,19 +444,39 @@ export default function Vaga() {
 											<>
 												{habilidadesPreview?.length ? (
 													<ul className="space-y-2">
-														{habilidadesPreview.map((h, i) => (
-															<li key={i} className="flex items-center gap-2">
-																<input
-																	value={h}
-																	onChange={e => editarHabilidadePreview(i, e.target.value)}
-																	className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm"
-																/>
-																<button
-																	onClick={() => removerHabilidadePreview(i)}
-																	className="px-2 py-1 text-xs rounded border border-red-700 text-red-200 hover:bg-red-900/40"
-																>Remover</button>
-															</li>
-														))}
+														{habilidadesPreview.map((h, i) => {
+															const nome = typeof h === 'string' ? h : (h.nome ?? h.name ?? '');
+															const categoriaId = typeof h === 'object' ? (h.categoria_id ?? '') : '';
+															return (
+																<li key={i} className="grid grid-cols-1 md:grid-cols-12 items-center gap-2">
+																	<div className="md:col-span-6">
+																		<input
+																			value={nome}
+																			onChange={e => editarHabilidadePreview(i, e.target.value)}
+																			className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm"
+																		/>
+																	</div>
+																	<div className="md:col-span-4">
+																		<select
+																			value={String(categoriaId)}
+																			onChange={e => alterarCategoriaPreview(i, e.target.value)}
+																			className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm"
+																		>
+																			<option value="">Categoria...</option>
+																			{(categoriasDisponiveis || []).map(c => (
+																				<option key={c.id} value={c.id}>{c.nome}</option>
+																			))}
+																		</select>
+																	</div>
+																	<div className="md:col-span-2 flex justify-end">
+																		<button
+																			onClick={() => removerHabilidadePreview(i)}
+																			className="px-2 py-1 text-xs rounded border border-red-700 text-red-200 hover:bg-red-900/40"
+																		>Remover</button>
+																	</div>
+																</li>
+															);
+														})}
 													</ul>
 												) : (
 													<p className="text-xs text-slate-500">Nenhuma habilidade detectada.</p>
@@ -404,15 +501,6 @@ export default function Vaga() {
 										disabled={confirmLoading || jaConfirmado}
 										className="px-3 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50"
 									>{confirmLoading ? 'Confirmando…' : (jaConfirmado ? 'Confirmado' : 'Confirmar e Salvar')}</button>
-									{jaConfirmado && (
-										<button
-											type="button"
-											onClick={carregarVagas}
-											className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-										>
-											Atualizar lista
-										</button>
-									)}
 								</div>
 
 								{/* Feedback confirmação */}
@@ -452,7 +540,7 @@ export default function Vaga() {
 			</main>
 
 			{/* LISTA DE VAGAS */}
-			<section className="mx-auto max-w-6xl px-4 pb-8">
+			<section className="ml-8 mr-8 mx-auto px-4 pb-8">
 				<div className="mt-4 bg-slate-950 border border-slate-800 rounded-lg p-5">
 					<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Vagas Cadastradas</h2>
 					{vagasMsg && (
@@ -489,7 +577,7 @@ export default function Vaga() {
 												</td>
 												<td className="py-2 px-2">
 													<button
-														onClick={() => excluirVaga(v.id)}
+														onClick={() => solicitarExclusaoVaga(v)}
 														className="px-2 py-1 text-xs rounded border border-red-700 text-red-200 hover:bg-red-900/40"
 													>
 														Excluir
@@ -528,6 +616,46 @@ export default function Vaga() {
 					)}
 				</div>
 			</section>
+
+			{/* confirmação de exclusão */}
+			{vagaExcluir && (
+				<div
+					className="fixed inset-0 z-50 flex items-center justify-center"
+					role="dialog"
+					aria-modal="true"
+					aria-labelledby="modal-excluir-vaga-titulo"
+				>
+					{/* fundo escuro/blur */}
+					<div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={cancelarExclusaoVaga} />
+
+					<div className="relative w-full max-w-md mx-auto bg-slate-900 border border-slate-700 rounded-lg shadow-lg p-6">
+						{/* título */}
+						<h2 id="modal-excluir-vaga-titulo" className="text-lg font-semibold text-red-300 mb-3">Confirmar Exclusão</h2>
+						{/* mensagem de confirmação */}
+						<p className="text-sm text-slate-300 mb-6 leading-relaxed">
+							Tem certeza que deseja excluir a vaga <strong className="text-slate-100">{vagaExcluir.titulo}</strong>? Esta ação não pode ser desfeita.
+						</p>
+						<div className="flex justify-end gap-3">
+							{/* botão cancelar */}
+							<button
+								onClick={cancelarExclusaoVaga}
+								disabled={excluindo}
+								className="px-4 py-2 rounded-md border border-slate-600 bg-slate-800 text-slate-200 text-sm hover:bg-slate-700 disabled:opacity-50"
+							>
+								Cancelar
+							</button>
+							{/* botão confirmar */}
+							<button
+								onClick={confirmarExclusaoVaga}
+								disabled={excluindo}
+								className="px-4 py-2 rounded-md border border-red-700 bg-red-600/90 hover:bg-red-600 text-white text-sm font-medium disabled:opacity-50"
+							>
+								{excluindo ? 'Excluindo...' : 'Excluir'}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

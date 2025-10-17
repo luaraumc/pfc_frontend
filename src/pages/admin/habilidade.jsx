@@ -133,11 +133,6 @@ export default function AdminHabilidade() {
   setAtualizarCategoriaId(h?.categoria_id ? String(h.categoria_id) : "");
     setMensagemAtualizar("");
     setErroAtualizar("");
-    // rola até o painel
-    const el = document.getElementById('painel-atualizar-habilidade');
-    if (el?.scrollIntoView) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   }
 
   // Derivar categorias únicas a partir das habilidades carregadas
@@ -297,7 +292,7 @@ export default function AdminHabilidade() {
                                 title="Editar"
                                 aria-label={`Editar ${h.nome}`}
                               >
-                                <img src={lapisIcon} alt="Editar" className="h-4 w-4" />
+                                <img src={lapisIcon} alt="Editar" className="h-3 w-3" />
                               </button>
                             )}
                           </div>
