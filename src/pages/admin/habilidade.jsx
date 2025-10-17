@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"; // criar links de navegação para redirecionar o usuário e voltar
-import { useEffect, useState } from "react"; // estados e efeitos
+import { useEffect, useMemo, useState } from "react"; // estados, memos e efeitos
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento | fetch autenticado com renovação automática de token
+import lapisIcon from "../../../images/lapis.png"; // ícone de edição
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -14,9 +15,16 @@ export default function AdminHabilidade() {
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
 
+  // Filtros e paginação
+  const [busca, setBusca] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const [tamanhoPagina, setTamanhoPagina] = useState(20);
+
   // Atualizar Habilidade
   const [atualizarId, setAtualizarId] = useState("");
   const [atualizarNome, setAtualizarNome] = useState("");
+  const [atualizarCategoriaId, setAtualizarCategoriaId] = useState("");
   const [atualizando, setAtualizando] = useState(false);
   const [mensagemAtualizar, setMensagemAtualizar] = useState("");
   const [erroAtualizar, setErroAtualizar] = useState("");
@@ -35,8 +43,21 @@ export default function AdminHabilidade() {
     } finally { setCarregando(false); }
   }
 
+  // Carregar categorias para o select
+  const [categoriasDisponiveis, setCategoriasDisponiveis] = useState([]);
+  async function carregarCategorias() {
+    try {
+      const res = await authFetch(`${API_URL}/habilidade/categorias`);
+      if (!res.ok) return setCategoriasDisponiveis([]);
+      const data = await res.json();
+      setCategoriasDisponiveis(Array.isArray(data) ? data : []);
+    } catch (_) {
+      setCategoriasDisponiveis([]);
+    }
+  }
+
   // Carrega habilidades ao montar a tela
-  useEffect(() => { carregar(); }, []);
+  useEffect(() => { carregar(); carregarCategorias(); }, []);
 
   // Deleta uma habilidade
   async function deletar(habilidadeId) {
@@ -58,7 +79,8 @@ export default function AdminHabilidade() {
     setMensagemAtualizar(""); setErroAtualizar("");
     if (!id) { setAtualizarNome(""); return; } // se voltar para "Selecione", limpa
     const hab = habilidades.find(h => String(h.id) === String(id)); // busca no array
-    setAtualizarNome(hab?.nome || ""); // preenche nome
+  setAtualizarNome(hab?.nome || ""); // preenche nome
+  setAtualizarCategoriaId(hab?.categoria_id ? String(hab.categoria_id) : "");
   }
 
   // Submete atualização ao backend
@@ -68,7 +90,10 @@ export default function AdminHabilidade() {
     setErroAtualizar(""); setMensagemAtualizar("");
     try {
       setAtualizando(true);
-      const payload = { nome: atualizarNome.trim() }; // monta payload
+      const payload = {
+        ...(atualizarNome.trim() ? { nome: atualizarNome.trim() } : {}),
+        ...(atualizarCategoriaId ? { categoria_id: Number(atualizarCategoriaId) } : {}),
+      }; // monta payload
       // chama backend
       const res = await authFetch(`${API_URL}/habilidade/atualizar/${atualizarId}`, {
         method: "PUT",
@@ -81,12 +106,79 @@ export default function AdminHabilidade() {
         throw new Error(msg);
       }
       setMensagemAtualizar("Habilidade atualizada com sucesso");
-      setHabilidades(prev => prev.map(h => (Number(h.id) === Number(atualizarId) ? { ...h, nome: payload.nome } : h))); // atualiza item na lista local
+      setHabilidades(prev => prev.map(h => (
+        Number(h.id) === Number(atualizarId)
+          ? {
+              ...h,
+              ...(payload.nome ? { nome: payload.nome } : {}),
+              ...(payload.categoria_id ? {
+                categoria_id: payload.categoria_id,
+                categoria: categoriasDisponiveis.find(c => Number(c.id) === Number(payload.categoria_id))?.nome ?? h.categoria,
+              } : {}),
+            }
+          : h
+      )));
     } catch (e) {
       setErroAtualizar(e.message || "Erro ao atualizar habilidade");
     } finally {
       setAtualizando(false);
     }
+  }
+
+  // Ação: clicar no lápis para editar no painel lateral
+  function aoClicarEditar(h) {
+    if (!h?.id) return;
+    setAtualizarId(String(h.id));
+  setAtualizarNome(h?.nome || "");
+  setAtualizarCategoriaId(h?.categoria_id ? String(h.categoria_id) : "");
+    setMensagemAtualizar("");
+    setErroAtualizar("");
+    // rola até o painel
+    const el = document.getElementById('painel-atualizar-habilidade');
+    if (el?.scrollIntoView) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // Derivar categorias únicas a partir das habilidades carregadas
+  const categorias = useMemo(() => {
+    const set = new Set((habilidades || []).map(h => h?.categoria).filter(Boolean));
+    return Array.from(set).sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', { sensitivity: 'base', numeric: true }));
+  }, [habilidades]);
+
+  // Lista filtrada (por texto e categoria)
+  const listaFiltrada = useMemo(() => {
+    let arr = Array.isArray(habilidades) ? habilidades : [];
+    if (busca.trim()) {
+      const q = busca.trim().toLocaleLowerCase('pt-BR');
+      arr = arr.filter(h => (h?.nome ?? '').toLocaleLowerCase('pt-BR').includes(q));
+    }
+    if (filtroCategoria) {
+      arr = arr.filter(h => String(h?.categoria) === String(filtroCategoria));
+    }
+    return arr;
+  }, [habilidades, busca, filtroCategoria]);
+
+  // Resetar página quando filtros mudarem
+  useEffect(() => { setPagina(1); }, [busca, filtroCategoria, tamanhoPagina]);
+
+  // Paginação
+  const totalItens = listaFiltrada.length;
+  const totalPaginas = Math.max(1, Math.ceil(totalItens / tamanhoPagina));
+  const paginaClamped = Math.min(Math.max(1, pagina), totalPaginas);
+  const inicio = (paginaClamped - 1) * tamanhoPagina;
+  const fim = Math.min(inicio + tamanhoPagina, totalItens);
+  const listaPaginada = useMemo(() => {
+    return [...listaFiltrada]
+      .sort((a, b) => (a?.nome ?? '').localeCompare(b?.nome ?? '', 'pt-BR', { sensitivity: 'base', numeric: true }))
+      .slice(inicio, fim);
+  }, [listaFiltrada, inicio, fim]);
+
+  function limparFiltros() {
+    setBusca("");
+    setFiltroCategoria("");
+    setPagina(1);
+    setTamanhoPagina(20);
   }
 
   // HTML
@@ -137,18 +229,79 @@ export default function AdminHabilidade() {
             {!!mensagem && !carregando && (<div className="mb-3 p-3 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{mensagem}</div>)}
             {!!erro && !carregando && (<div className="p-3 rounded border border-red-600 bg-red-900 text-red-100 text-sm">{erro}</div>)}
 
-            {/* lista de habilidades */}
+            {/* filtros */}
+            {!carregando && (
+              <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-slate-300 mb-1">Buscar por nome</label>
+                  <input
+                    type="text"
+                    value={busca}
+                    onChange={(e) => setBusca(e.target.value)}
+                    placeholder="Digite parte do nome"
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-1">Categoria</label>
+                  <select
+                    value={filtroCategoria}
+                    onChange={(e) => setFiltroCategoria(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
+                    disabled={carregando}
+                  >
+                    <option value="">Todas</option>
+                    {categorias.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-1">Itens por página</label>
+                  <select
+                    value={tamanhoPagina}
+                    onChange={(e) => setTamanhoPagina(Number(e.target.value))}
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
+                  >
+                    {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+                <div className="md:col-span-4 flex items-center justify-between text-sm text-slate-400">
+                  <span>
+                    {totalItens > 0
+                      ? `Exibindo ${inicio + 1}–${fim} de ${totalItens} resultados`
+                      : 'Nenhum resultado'}
+                  </span>
+                  <button onClick={limparFiltros} className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">Limpar filtros</button>
+                </div>
+              </div>
+            )}
+
+            {/* lista de habilidades com paginação */}
             {!carregando && !erro && (
-              habilidades.length === 0 ? (
-                <p className="text-slate-400">Nenhuma habilidade cadastrada.</p>
+              listaFiltrada.length === 0 ? (
+                <p className="text-slate-400">Nenhuma habilidade encontrada.</p>
               ) : (
-                <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-950">
-                  {[...habilidades]
-                    .sort((a, b) => (a?.nome ?? '').localeCompare(b?.nome ?? '', 'pt-BR', { sensitivity: 'base', numeric: true }))
-                    .map(h => (
-                      <li key={h.id ?? h.nome} className="p-4 flex items-center justify-between">
+                <>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-px rounded-lg border border-slate-800 bg-slate-800">
+                    {listaPaginada.map(h => (
+                      <li key={h.id ?? h.nome} className="bg-slate-950 p-4 flex items-center justify-between">
                         <div>
-                          <p className="font-medium">{h.nome ?? `Habilidade #${h.id}`}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{h.nome ?? `Habilidade #${h.id}`}</p>
+                            {h.id && (
+                              <button
+                                type="button"
+                                onClick={() => aoClicarEditar(h)}
+                                className="inline-flex items-center justify-center p-1 rounded hover:bg-slate-800"
+                                title="Editar"
+                                aria-label={`Editar ${h.nome}`}
+                              >
+                                <img src={lapisIcon} alt="Editar" className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                          {h?.categoria && (<p className="text-xs text-slate-400">{h.categoria}</p>)}
                         </div>
                         {h.id && (
                           <div className="flex items-center gap-2">
@@ -159,7 +312,22 @@ export default function AdminHabilidade() {
                         )}
                       </li>
                     ))}
-                </ul>
+                  </ul>
+                  {/* paginação */}
+                  <div className="flex items-center justify-center gap-3 mt-4">
+                    <button
+                      className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+                      onClick={() => setPagina(p => Math.max(1, p - 1))}
+                      disabled={paginaClamped <= 1}
+                    >Anterior</button>
+                    <span className="text-sm text-slate-400">Página {paginaClamped} de {totalPaginas}</span>
+                    <button
+                      className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+                      onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+                      disabled={paginaClamped >= totalPaginas}
+                    >Próxima</button>
+                  </div>
+                </>
               )
             )}
           </div>
@@ -191,6 +359,20 @@ export default function AdminHabilidade() {
                     className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200 mb-3"
                     disabled={!atualizarId}
                   />
+                </div>
+                <div>
+                  <label className="block text-base text-slate-200 mb-1">Categoria</label>
+                  <select
+                    value={atualizarCategoriaId}
+                    onChange={(e) => setAtualizarCategoriaId(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
+                    disabled={!atualizarId}
+                  >
+                    <option value="">Selecione...</option>
+                    {categoriasDisponiveis.map(c => (
+                      <option key={c.id} value={c.id}>{c.nome}</option>
+                    ))}
+                  </select>
                 </div>
                 {!!mensagemAtualizar && (
                   <div className="p-2 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-xs">{mensagemAtualizar}</div>
