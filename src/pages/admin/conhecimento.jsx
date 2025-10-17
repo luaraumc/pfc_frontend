@@ -15,6 +15,12 @@ export default function AdminConhecimento() {
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
 
+  // Lista ordenada alfabeticamente (para selects, etc.)
+  const conhecimentosOrdenados = useMemo(() => {
+    const arr = Array.isArray(conhecimentos) ? [...conhecimentos] : [];
+    return arr.sort((a, b) => (a?.nome ?? "").localeCompare(b?.nome ?? "", 'pt-BR', { sensitivity: 'base', numeric: true }));
+  }, [conhecimentos]);
+
   // Filtro e paginação
   const [busca, setBusca] = useState("");
   const [pagina, setPagina] = useState(1);
@@ -344,7 +350,7 @@ export default function AdminConhecimento() {
                     <label className="block text-base mb-1">Selecionar conhecimento</label>
                     <select value={atualizarId} onChange={aoSelecionarAtualizar} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required>
                       <option value="">Selecione…</option>
-                      {conhecimentos.map(k => (<option key={k.id} value={k.id}>{k.nome}</option>))}
+                      {conhecimentosOrdenados.map(k => (<option key={k.id} value={k.id}>{k.nome}</option>))}
                     </select>
                   </div>
                   <div>

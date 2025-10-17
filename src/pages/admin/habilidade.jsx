@@ -336,7 +336,7 @@ export default function AdminHabilidade() {
           <div className="w-full lg:w-96 self-start">
 
             <div id="painel-atualizar-habilidade" className="bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6">
-              <h2 className="text-lg font-semibold text-indigo-300 tracking-wide text-center">Atualizar Habilidade</h2>
+              <h2 className="text-lg font-semibold text-indigo-300 tracking-wide text-center">Editar Habilidade</h2>
               <form onSubmit={aoSubmeterAtualizar} className="mt-4 space-y-3">
                 <div>
                   <label className="block text-base text-slate-200 mb-1">Selecionar habilidade</label>

@@ -77,6 +77,8 @@ export default function Vaga() {
 	}, []);
 
 	async function cadastrarVaga(e) {
+		// Evita reload da página ao enviar o formulário
+		e?.preventDefault?.();
 		setErro(""); setMensagem(""); setConfirmMsg(""); setConfirmErro(""); setConfirmResultado(null);
 		setVagaId(null); setHabilidadesPreview([]); setJaConfirmado(false);
 		try {
@@ -320,8 +322,9 @@ export default function Vaga() {
 										value={carreiraId}
 										onChange={e => setCarreiraId(e.target.value)}
 										className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+										required
 									>
-										<option value="">Selecione...</option>
+										<option value="" disabled>Selecione...</option>
 										{carreiras.map(c => (
 											<option key={c.id} value={c.id}>{c.nome}</option>
 										))}
@@ -330,7 +333,7 @@ export default function Vaga() {
 							</div>
 							<div className="flex justify-end">
 								<button
-									disabled={carregando}
+										disabled={carregando || !carreiraId}
 									type="submit"
 									className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-base font-medium mt-3"
 								>
@@ -449,7 +452,7 @@ export default function Vaga() {
 			</main>
 
 			{/* LISTA DE VAGAS */}
-			<section className="ml-8 mr-8 mx-auto px-4 pb-8">
+			<section className="mx-auto max-w-6xl px-4 pb-8">
 				<div className="mt-4 bg-slate-950 border border-slate-800 rounded-lg p-5">
 					<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Vagas Cadastradas</h2>
 					{vagasMsg && (
@@ -465,21 +468,25 @@ export default function Vaga() {
 					) : (
 						<>
 							<div className="overflow-x-auto">
-								<table className="min-w-full text-sm">
+								<table className="min-w-full text-sm table-fixed">
 									<thead className="text-slate-300">
 										<tr>
-											<th className="text-left py-2 px-2">ID</th>
-											<th className="text-left py-2 px-2">Título</th>
-											<th className="text-left py-2 px-2">Carreira</th>
-											<th className="text-left py-2 px-2">Ações</th>
+											<th className="text-left py-2 px-2 w-16">ID</th>
+											<th className="text-left py-2 px-2 w-1/2">Título</th>
+											<th className="text-left py-2 px-2 w-1/3 hidden md:table-cell">Carreira</th>
+											<th className="text-left py-2 px-2 w-28">Ações</th>
 										</tr>
 									</thead>
 									<tbody>
 										{vagasPagina.map(v => (
 											<tr key={v.id} className="border-t border-slate-800">
 												<td className="py-2 px-2 text-slate-400">{v.id}</td>
-												<td className="py-2 px-2">{v.titulo}</td>
-												<td className="py-2 px-2 text-slate-300">{v.carreira_nome ?? '-'}</td>
+												<td className="py-2 px-2">
+													<div className="truncate max-w-[12rem] md:max-w-[24rem]">{v.titulo}</div>
+												</td>
+												<td className="py-2 px-2 text-slate-300 hidden md:table-cell">
+													<div className="truncate max-w-[10rem] md:max-w-[20rem]">{v.carreira_nome ?? '-'}</div>
+												</td>
 												<td className="py-2 px-2">
 													<button
 														onClick={() => excluirVaga(v.id)}
