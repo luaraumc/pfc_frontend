@@ -7,8 +7,8 @@ export default function Home() {
 	const [carreiras, setCarreiras] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [cursoToCarreiras, setCursoToCarreiras] = useState({}); // {cursoId: [{id,nome}]}
-	const [carreiraToCursos, setCarreiraToCursos] = useState({}); // {carreiraId: [{id,nome}]}
+	const [cursoToCarreiras, setCursoToCarreiras] = useState({}); // {cursoId: [{id,nome,score}]}
+	const [carreiraToCursos, setCarreiraToCursos] = useState({}); // {carreiraId: [{id,nome,score}]}
 
 	const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
@@ -27,24 +27,14 @@ export default function Home() {
 		let cancel = false;
 		async function carregar() {
 			try {
-				const [rcursos, rcarreiras, rhabilidades] = await Promise.all([
-					fetch(`${API_URL}/curso/`),
-					fetch(`${API_URL}/carreira/`),
-					fetch(`${API_URL}/habilidade/`)
-				]);
-				if (!rcursos.ok) throw new Error(`Falha ao buscar cursos (${rcursos.status})`);
-				if (!rcarreiras.ok) throw new Error(`Falha ao buscar carreiras (${rcarreiras.status})`);
-				if (!rhabilidades.ok) throw new Error(`Falha ao buscar habilidades (${rhabilidades.status})`);
-				const [jcursos, jcarreiras, jhabilidades] = await Promise.all([
-					rcursos.json(),
-					rcarreiras.json(),
-					rhabilidades.json()
-				]);
+				const r = await fetch(`${API_URL}/mapa?top_n=0&min_score=0`);
+				if (!r.ok) throw new Error(`Falha ao carregar mapa (${r.status})`);
+				const j = await r.json();
 				if (!cancel) {
-					setCursos(jcursos || []);
-					setCarreiras(jcarreiras || []);
-					// Após carregar listas base, acumular mapeamentos
-					acumularMapeamentos(jcursos || [], jcarreiras || [], jhabilidades || []);
+					setCursos(j.cursos ?? []);
+					setCarreiras(j.carreiras ?? []);
+					setCursoToCarreiras(j.cursoToCarreiras ?? {});
+					setCarreiraToCursos(j.carreiraToCursos ?? {});
 				}
 			} catch (e) {
 				if (!cancel) setError(e?.message || 'Erro ao carregar dados');
@@ -55,107 +45,6 @@ export default function Home() {
 		carregar();
 		return () => { cancel = true };
 	}, [API_URL]);
-
-	async function acumularMapeamentos(listaCursos, listaCarreiras, listaHabilidades) {
-		// Mapa de habilidade_id -> categoria_id para evitar várias chamadas
-		const habToCat = new Map((listaHabilidades || []).map(h => [h.id, h.categoria_id]));
-
-		// 1) Para cada curso, buscar seus conhecimentos
-		const conhecimentosPorCurso = new Map(); // curso_id -> Set(conhecimento_id)
-		await Promise.all((listaCursos || []).map(async (curso) => {
-			try {
-				const res = await fetch(`${API_URL}/curso/${curso.id}/conhecimentos`);
-				if (!res.ok) return;
-				const rels = await res.json();
-				conhecimentosPorCurso.set(curso.id, new Set((rels || []).map(r => r.conhecimento_id)));
-			} catch {}
-		}));
-
-		// 2) Para cada conhecimento, buscar suas categorias (com peso)
-		const conhecimentoIds = Array.from(new Set(Array.from(conhecimentosPorCurso.values()).flatMap(s => Array.from(s))));
-		const catPorConhecimento = new Map(); // conhecimento_id -> Map(categoria_id -> peso)
-		await Promise.all(conhecimentoIds.map(async (kid) => {
-			try {
-				const res = await fetch(`${API_URL}/conhecimento-categoria/${kid}`);
-				if (!res.ok) return;
-				const rels = await res.json();
-				const mapa = new Map();
-				for (const r of (rels || [])) {
-					const cid = r.categoria_id;
-					const peso = typeof r.peso === 'number' && !Number.isNaN(r.peso) ? r.peso : 1;
-					mapa.set(cid, (mapa.get(cid) || 0) + peso);
-				}
-				catPorConhecimento.set(kid, mapa);
-			} catch {}
-		}));
-
-		// 3) Oferta por curso (via conhecimentos): curso_id -> Map(categoria_id -> somaPeso)
-		const ofertaPorCurso = new Map();
-		for (const [cursoId, kset] of conhecimentosPorCurso.entries()) {
-			const mapa = new Map();
-			for (const kid of kset) {
-				const m = catPorConhecimento.get(kid) || new Map();
-				for (const [cid, peso] of m.entries()) {
-					mapa.set(cid, (mapa.get(cid) || 0) + peso);
-				}
-			}
-			ofertaPorCurso.set(cursoId, mapa);
-		}
-
-		// 4) Para cada carreira, buscar suas habilidades e mapear para demanda por categoria (com frequencia)
-		const demandaPorCarreira = new Map(); // carreira_id -> Map(categoria_id -> demanda)
-		await Promise.all((listaCarreiras || []).map(async (carreira) => {
-			try {
-				const res = await fetch(`${API_URL}/carreira/${carreira.id}/habilidades`);
-				if (!res.ok) return;
-				const rels = await res.json();
-				const mapa = new Map();
-				for (const rel of rels || []) {
-					const categoriaId = habToCat.get(rel.habilidade_id);
-					if (!categoriaId) continue;
-					const freq = typeof rel.frequencia === 'number' && !Number.isNaN(rel.frequencia) ? rel.frequencia : 1;
-					mapa.set(categoriaId, (mapa.get(categoriaId) || 0) + freq);
-				}
-				demandaPorCarreira.set(carreira.id, mapa);
-			} catch {}
-		}));
-
-		// 5) Montar interligações baseadas em score ponderado por categoria
-		function scoreCursoCarreira(cursoId, carreiraId) {
-			const oferta = ofertaPorCurso.get(cursoId) || new Map();
-			const demanda = demandaPorCarreira.get(carreiraId) || new Map();
-			let numer = 0;
-			let denom = 0;
-			for (const [cid, dval] of demanda.entries()) {
-				const oval = oferta.get(cid) || 0;
-				numer += oval * dval;
-				denom += dval;
-			}
-			if (denom <= 0) return 0;
-			return numer / denom; // cobertura média ponderada pela demanda
-		}
-
-		const cursoToCarr = {};
-		for (const curso of listaCursos || []) {
-			const relacionados = (listaCarreiras || [])
-				.map(carreira => ({ id: carreira.id, nome: carreira.nome, score: scoreCursoCarreira(curso.id, carreira.id) }))
-				.filter(x => x.score > 0)
-				.sort((a, b) => b.score - a.score);
-			cursoToCarr[curso.id] = relacionados;
-		}
-
-		const carreiraToCur = {};
-		for (const carreira of listaCarreiras || []) {
-			const relacionados = (listaCursos || [])
-				.map(curso => ({ id: curso.id, nome: curso.nome, score: scoreCursoCarreira(curso.id, carreira.id) }))
-				.filter(x => x.score > 0)
-				.sort((a, b) => b.score - a.score);
-			carreiraToCur[carreira.id] = relacionados;
-		}
-
-		setCursoToCarreiras(cursoToCarr);
-		setCarreiraToCursos(carreiraToCur);
-	}
 
 	// HTML
 	return (
@@ -277,4 +166,3 @@ export default function Home() {
 		</div>
 	);
 }
-
