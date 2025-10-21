@@ -235,13 +235,24 @@ export default function Vaga() {
 				const msg = (data && data.detail) || `Falha ao extrair habilidades (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
-			// Transforma em objetos para permitir edição de categoria
+			// Transforma em objetos para permitir edição de categoria, preservando sugestão da IA
 			const itens = Array.isArray(data) ? data : [];
-			const objetos = itens.map(h => (typeof h === 'string' ? { nome: h, categoria_id: '', categoria_nome: '' } : {
-				nome: h?.nome ?? '',
-				categoria_id: h?.categoria_id ?? '',
-				categoria_nome: h?.categoria ?? h?.category ?? ''
-			}));
+			const objetos = itens.map(h => {
+				if (typeof h === 'string') {
+					return { nome: h, habilidade_id: '', categoria_id: '', categoria_nome: '', categoria_sugerida: '' };
+				}
+				const nome = h?.nome ?? '';
+				const habilidade_id = h?.habilidade_id ?? '';
+				let categoria_id = h?.categoria_id ?? '';
+				let categoria_nome = h?.categoria_nome ?? h?.categoria ?? h?.category ?? '';
+				const categoria_sugerida = h?.categoria_sugerida ?? '';
+				// Se não veio categoria id, mas há sugestão, tente casar com categoriasDisponiveis
+				if (!categoria_id && categoria_sugerida) {
+					const match = (categoriasDisponiveis || []).find(c => String(c.nome).toLowerCase() === String(categoria_sugerida).toLowerCase());
+					if (match) { categoria_id = match.id; categoria_nome = match.nome; }
+				}
+				return { nome, habilidade_id, categoria_id, categoria_nome, categoria_sugerida };
+			});
 			setHabilidadesPreview(objetos);
 		} catch (e) {
 			setErro(e.message || "Erro ao extrair habilidades");
@@ -282,9 +293,18 @@ export default function Vaga() {
 		setConfirmErro(""); setConfirmMsg(""); setConfirmResultado(null);
 		try {
 			setConfirmLoading(true);
-			// Garante compatibilidade: envia lista de nomes de habilidades
-		const nomes = (habilidadesPreview || []).map(h => typeof h === 'string' ? h : (h.nome ?? h.name ?? ''));
-			const payload = { habilidades: nomes };
+			// Envia objetos ricos: nome, categoria_id, habilidade_id (quando existir)
+			const itens = (habilidadesPreview || []).map(h => {
+				if (typeof h === 'string') {
+					return { nome: h, categoria_id: '', habilidade_id: '' };
+				}
+				return {
+					nome: h?.nome ?? '',
+					categoria_id: h?.categoria_id ? Number(h.categoria_id) : '',
+					habilidade_id: h?.habilidade_id ? Number(h.habilidade_id) : '',
+				};
+			});
+			const payload = { habilidades: itens };
 			const res = await authFetch(`${API_URL}/vaga/${vagaId}/confirmar-habilidades`, {
 				method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
 			});
@@ -447,6 +467,7 @@ export default function Vaga() {
 														{habilidadesPreview.map((h, i) => {
 															const nome = typeof h === 'string' ? h : (h.nome ?? h.name ?? '');
 															const categoriaId = typeof h === 'object' ? (h.categoria_id ?? '') : '';
+															const sugestao = typeof h === 'object' ? (h.categoria_sugerida ?? '') : '';
 															return (
 																<li key={i} className="grid grid-cols-1 md:grid-cols-12 items-center gap-2">
 																	<div className="md:col-span-6">
@@ -467,6 +488,9 @@ export default function Vaga() {
 																				<option key={c.id} value={c.id}>{c.nome}</option>
 																			))}
 																		</select>
+																		{!categoriaId && sugestao && (
+																			<p className="text-[11px] text-slate-400 mt-1">Sugestão da IA: <span className="text-slate-300">{sugestao}</span></p>
+																		)}
 																	</div>
 																	<div className="md:col-span-2 flex justify-end">
 																		<button
