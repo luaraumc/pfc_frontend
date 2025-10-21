@@ -20,6 +20,7 @@ export default function CadastroHabilidade() {
 
 	// Adicionar habilidade
 	const [habilidadeParaAdicionar, setHabilidadeParaAdicionar] = useState("");
+	const [busca, setBusca] = useState("");
 	const [adicionando, setAdicionando] = useState(false);
 	const [erroAdicionar, setErroAdicionar] = useState("");
 
@@ -80,6 +81,42 @@ export default function CadastroHabilidade() {
 		const idsUsuario = new Set(habilidadesUsuario.map(h => Number(h.habilidade_id)));
 		return habilidadesGlobais.filter(h => !idsUsuario.has(Number(h.id)));
 	}, [habilidadesGlobais, habilidadesUsuario]);
+
+	// Normalização e ranqueamento aproximado
+	const normalizar = (s) => (s || "").toString()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.trim();
+
+	const opcoesFiltradas = useMemo(() => {
+		const listaBase = opcoesDisponiveis || [];
+		const q = normalizar(busca);
+		if (!q) return listaBase;
+		const tokens = q.split(/\s+/).filter(Boolean);
+		return listaBase
+			.map(h => {
+				const n = normalizar(h.nome);
+				let score = 0;
+				const idx = n.indexOf(q);
+				if (idx >= 0) {
+					// match direto favorece prefixos
+					score += 100 - Math.min(idx, 99);
+				}
+				// tokens individuais presentes
+				let tokensPres = 0;
+				tokens.forEach(t => { if (n.includes(t)) tokensPres += 1; });
+				score += tokensPres * 10;
+				// cobertura de caracteres (aproximação simples)
+				const setN = new Set(n);
+				let chars = 0; for (const ch of q) { if (setN.has(ch)) chars += 1; }
+				score += Math.min(chars, 10) * 1; // até +10 pts
+				return { h, score };
+			})
+			.filter(x => x.score > 0)
+			.sort((a, b) => (b.score - a.score) || String(a.h.nome).localeCompare(String(b.h.nome)))
+			.map(x => x.h);
+	}, [opcoesDisponiveis, busca]);
 
 	// Adicionar habilidade ao usuário
 	async function adicionarHabilidade(e) {
@@ -219,17 +256,27 @@ export default function CadastroHabilidade() {
 							<form onSubmit={adicionarHabilidade} className="mt-4 space-y-3">
 								<div>
 									<label className="block text-sm text-slate-300 mb-1">Selecione uma habilidade</label>
+									<input
+										type="text"
+										value={busca}
+										onChange={(e) => setBusca(e.target.value)}
+										placeholder="Digite para buscar por nome (ex.: python, power bi)"
+										className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200 mb-2"
+									/>
 									<select
 										value={habilidadeParaAdicionar}
 										onChange={(e) => setHabilidadeParaAdicionar(e.target.value)}
 										disabled={loadingGlobais || loadingUsuario || opcoesDisponiveis.length === 0}
 										className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
 									>
-										<option value="">{loadingGlobais || loadingUsuario ? 'Carregando…' : (opcoesDisponiveis.length ? 'Selecione…' : 'Sem opções disponíveis')}</option>
-										{opcoesDisponiveis.map(h => (
+										<option value="">{loadingGlobais || loadingUsuario ? 'Carregando…' : ((opcoesFiltradas.length || opcoesDisponiveis.length) ? 'Selecione…' : 'Sem opções disponíveis')}</option>
+										{(busca ? opcoesFiltradas : opcoesDisponiveis).map(h => (
 											<option key={h.id} value={h.id}>{h.nome}</option>
 										))}
 									</select>
+									{busca && opcoesFiltradas.length === 0 && (
+										<p className="text-[11px] text-slate-400 mt-1">Nenhuma habilidade encontrada para “{busca}”.</p>
+									)}
 								</div>
 								{!!erroAdicionar && (
 									<div className="p-2 rounded border border-red-600 bg-red-900 text-red-100 text-xs">{erroAdicionar}</div>
@@ -249,4 +296,3 @@ export default function CadastroHabilidade() {
 		</div>
 	);
 }
-
