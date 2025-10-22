@@ -12,13 +12,14 @@ export default function Vaga() {
 	const [titulo, setTitulo] = useState("");
 	const [descricao, setDescricao] = useState("");
 	const [carreiraId, setCarreiraId] = useState("");
-	const [carregando, setCarregando] = useState(false); // loading do cadastro
+	const [carregando, setCarregando] = useState(false); // loading do cadastro básico
 	const [mensagem, setMensagem] = useState(""); // msg geral
 	const [erro, setErro] = useState(""); // erro geral
 	const [carreiras, setCarreiras] = useState([]);
 	const [carreirasErro, setCarreirasErro] = useState("");
 	const [carreirasLoading, setCarreirasLoading] = useState(true);
-	const [vagaId, setVagaId] = useState(null); // id da vaga criada no cadastro
+	// estados do fluxo em 2 etapas
+	const [vagaId, setVagaId] = useState(null); // id da vaga criada no cadastro básico
 	const [previewLoading, setPreviewLoading] = useState(false); // loading da extração
 	const [habilidadesPreview, setHabilidadesPreview] = useState([]); // lista editável
 	const [confirmLoading, setConfirmLoading] = useState(false); // loading confirmação
@@ -58,6 +59,7 @@ export default function Vaga() {
 		setConfirmErro("");
 		setConfirmResultado(null);
 		setJaConfirmado(false);
+		// também limpa mensagens da lista
 		setVagasMsg("");
 		setVagasErro("");
 	}
@@ -317,8 +319,6 @@ export default function Vaga() {
 			setConfirmMsg("Habilidades confirmadas e salvas.");
 			setHabilidadesPreview([]);
 			setJaConfirmado(true);
-			// Atualiza a listagem de vagas automaticamente
-			await carregarVagas();
 		} catch (e) {
 			setConfirmErro(e.message || "Erro ao confirmar habilidades");
 		} finally {

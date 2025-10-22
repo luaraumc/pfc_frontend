@@ -16,12 +16,27 @@ export default function HomeUsuario() {
 	const [habLoading, setHabLoading] = useState(false);
 	const [habError, setHabError] = useState(null);
 	const [expandeHabilidades, setExpandeHabilidades] = useState(false);
+	const [topCarreiras, setTopCarreiras] = useState([]);
+	const [loadingCompat, setLoadingCompat] = useState(true);
+	const [erroCompat, setErroCompat] = useState("");
 
 	const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 	function formatScore(v) {
 		if (v == null || Number.isNaN(v)) return '0.00';
 		return Number(v).toFixed(2);
+	}
+
+	function ProgressBar({ value }) {
+		const pct = Math.max(0, Math.min(100, Number(value) || 0));
+		return (
+			<div className="w-full bg-slate-800 rounded h-3 overflow-hidden border border-slate-700">
+				<div
+					className="h-3 bg-gradient-to-r from-indigo-500 to-cyan-400"
+					style={{ width: `${pct}%` }}
+				/>
+			</div>
+		);
 	}
 
 	useEffect(() => {
@@ -120,6 +135,34 @@ export default function HomeUsuario() {
 		return () => { cancel = true };
 	}, [API_URL, carreiraId]);
 
+	// Carrega compatibilidade do usuário com carreiras (barras de progresso)
+	useEffect(() => {
+		let cancel = false;
+		(async () => {
+			try {
+				const usuarioId = localStorage.getItem('usuario_id');
+				if (!usuarioId) {
+					if (!cancel) {
+						setErroCompat("Usuário não identificado. Faça login novamente.");
+						setLoadingCompat(false);
+					}
+					return;
+				}
+				const res = await authFetch(`${API_URL}/usuario/${usuarioId}/compatibilidade/top`);
+				if (!res.ok) {
+					throw new Error(`Erro ${res.status}`);
+				}
+				const data = await res.json();
+				if (!cancel) setTopCarreiras(Array.isArray(data) ? data : []);
+			} catch (e) {
+				if (!cancel) setErroCompat("Não foi possível carregar sua compatibilidade agora.");
+			} finally {
+				if (!cancel) setLoadingCompat(false);
+			}
+		})();
+		return () => { cancel = true };
+	}, [API_URL]);
+
     // HTML
 	return (
 		<div className="min-h-screen bg-slate-900 text-slate-200">
@@ -184,6 +227,45 @@ export default function HomeUsuario() {
 
 				{/* descrição */}
 				<p className="mt-2 text-slate-300 text-center">Bem-vindo à sua Home de usuário.</p>
+
+				{/* Compatibilidade com Carreiras */}
+				<section className="mt-10">
+					<h2 className="text-xl font-medium mb-4">Suas carreiras mais compatíveis</h2>
+					<div className="space-y-4">
+						{loadingCompat && (
+							<p className="text-slate-400">Carregando sua compatibilidade...</p>
+						)}
+						{!loadingCompat && erroCompat && (
+							<p className="text-rose-300">{erroCompat}</p>
+						)}
+						{!loadingCompat && !erroCompat && topCarreiras.length === 0 && (
+							<div className="text-slate-300">
+								<p>Nenhuma carreira encontrada ainda.</p>
+								<p className="mt-1">Dica: cadastre suas habilidades para ver sua compatibilidade!</p>
+								<div className="mt-3">
+									<Link to="/usuario/cadastro-habilidade" className="text-indigo-300 underline">Cadastrar habilidades</Link>
+								</div>
+							</div>
+						)}
+						{!loadingCompat && !erroCompat && topCarreiras.map((item, idx) => (
+							<div key={`${item.carreira_id}-${idx}`} className="p-4 rounded border border-slate-800 bg-slate-950/50">
+								<div className="flex items-center justify-between mb-2">
+									<div className="font-medium">{item.carreira_nome ?? 'Carreira'}</div>
+									<div className="text-slate-300 text-sm">{item.percentual}%</div>
+								</div>
+								<ProgressBar value={item.percentual} />
+								<div className="mt-2 text-slate-400 text-sm">
+									<span>Compatibilidade ponderada pelas habilidades mais relevantes da carreira.</span>
+								</div>
+								{Array.isArray(item.habilidades_cobertas) && item.habilidades_cobertas.length > 0 && (
+									<div className="mt-2 text-slate-300 text-sm">
+										<strong>Suas habilidades que contam aqui:</strong> {item.habilidades_cobertas.join(', ')}
+									</div>
+								)}
+							</div>
+						))}
+					</div>
+				</section>
 
 				{/* Habilidades da carreira (com seta para expandir) */}
 				{carreiraId && (
