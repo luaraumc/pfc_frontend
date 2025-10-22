@@ -317,6 +317,8 @@ export default function Vaga() {
 			setConfirmMsg("Habilidades confirmadas e salvas.");
 			setHabilidadesPreview([]);
 			setJaConfirmado(true);
+			// Atualiza a listagem de vagas automaticamente
+			await carregarVagas();
 		} catch (e) {
 			setConfirmErro(e.message || "Erro ao confirmar habilidades");
 		} finally {
