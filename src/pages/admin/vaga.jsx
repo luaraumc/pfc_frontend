@@ -296,12 +296,13 @@ export default function Vaga() {
 			// Envia objetos ricos: nome, categoria_id, habilidade_id (quando existir)
 			const itens = (habilidadesPreview || []).map(h => {
 				if (typeof h === 'string') {
-					return { nome: h, categoria_id: '', habilidade_id: '' };
+					return { nome: h, categoria_id: '', habilidade_id: '', categoria_sugerida: '' };
 				}
 				return {
 					nome: h?.nome ?? '',
 					categoria_id: h?.categoria_id ? Number(h.categoria_id) : '',
 					habilidade_id: h?.habilidade_id ? Number(h.habilidade_id) : '',
+					categoria_sugerida: h?.categoria_sugerida ?? '',
 				};
 			});
 			const payload = { habilidades: itens };
