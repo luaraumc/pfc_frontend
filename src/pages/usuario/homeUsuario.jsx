@@ -81,7 +81,7 @@ export default function HomeUsuario() {
 				}
 
 				// 2) Carrega o mapa e pega o melhor curso para a carreira
-				const rMapa = await fetch(`${API_URL}/mapa`);
+				const rMapa = await fetch(`${API_URL}/mapa/`);
 				if (!rMapa.ok) throw new Error('Falha ao carregar mapa');
 				const mapa = await rMapa.json();
 				if (cancel) return;
