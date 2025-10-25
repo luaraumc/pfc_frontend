@@ -81,7 +81,8 @@ export default function LoginUsuario() {
 			localStorage.setItem("usuario_id", String(userId));
 			localStorage.setItem("is_admin", String(isAdmin));
 			if (user?.nome) localStorage.setItem("usuario_nome", String(user.nome));
-			window.location.href = isAdmin ? "/homeAdmin" : "/homeUsuario"; // redireciona conforme o tipo de usuário
+			// redireciona sem recarregar a página
+			navigate(isAdmin ? "/homeAdmin" : "/homeUsuario", { replace: true });
 		} catch (e) {
 			clearAuth(); // limpa dados de autenticação
 			setErro("Não foi possível obter os dados do usuário. Tente novamente.");
@@ -196,7 +197,7 @@ export default function LoginUsuario() {
 							<div className="mt-4 flex flex-col gap-2">
 									<button
 										type="button"
-										onClick={() => (window.location.href = "/recuperar-senha")}
+										onClick={() => navigate("/recuperar-senha")}
 										className="w-full py-2 text-slate-200"
 									>
 										<span className="underline underline-offset-2">Esqueceu sua senha?</span>
@@ -217,7 +218,7 @@ export default function LoginUsuario() {
 						<div className="mt-4 flex flex-col gap-2">
 							<button
 								type="button"
-								onClick={() => (window.location.href = "/cadastro")}
+								onClick={() => navigate("/cadastro")}
 								className="w-full py-2 text-slate-200"
 							>
 								Não possui uma conta? <span className="underline underline-offset-2">Cadastre-se</span>
