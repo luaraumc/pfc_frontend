@@ -418,20 +418,33 @@ export default function HomeUsuario() {
 															const possui = habilidadesUsuarioIds.has(h.id);
 															const salvando = savingHabIds.has(h.id);
 															return (
-																<div key={h.id} className="flex items-center gap-3 p-3 rounded border border-slate-800 bg-slate-950/40">
+																<div key={h.id} className="flex items-center gap-3 p-3 rounded bg-transparent">
 																	<button
 																		type="button"
 																		onClick={() => handleToggleHabilidade(carreiraIdCard, h)}
 																		disabled={salvando}
-																		className={`inline-flex items-center justify-center w-6 h-6 rounded border ${possui ? 'bg-emerald-600/20 border-emerald-500/50' : 'bg-slate-800/40 border-slate-700'} ${salvando ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/60'}`}
+																		className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-transparent ${salvando ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/30'} transition-colors group`}
 																		aria-pressed={possui}
 																		aria-label={`${possui ? 'Remover' : 'Adicionar'} habilidade ${h.nome}`}
 																		title={salvando ? 'Salvando...' : (possui ? 'Clique para remover' : 'Clique para adicionar')}
 																	>
 																		{possui ? (
-																			<svg className="w-4 h-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+																			// bolinha preenchida com as cores da barra de progresso
+																			<span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400" />
 																		) : (
-																			<svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
+																			// círculo vazado (sem bordas no botão)
+																			<svg
+																				className="w-4 h-4 text-slate-500 transition-colors group-hover:text-slate-300"
+																				viewBox="0 0 24 24"
+																				fill="none"
+																				stroke="currentColor"
+																				strokeWidth="2"
+																				strokeLinecap="round"
+																				strokeLinejoin="round"
+																				aria-hidden="true"
+																			>
+																				<circle cx="12" cy="12" r="8" />
+																			</svg>
 																		)}
 																	</button>
 																	<div className={`${salvando ? 'opacity-60' : ''}`}>
