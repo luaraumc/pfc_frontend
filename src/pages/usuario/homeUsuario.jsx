@@ -20,7 +20,7 @@ export default function HomeUsuario() {
 	const [loadingCompat, setLoadingCompat] = useState(true);
 	const [erroCompat, setErroCompat] = useState("");
 
-	const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+	const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-production-668a.up.railway.app';
 
 	function formatScore(v) {
 		if (v == null || Number.isNaN(v)) return '0.00';

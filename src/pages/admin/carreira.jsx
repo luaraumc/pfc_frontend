@@ -4,7 +4,7 @@ import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e re
 import lixeiraIcon from "../../../images/lixeira.png"; // ícone de lixeira para deletar
 import setaIcon from "../../../images/seta.png"; // ícone de seta para expandir
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
 
 // Página de administração de carreiras
 export default function AdminCarreira() {
