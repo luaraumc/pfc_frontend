@@ -389,22 +389,17 @@ export default function HomeUsuario() {
 										<div className="text-slate-300 text-sm">{item.percentual}%</div>
 									</div>
 									<ProgressBar value={item.percentual} />
-									<div className="mt-2 text-slate-400 text-sm">
-										<span>Compatibilidade ponderada pelas habilidades exigidas na carreira.</span>
-									</div>
-
-									{/* Botão de expansão */}
-									<button
-										type="button"
-										onClick={() => toggleExpandCarreira(carreiraIdCard)}
-										className="mt-3 w-full flex items-center justify-between px-4 py-2 bg-slate-950/50 border border-slate-800 rounded-md hover:bg-slate-900/60 transition-colors group"
-									>
-										<div className="flex items-center gap-2">
+									<div className="mt-2 flex items-center justify-between gap-2">
+										<span className="text-slate-400 text-sm">Compatibilidade ponderada pelas habilidades exigidas na carreira.</span>
+										<button
+											type="button"
+											onClick={() => toggleExpandCarreira(carreiraIdCard)}
+											className="inline-flex items-center gap-2 px-2 py-1 bg-transparent border-0 rounded-md transition-colors group"
+										>
 											<svg className={`w-5 h-5 text-indigo-300 transition-transform ${expanded ? 'rotate-90' : ''}`} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
 											<span className="text-slate-200 font-medium transition-colors group-hover:text-indigo-300">Ver habilidades</span>
-										</div>
-										<span className="text-xs text-slate-400">{expanded ? 'recolher' : 'expandir'}</span>
-									</button>
+										</button>
+									</div>
 
 									{/* Lista expandida de habilidades da carreira */}
 									{expanded && (
