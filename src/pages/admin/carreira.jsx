@@ -423,15 +423,6 @@ export default function AdminCarreira() {
                     {/* painel lateral */}
                     <div className="w-full lg:w-96 self-start">
 
-                        {/* botão atualizar página */}
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="mb-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-                            title="Atualizar a página"
-                        >
-                            <span aria-hidden>↻</span> Atualizar
-                        </button>
-
                         <div className="bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6">
                             <div className="flex flex-col gap-3">
                                 {/* cadastrar nova carreira */}
