@@ -27,7 +27,7 @@ export default function Home() {
 		let cancel = false;
 		async function carregar() {
 			try {
-				const r = await fetch(`${API_URL}/mapa`);
+				const r = await fetch(`${API_URL}/mapa/`);
 				if (!r.ok) throw new Error(`Falha ao carregar mapa (${r.status})`);
 				const j = await r.json();
 				if (!cancel) {
