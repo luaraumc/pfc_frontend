@@ -382,10 +382,33 @@ export default function HomeUsuario() {
 							const carreiraIdCard = item.carreira_id;
 							const expanded = expandedCarreiras.has(carreiraIdCard);
 							const entry = habPorCarreira[carreiraIdCard] || { loading: false, error: '', itens: null };
+							// gradiente único por card
+							const starGradId = `starGrad-${carreiraIdCard}`;
 							return (
 								<div key={`${carreiraIdCard}-${idx}`} className="p-4 rounded border border-slate-800 bg-slate-950/50">
 									<div className="flex items-center justify-between mb-2">
-										<div className="font-medium">{item.carreira_nome ?? 'Carreira'}</div>
+										<div className="font-medium flex items-center gap-2">
+											<span>{item.carreira_nome ?? 'Carreira'}</span>
+											{item.carreira_id === carreiraId && (
+												<svg
+													className="w-4 h-4"
+													viewBox="0 0 24 24"
+													aria-label="Carreira preferencial"
+													title="Carreira preferencial"
+												>
+													<defs>
+														<linearGradient id={starGradId} x1="0%" y1="0%" x2="100%" y2="0%">
+															<stop offset="0%" stopColor="#6366F1" /> {/* indigo-500 */}
+															<stop offset="100%" stopColor="#22D3EE" /> {/* cyan-400 */}
+														</linearGradient>
+													</defs>
+													<path
+														fill={`url(#${starGradId})`}
+														d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+													/>
+												</svg>
+											)}
+										</div>
 										<div className="text-slate-300 text-sm">{item.percentual}%</div>
 									</div>
 									<ProgressBar value={item.percentual} />
