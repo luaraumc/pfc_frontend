@@ -102,7 +102,7 @@ export default function LoginUsuario() {
 		setSubmitting(true);
 		try {
 			// chama backend
-			const res = await fetch(`${API_URL}/auth/login`, {
+			const res = await fetch(`${API_URL}/auth/login/`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim(), senha }), // converte para JSON

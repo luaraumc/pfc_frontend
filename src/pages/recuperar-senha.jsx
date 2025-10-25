@@ -48,7 +48,7 @@ export default function RecuperarSenha() {
 		setSubmitting(true);
 		try {
 			// chama backend
-			const res = await fetch(`${API_URL}/auth/solicitar-codigo/recuperar-senha`, {
+			const res = await fetch(`${API_URL}/auth/solicitar-codigo/recuperar-senha/`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim() }), // converte para JSON
@@ -80,7 +80,7 @@ export default function RecuperarSenha() {
 		setSubmitting(true);
 		try {
 			// chama backend
-			const res = await fetch(`${API_URL}/auth/recuperar-senha`, {
+			const res = await fetch(`${API_URL}/auth/recuperar-senha/`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim(), codigo: codigo.trim(), nova_senha: novaSenha }), // converte para JSON

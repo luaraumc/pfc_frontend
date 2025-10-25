@@ -87,7 +87,7 @@ export default function CadastroUsuario() {
 		setSubmitting(true);
 		try {
 			// chama backend
-			const res = await fetch(`${API_URL}/auth/cadastro`, {
+			const res = await fetch(`${API_URL}/auth/cadastro/`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),

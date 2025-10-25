@@ -108,7 +108,7 @@ export default function AdminCarreira() {
         if (!habilidadesCarreira[id]) {
             (async () => {
                 try {
-                    const res = await authFetch(`${API_URL}/carreira/${id}/habilidades`); // chama backend
+                    const res = await authFetch(`${API_URL}/carreira/${id}/habilidades/`); // chama backend
                     const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
                     if (!res.ok)
                         throw new Error(
@@ -169,7 +169,7 @@ export default function AdminCarreira() {
             setCriando(true);
             const payload = { nome: novoNome.trim(), descricao: novaDescricao.trim() }; // monta o objeto que será enviado ao backend
             // chama backend
-            const res = await authFetch(`${API_URL}/carreira/cadastro`, {
+            const res = await authFetch(`${API_URL}/carreira/cadastro/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload) // converte para JSON

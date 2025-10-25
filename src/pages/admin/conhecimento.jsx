@@ -99,7 +99,7 @@ export default function AdminConhecimento() {
     try {
       setCriando(true);
       // chama backend
-      const res = await authFetch(`${API_URL}/conhecimento/cadastro`, {
+      const res = await authFetch(`${API_URL}/conhecimento/cadastro/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome: novoNome.trim() }) // converte para JSON
