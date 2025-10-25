@@ -180,7 +180,14 @@ export default function AdminCarreira() {
                 throw new Error(msg);
             }
             setMensagemCriar(data?.message || 'Carreira cadastrada com sucesso');
-            setCarreiras(estadoAnterior => [{ id: data?.id, nome: payload.nome, descricao: payload.descricao }, ...estadoAnterior]); // update na lista de carreiras inserindo a nova no topo
+            // Recarrega a lista completa para garantir IDs corretos e consistência
+            try {
+                const resList = await authFetch(`${API_URL}/carreira/`);
+                if (resList.ok) {
+                    const list = await resList.json().catch(() => []);
+                    setCarreiras(Array.isArray(list) ? list : []);
+                }
+            } catch (_) { /* atualização silenciosa */ }
             setNovoNome(''); setNovaDescricao('');
         } catch(e){
             setErroCriar(e.message ?? 'Erro ao cadastrar carreira');
@@ -415,15 +422,6 @@ export default function AdminCarreira() {
 
                     {/* painel lateral */}
                     <div className="w-full lg:w-96 self-start">
-
-                        {/* botão atualizar página */}
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="mb-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-                            title="Atualizar a página"
-                        >
-                            <span aria-hidden>↻</span> Atualizar
-                        </button>
 
                         <div className="bg-slate-950 border border-slate-800 rounded-lg p-5 sticky top-6">
                             <div className="flex flex-col gap-3">

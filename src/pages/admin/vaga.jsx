@@ -320,6 +320,8 @@ export default function Vaga() {
 			setConfirmMsg("Habilidades confirmadas e salvas.");
 			setHabilidadesPreview([]);
 			setJaConfirmado(true);
+            // Atualiza a listagem de vagas automaticamente
+            await carregarVagas();
 		} catch (e) {
 			setConfirmErro(e.message || "Erro ao confirmar habilidades");
 		} finally {
@@ -362,12 +364,12 @@ export default function Vaga() {
 			</header>
 
 			{/* CONTEÚDO PRINCIPAL */}
-			<main className="ml-8 mr-8 mx-auto px-4 py-5">
+			<main className="max-w-full mx-auto px-4 py-5 ml-50 mr-50">
 
 				{/* BOTÃO VOLTAR */}
 				<button
 					onClick={() => navigate(-1)}
-					className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 -ml-8 md:-ml-40 lg:-ml-40"
 				>
 					<span aria-hidden>←</span> Voltar
 				</button>
@@ -377,7 +379,7 @@ export default function Vaga() {
 
 				{/* formulário de cadastro de vaga */}
 				<div className="mt-8 grid md:grid-cols-2 gap-8">
-					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5 ml-30">
+					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5">
 						<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Cadastrar Vaga</h2>
 
 						{erro && (
@@ -441,7 +443,7 @@ export default function Vaga() {
 						</form>
 					</div>
 
-					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5 mr-30">
+					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5">
 						<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Pré-visualização e Confirmação</h2>
 						{confirmMsg && (
 							<div className="mb-3 p-2 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{confirmMsg}</div>
@@ -561,86 +563,88 @@ export default function Vaga() {
 							</div>
 						)}
 					</div>
+
+					{/* LISTA DE VAGAS dentro do mesmo grid (ocupa 2 colunas em md+) */}
+					<div className="md:col-span-2">
+						<div className="mt-4 bg-slate-950 border border-slate-800 rounded-lg p-5">
+							<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Vagas Cadastradas</h2>
+							{vagasMsg && (
+								<div className="mb-3 p-2 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{vagasMsg}</div>
+							)}
+							{vagasErro && (
+								<div className="mb-3 p-2 rounded border border-red-700 bg-red-900 text-red-100 text-sm">{vagasErro}</div>
+							)}
+							{vagasLoading ? (
+								<p className="text-sm text-slate-400">Carregando vagas…</p>
+							) : !vagas.length ? (
+								<p className="text-sm text-slate-400">Nenhuma vaga cadastrada.</p>
+							) : (
+								<>
+									<div className="overflow-x-auto">
+										<table className="min-w-full text-sm table-fixed">
+											<thead className="text-slate-300">
+												<tr>
+													<th className="text-left py-2 px-2 w-16">ID</th>
+													<th className="text-left py-2 px-2 w-1/2">Título</th>
+													<th className="text-left py-2 px-2 w-1/3 hidden md:table-cell">Carreira</th>
+													<th className="text-left py-2 px-2 w-28">Ações</th>
+												</tr>
+											</thead>
+											<tbody>
+												{vagasPagina.map(v => (
+													<tr key={v.id} className="border-t border-slate-800">
+														<td className="py-2 px-2 text-slate-400">{v.id}</td>
+														<td className="py-2 px-2">
+															<div className="truncate max-w-[12rem] md:max-w-[24rem]">{v.titulo}</div>
+														</td>
+														<td className="py-2 px-2 text-slate-300 hidden md:table-cell">
+															<div className="truncate max-w-[10rem] md:max-w-[20rem]">{v.carreira_nome ?? '-'}</div>
+														</td>
+														<td className="py-2 px-2">
+															<button
+																onClick={() => solicitarExclusaoVaga(v)}
+																className="px-2 py-1 text-xs rounded border border-red-700 text-red-200 hover:bg-red-900/40"
+															>
+																Excluir
+															</button>
+														</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									</div>
+
+									{/* Paginação */}
+									<div className="mt-4 flex items-center justify-between">
+										<div className="text-xs text-slate-400">
+											Exibindo {totalVagas ? startIndex + 1 : 0}–{endIndex} de {totalVagas}
+										</div>
+										<div className="flex items-center gap-2">
+											<button
+												onClick={() => irParaPagina(page - 1)}
+												disabled={page === 1}
+												className="px-2 py-1 rounded border border-slate-700 text-slate-200 disabled:opacity-50 hover:bg-slate-800"
+											>
+												Anterior
+											</button>
+											<span className="text-xs text-slate-300">Página {page} de {totalPages}</span>
+											<button
+												onClick={() => irParaPagina(page + 1)}
+												disabled={page === totalPages}
+												className="px-2 py-1 rounded border border-slate-700 text-slate-200 disabled:opacity-50 hover:bg-slate-800"
+											>
+												Próxima
+											</button>
+										</div>
+									</div>
+								</>
+							)}
+						</div>
+					</div>
 				</div>
 			</main>
 
-			{/* LISTA DE VAGAS */}
-			<section className="ml-8 mr-8 mx-auto px-4 pb-8">
-				<div className="mt-4 bg-slate-950 border border-slate-800 rounded-lg p-5">
-					<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Vagas Cadastradas</h2>
-					{vagasMsg && (
-						<div className="mb-3 p-2 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{vagasMsg}</div>
-					)}
-					{vagasErro && (
-						<div className="mb-3 p-2 rounded border border-red-700 bg-red-900 text-red-100 text-sm">{vagasErro}</div>
-					)}
-					{vagasLoading ? (
-						<p className="text-sm text-slate-400">Carregando vagas…</p>
-					) : !vagas.length ? (
-						<p className="text-sm text-slate-400">Nenhuma vaga cadastrada.</p>
-					) : (
-						<>
-							<div className="overflow-x-auto">
-								<table className="min-w-full text-sm table-fixed">
-									<thead className="text-slate-300">
-										<tr>
-											<th className="text-left py-2 px-2 w-16">ID</th>
-											<th className="text-left py-2 px-2 w-1/2">Título</th>
-											<th className="text-left py-2 px-2 w-1/3 hidden md:table-cell">Carreira</th>
-											<th className="text-left py-2 px-2 w-28">Ações</th>
-										</tr>
-									</thead>
-									<tbody>
-										{vagasPagina.map(v => (
-											<tr key={v.id} className="border-t border-slate-800">
-												<td className="py-2 px-2 text-slate-400">{v.id}</td>
-												<td className="py-2 px-2">
-													<div className="truncate max-w-[12rem] md:max-w-[24rem]">{v.titulo}</div>
-												</td>
-												<td className="py-2 px-2 text-slate-300 hidden md:table-cell">
-													<div className="truncate max-w-[10rem] md:max-w-[20rem]">{v.carreira_nome ?? '-'}</div>
-												</td>
-												<td className="py-2 px-2">
-													<button
-														onClick={() => solicitarExclusaoVaga(v)}
-														className="px-2 py-1 text-xs rounded border border-red-700 text-red-200 hover:bg-red-900/40"
-													>
-														Excluir
-													</button>
-												</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
-
-							{/* Paginação */}
-							<div className="mt-4 flex items-center justify-between">
-								<div className="text-xs text-slate-400">
-									Exibindo {totalVagas ? startIndex + 1 : 0}–{endIndex} de {totalVagas}
-								</div>
-								<div className="flex items-center gap-2">
-									<button
-										onClick={() => irParaPagina(page - 1)}
-										disabled={page === 1}
-										className="px-2 py-1 rounded border border-slate-700 text-slate-200 disabled:opacity-50 hover:bg-slate-800"
-									>
-										Anterior
-									</button>
-									<span className="text-xs text-slate-300">Página {page} de {totalPages}</span>
-									<button
-										onClick={() => irParaPagina(page + 1)}
-										disabled={page === totalPages}
-										className="px-2 py-1 rounded border border-slate-700 text-slate-200 disabled:opacity-50 hover:bg-slate-800"
-									>
-										Próxima
-									</button>
-								</div>
-							</div>
-						</>
-					)}
-				</div>
-			</section>
+			{/* LISTA DE VAGAS movida para dentro do grid acima */}
 
 			{/* confirmação de exclusão */}
 			{vagaExcluir && (
