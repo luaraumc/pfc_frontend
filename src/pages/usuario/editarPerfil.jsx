@@ -101,12 +101,7 @@ export default function EditarPerfil() {
 		setSaving(true) // inicia salvamento
 		try {
 			// monta o payload (dados a serem enviados)
-			const payload = {
-				nome,
-				email,
-				carreira_id: carreiraId ? Number(carreiraId) : null,
-				curso_id: cursoId ? Number(cursoId) : null
-			}
+			const payload = { nome, email, carreira_id: carreiraId ? Number(carreiraId) : null, curso_id: cursoId ? Number(cursoId) : null }
 			// chama backend
 			const resp = await authFetch(`${API_URL}/usuario/atualizar/${usuarioId}`, {
 				method: 'PUT',
@@ -114,8 +109,24 @@ export default function EditarPerfil() {
 				body: JSON.stringify(payload) // converte para JSON
 			})
 			if(!resp.ok){
-				const text = await resp.text()
-				throw new Error(text || `Erro ${resp.status}`)
+				const text = await resp.text();
+				let friendly = '';
+				try {
+					const json = JSON.parse(text);
+					const detail = json?.detail;
+					if (Array.isArray(detail)) {
+						const hasCarreira = detail.some(d => d?.type === 'int_type' && Array.isArray(d.loc) && d.loc.includes('carreira_id'));
+						const hasCurso = detail.some(d => d?.type === 'int_type' && Array.isArray(d.loc) && d.loc.includes('curso_id'));
+						const msgs = [];
+						if (hasCarreira) msgs.push('Selecione uma carreira válida.');
+						if (hasCurso) msgs.push('Selecione um curso válido.');
+						friendly = msgs.join(' ');
+						if (!friendly && detail[0]?.msg) friendly = String(detail[0].msg);
+					}
+				} catch {}
+				if (!friendly) friendly = text || `Erro ${resp.status}`;
+				setError(friendly);
+				return;
 			}
 			const data = await resp.json().catch(()=> ({})) // converte resposta em JSON, se falhar retorna objeto vazio
 			setMessage(data.message || 'Atualizado com sucesso')
@@ -123,7 +134,7 @@ export default function EditarPerfil() {
 			localStorage.setItem('usuario_nome', nome)
 			localStorage.setItem('usuario_email', email)
 		} catch(err){
-			setError(err.message)
+			setError(err?.message || 'Não foi possível atualizar agora.')
 		} finally {
 			setSaving(false)
 		}
