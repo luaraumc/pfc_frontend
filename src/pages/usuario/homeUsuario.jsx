@@ -8,14 +8,14 @@ export default function HomeUsuario() {
 
 	const [nome, setNome] = useState(""); // armazena o nome do usuário
 	const [carreiraId, setCarreiraId] = useState(null); // carreira escolhida pelo usuário
+	const [carreiraNome, setCarreiraNome] = useState(''); // nome da carreira do usuário
 	const [melhorCurso, setMelhorCurso] = useState(null); // { id, nome, score }
 	const [loading, setLoading] = useState(true);
 	const [erro, setErro] = useState(null);
-	const [habilidadesCarreira, setHabilidadesCarreira] = useState([]); // [{id, nome, frequencia}]
 	const [habilidadesUsuarioIds, setHabilidadesUsuarioIds] = useState(new Set());
-	const [habLoading, setHabLoading] = useState(false);
-	const [habError, setHabError] = useState(null);
-	const [expandeHabilidades, setExpandeHabilidades] = useState(false);
+	const [nomePorHabilidadeId, setNomePorHabilidadeId] = useState(new Map());
+	const [expandedCarreiras, setExpandedCarreiras] = useState(new Set());
+	const [habPorCarreira, setHabPorCarreira] = useState({}); // { [carreiraId]: { loading, error, itens: [{id, nome, frequencia}] } }
 	const [topCarreiras, setTopCarreiras] = useState([]);
 	const [loadingCompat, setLoadingCompat] = useState(true);
 	const [erroCompat, setErroCompat] = useState("");
@@ -60,9 +60,24 @@ export default function HomeUsuario() {
 				const cid = user?.carreira_id ?? null;
 				setCarreiraId(cid);
 
+				// Se não houver carreira, limpa estados relacionados
 				if (!cid) {
+					setCarreiraNome('');
 					setMelhorCurso(null);
 					return; // usuário sem carreira definida
+				}
+
+				// Carrega o nome da carreira para exibição
+				try {
+					const rCar = await fetch(`${API_URL}/carreira/${cid}`);
+					if (rCar.ok) {
+						const car = await rCar.json();
+						if (!cancel) setCarreiraNome(car?.nome ?? '');
+					} else {
+						if (!cancel) setCarreiraNome('');
+					}
+				} catch (err) {
+					if (!cancel) setCarreiraNome('');
 				}
 
 				// 2) Carrega o mapa e pega o melhor curso para a carreira
@@ -87,53 +102,74 @@ export default function HomeUsuario() {
 		return () => { cancel = true };
 	}, [API_URL]);
 
-	// Carrega habilidades (carreira e do usuário) quando já temos carreiraId e usuarioId
+	// Carrega catálogo de habilidades (id -> nome) uma vez
 	useEffect(() => {
 		let cancel = false;
-		async function carregarHabilidades() {
-			if (!carreiraId) return; // nada a fazer sem carreira
-			const usuarioId = localStorage.getItem('usuario_id');
-			if (!usuarioId) return;
-			setHabLoading(true);
-			setHabError(null);
+		(async () => {
 			try {
-				// 1) Lista de habilidades da carreira (com frequencia)
-				const rCarreira = await fetch(`${API_URL}/carreira/${carreiraId}/habilidades`);
-				if (!rCarreira.ok) throw new Error('Falha ao carregar habilidades da carreira');
-				const listaCarreira = await rCarreira.json(); // [{id, carreira_id, habilidade_id, frequencia}]
-
-				// 2) Lista de habilidades do usuário (auth)
-				const rUserHabs = await authFetch(`${API_URL}/usuario/${usuarioId}/habilidades`);
-				if (!rUserHabs.ok) throw new Error('Falha ao carregar habilidades do usuário');
-				const listaUsuario = await rUserHabs.json(); // [{id, usuario_id, habilidade_id}]
-				const idsUsuario = new Set(listaUsuario.map(h => h.habilidade_id));
-
-				// 3) Mapa de nomes de habilidades
 				const rHabs = await fetch(`${API_URL}/habilidade/`);
-				if (!rHabs.ok) throw new Error('Falha ao carregar catálogo de habilidades');
-				const todas = await rHabs.json(); // [{id, nome, categoria_id, ...}]
-				const nomePorId = new Map(todas.map(h => [h.id, h.nome]));
-
-				// Monta lista final com nome e frequencia
-				const final = (listaCarreira || []).map(rel => ({
-					id: rel.habilidade_id,
-					nome: nomePorId.get(rel.habilidade_id) ?? `Habilidade #${rel.habilidade_id}`,
-					frequencia: rel.frequencia ?? 0,
-				})).sort((a,b) => (b.frequencia||0) - (a.frequencia||0));
-
-				if (!cancel) {
-					setHabilidadesCarreira(final);
-					setHabilidadesUsuarioIds(idsUsuario);
-				}
-			} catch (e) {
-				if (!cancel) setHabError(e?.message || 'Erro ao carregar habilidades');
-			} finally {
-				if (!cancel) setHabLoading(false);
-			}
-		}
-		carregarHabilidades();
+				if (!rHabs.ok) return;
+				const todas = await rHabs.json();
+				const mapa = new Map(todas.map(h => [h.id, h.nome]));
+				if (!cancel) setNomePorHabilidadeId(mapa);
+			} catch {}
+		})();
 		return () => { cancel = true };
-	}, [API_URL, carreiraId]);
+	}, [API_URL]);
+
+	// Carrega habilidades do usuário uma vez (para marcar check nas listas)
+	useEffect(() => {
+		let cancel = false;
+		(async () => {
+			try {
+				const usuarioId = localStorage.getItem('usuario_id');
+				if (!usuarioId) return;
+				const rUserHabs = await authFetch(`${API_URL}/usuario/${usuarioId}/habilidades`);
+				if (!rUserHabs.ok) return;
+				const listaUsuario = await rUserHabs.json();
+				const idsUsuario = new Set(listaUsuario.map(h => h.habilidade_id));
+				if (!cancel) setHabilidadesUsuarioIds(idsUsuario);
+			} catch {}
+		})();
+		return () => { cancel = true };
+	}, [API_URL]);
+
+	// Função para carregar habilidades por carreira sob demanda
+	async function carregarHabilidadesDaCarreira(id) {
+		setHabPorCarreira(prev => ({
+			...prev,
+			[id]: { ...(prev[id] || {}), loading: true, error: '', itens: prev[id]?.itens || [] }
+		}));
+		try {
+			const r = await fetch(`${API_URL}/carreira/${id}/habilidades`);
+			if (!r.ok) throw new Error('Falha ao carregar habilidades da carreira');
+			const lista = await r.json(); // [{carreira_id, habilidade_id, frequencia}]
+			const itens = (lista || []).map(rel => ({
+				id: rel.habilidade_id,
+				nome: nomePorHabilidadeId.get(rel.habilidade_id) ?? `Habilidade #${rel.habilidade_id}`,
+				frequencia: rel.frequencia ?? 0,
+			})).sort((a,b) => (b.frequencia||0) - (a.frequencia||0));
+			setHabPorCarreira(prev => ({ ...prev, [id]: { loading: false, error: '', itens } }));
+		} catch (e) {
+			setHabPorCarreira(prev => ({ ...prev, [id]: { loading: false, error: e?.message || 'Erro ao carregar', itens: [] } }));
+		}
+	}
+
+	function toggleExpandCarreira(id) {
+		setExpandedCarreiras(prev => {
+			const novo = new Set(prev);
+			if (novo.has(id)) {
+				novo.delete(id);
+			} else {
+				novo.add(id);
+				// Carrega on-demand se ainda não tiver itens
+				if (!habPorCarreira[id]?.itens) {
+					carregarHabilidadesDaCarreira(id);
+				}
+			}
+			return novo;
+		});
+	}
 
 	// Carrega compatibilidade do usuário com carreiras (barras de progresso)
 	useEffect(() => {
@@ -210,8 +246,8 @@ export default function HomeUsuario() {
 							Defina sua carreira no <Link to="/usuario/editar-perfil" className="underline">perfil</Link> para ver o curso mais recomendado.
 						</div>
 					) : melhorCurso ? (
-						<div className="rounded-lg border border-indigo-700 bg-indigo-900/20 p-4">
-							<p className="text-sm text-indigo-200">Para sua carreira</p>
+						<div className="rounded-lg border border-indigo-700 bg-indigo-900/20 p-4 text-center">
+							<p className="text-sm text-indigo-200">Para sua carreira: <span className="font-medium text-indigo-100">{carreiraNome || '—'}</span></p>
 							<h2 className="text-xl font-semibold text-slate-100">Curso recomendado: <span className="text-indigo-300">{melhorCurso.nome}</span></h2>
 							<p className="text-slate-300 text-sm mt-1">Score: {formatScore(melhorCurso.score)}</p>
 						</div>
@@ -228,9 +264,21 @@ export default function HomeUsuario() {
 				{/* descrição */}
 				<p className="mt-2 text-slate-300 text-center">Bem-vindo à sua Home de usuário.</p>
 
+				<p className="mt-2 text-slate-300 text-center">Cadastre suas habilidades para melhorar seu progresso:</p>
+
+				{/* cadastrar habilidade */}
+				<div className="mt-4 flex justify-center">
+					<Link
+						to="/usuario/cadastro-habilidade"
+						className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-indigo-600 bg-indigo-600/10 text-indigo-300 hover:bg-indigo-600/20"
+					>
+						Cadastrar habilidade
+					</Link>
+				</div>
+
 				{/* Compatibilidade com Carreiras */}
 				<section className="mt-10">
-					<h2 className="text-xl font-medium mb-4">Suas carreiras mais compatíveis</h2>
+					<h2 className="text-xl font-medium mb-4 text-center">SUAS CARREIRAS MAIS COMPATÍVEIS</h2>
 					<div className="space-y-4">
 						{loadingCompat && (
 							<p className="text-slate-400">Carregando sua compatibilidade...</p>
@@ -247,77 +295,78 @@ export default function HomeUsuario() {
 								</div>
 							</div>
 						)}
-						{!loadingCompat && !erroCompat && topCarreiras.map((item, idx) => (
-							<div key={`${item.carreira_id}-${idx}`} className="p-4 rounded border border-slate-800 bg-slate-950/50">
-								<div className="flex items-center justify-between mb-2">
-									<div className="font-medium">{item.carreira_nome ?? 'Carreira'}</div>
-									<div className="text-slate-300 text-sm">{item.percentual}%</div>
-								</div>
-								<ProgressBar value={item.percentual} />
-								<div className="mt-2 text-slate-400 text-sm">
-									<span>Compatibilidade ponderada pelas habilidades mais relevantes da carreira.</span>
-								</div>
-								{Array.isArray(item.habilidades_cobertas) && item.habilidades_cobertas.length > 0 && (
-									<div className="mt-2 text-slate-300 text-sm">
-										<strong>Suas habilidades que contam aqui:</strong> {item.habilidades_cobertas.join(', ')}
+						{!loadingCompat && !erroCompat && topCarreiras.map((item, idx) => {
+							const carreiraIdCard = item.carreira_id;
+							const expanded = expandedCarreiras.has(carreiraIdCard);
+							const entry = habPorCarreira[carreiraIdCard] || { loading: false, error: '', itens: null };
+							return (
+								<div key={`${carreiraIdCard}-${idx}`} className="p-4 rounded border border-slate-800 bg-slate-950/50">
+									<div className="flex items-center justify-between mb-2">
+										<div className="font-medium">{item.carreira_nome ?? 'Carreira'}</div>
+										<div className="text-slate-300 text-sm">{item.percentual}%</div>
 									</div>
-								)}
-							</div>
-						))}
+									<ProgressBar value={item.percentual} />
+									<div className="mt-2 text-slate-400 text-sm">
+										<span>Compatibilidade ponderada pelas habilidades mais relevantes da carreira.</span>
+									</div>
+
+									{Array.isArray(item.habilidades_cobertas) && item.habilidades_cobertas.length > 0 && (
+										<div className="mt-2 text-slate-300 text-sm">
+											<strong>Suas habilidades que contam aqui:</strong> {item.habilidades_cobertas.join(', ')}
+										</div>
+									)}
+
+									{/* Botão de expansão */}
+									<button
+										type="button"
+										onClick={() => toggleExpandCarreira(carreiraIdCard)}
+										className="mt-3 w-full flex items-center justify-between px-4 py-2 bg-slate-800/40 border border-slate-700 rounded-md hover:bg-slate-800"
+									>
+										<div className="flex items-center gap-2">
+											<svg className={`w-5 h-5 text-indigo-300 transition-transform ${expanded ? 'rotate-90' : ''}`} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+											<span className="text-slate-200 font-medium">Habilidades desta carreira</span>
+										</div>
+										<span className="text-xs text-slate-400">{expanded ? 'recolher' : 'expandir'}</span>
+									</button>
+
+									{/* Lista expandida de habilidades da carreira */}
+									{expanded && (
+										<div className="mt-3 rounded-md border border-slate-800 bg-slate-900/40">
+											{entry.loading ? (
+												<div className="p-4 text-slate-400">Carregando habilidades…</div>
+											) : entry.error ? (
+												<div className="p-4 text-rose-300">{entry.error}</div>
+											) : !entry.itens || entry.itens.length === 0 ? (
+												<div className="p-4 text-slate-400">Nenhuma habilidade mapeada para esta carreira.</div>
+											) : (
+												<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3">
+													{entry.itens.map(h => {
+														const possui = habilidadesUsuarioIds.has(h.id);
+														return (
+															<div key={h.id} className="flex items-center gap-3 p-3 rounded border border-slate-800 bg-slate-950/40">
+																<span className={`inline-flex items-center justify-center w-6 h-6 rounded border ${possui ? 'bg-emerald-600/20 border-emerald-500/50' : 'bg-slate-800/40 border-slate-700'}`}>
+																	{possui ? (
+																		<svg className="w-4 h-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+																	) : (
+																		<svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
+																	)}
+																</span>
+																<div>
+																	<div className="text-slate-200 font-medium">{h.nome}</div>
+																	<div className="text-xs text-slate-400">Frequência: {h.frequencia}</div>
+																</div>
+															</div>
+														);
+													})}
+												</div>
+											)}
+										</div>
+									)}
+								</div>
+							);
+						})}
 					</div>
 				</section>
-
-				{/* Habilidades da carreira (com seta para expandir) */}
-				{carreiraId && (
-					<section className="mt-8 max-w-3xl mx-auto">
-						<button
-							type="button"
-							onClick={() => setExpandeHabilidades(v => !v)}
-							className="w-full flex items-center justify-between px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-md hover:bg-slate-800"
-						>
-							<div className="flex items-center gap-2">
-								<svg className={`w-5 h-5 text-indigo-300 transition-transform ${expandeHabilidades ? 'rotate-90' : ''}`} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-								<span className="text-slate-200 font-medium">Habilidades da sua carreira</span>
-							</div>
-							<span className="text-xs text-slate-400">{expandeHabilidades ? 'recolher' : 'expandir'}</span>
-						</button>
-
-						{expandeHabilidades && (
-							<div className="mt-3 rounded-md border border-slate-800 bg-slate-900/40">
-								{habLoading ? (
-									<div className="p-4 text-slate-400">Carregando habilidades…</div>
-								) : habError ? (
-									<div className="p-4 text-rose-300">{habError}</div>
-								) : (habilidadesCarreira?.length ?? 0) === 0 ? (
-									<div className="p-4 text-slate-400">Nenhuma habilidade mapeada para esta carreira.</div>
-								) : (
-									<ul className="divide-y divide-slate-800">
-										{habilidadesCarreira.map(h => {
-											const possui = habilidadesUsuarioIds.has(h.id);
-											return (
-												<li key={h.id} className="flex items-center justify-between gap-3 p-3">
-													<div className="flex items-center gap-3">
-														<span className={`inline-flex items-center justify-center w-6 h-6 rounded border ${possui ? 'bg-emerald-600/20 border-emerald-500/50' : 'bg-slate-800/40 border-slate-700'}`}>
-															{possui ? (
-																<svg className="w-4 h-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-															) : (
-																<svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
-															)}
-														</span>
-														<div>
-															<div className="text-slate-200 font-medium">{h.nome}</div>
-															<div className="text-xs text-slate-400">Frequência na carreira: {h.frequencia}</div>
-														</div>
-													</div>
-												</li>
-											);
-										})}
-									</ul>
-								)}
-							</div>
-						)}
-					</section>
-				)}
 			</main>
 		</div>
 	);
