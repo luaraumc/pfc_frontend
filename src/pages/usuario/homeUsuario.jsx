@@ -19,6 +19,9 @@ export default function HomeUsuario() {
 	const [topCarreiras, setTopCarreiras] = useState([]);
 	const [loadingCompat, setLoadingCompat] = useState(true);
 	const [erroCompat, setErroCompat] = useState("");
+	// ESTADOS NOVOS: controle de salvamento por habilidade e erro do checklist
+	const [savingHabIds, setSavingHabIds] = useState(new Set());
+	const [erroChecklist, setErroChecklist] = useState("");
 
 	const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
@@ -171,6 +174,98 @@ export default function HomeUsuario() {
 		});
 	}
 
+	// Recarrega compatibilidade do backend (atualiza percentuais e cobertas)
+	async function recarregarCompatibilidade() {
+		try {
+			const usuarioId = localStorage.getItem('usuario_id');
+			if (!usuarioId) {
+				setErroCompat("Usuário não identificado. Faça login novamente.");
+				return;
+			}
+			const res = await authFetch(`${API_URL}/usuario/${usuarioId}/compatibilidade/top`);
+			if (!res.ok) throw new Error(`Erro ${res.status}`);
+			const data = await res.json();
+			setTopCarreiras(Array.isArray(data) ? data : []);
+		} catch (e) {
+			setErroCompat("Não foi possível carregar sua compatibilidade agora.");
+		} finally {
+			setLoadingCompat(false);
+		}
+	}
+
+	// Atualização silenciosa (sem alterar loading/placeholder) para evitar flicker
+	async function recarregarCompatibilidadeSilenciosa() {
+		try {
+			const usuarioId = localStorage.getItem('usuario_id');
+			if (!usuarioId) return;
+			const res = await authFetch(`${API_URL}/usuario/${usuarioId}/compatibilidade/top`);
+			if (!res.ok) return;
+			const data = await res.json();
+			setTopCarreiras(Array.isArray(data) ? data : []);
+		} catch {}
+	}
+
+	// Endpoints de adicionar/remover habilidade do usuário
+	async function adicionarHabilidadeUsuario(usuarioId, habilidadeId) {
+		return authFetch(`${API_URL}/usuario/${usuarioId}/adicionar-habilidade/${habilidadeId}`, {
+			method: 'POST'
+		});
+	}
+	async function removerHabilidadeUsuario(usuarioId, habilidadeId) {
+		return authFetch(`${API_URL}/usuario/${usuarioId}/remover-habilidade/${habilidadeId}`, {
+			method: 'DELETE'
+		});
+	}
+
+	// Toggle do checklist
+	async function handleToggleHabilidade(carreiraId, habilidade) {
+		setErroChecklist("");
+		const usuarioId = localStorage.getItem('usuario_id');
+		if (!usuarioId) {
+			setErroChecklist("Usuário não identificado.");
+			return;
+		}
+		// evita cliques simultâneos na mesma habilidade
+		if (savingHabIds.has(habilidade.id)) return;
+
+		const possui = habilidadesUsuarioIds.has(habilidade.id);
+
+		// marca como salvando
+		setSavingHabIds(prev => {
+			const novo = new Set(prev);
+			novo.add(habilidade.id);
+			return novo;
+		});
+
+		try {
+			// chama backend
+			const res = possui
+				? await removerHabilidadeUsuario(usuarioId, habilidade.id)
+				: await adicionarHabilidadeUsuario(usuarioId, habilidade.id);
+
+			if (!res.ok) throw new Error('Falha ao atualizar habilidade');
+
+			// sucesso: atualiza set local
+			setHabilidadesUsuarioIds(prev => {
+				const novo = new Set(prev);
+				if (possui) novo.delete(habilidade.id);
+				else novo.add(habilidade.id);
+				return novo;
+			});
+
+			// recarrega compatibilidade real (barra) em background para evitar flicker
+			await recarregarCompatibilidadeSilenciosa();
+		} catch (e) {
+			setErroChecklist(e?.message || "Erro ao atualizar habilidade");
+		} finally {
+			setSavingHabIds(prev => {
+				const novo = new Set(prev);
+				novo.delete(habilidade.id);
+				return novo;
+			});
+		}
+	}
+
 	// Carrega compatibilidade do usuário com carreiras (barras de progresso)
 	useEffect(() => {
 		let cancel = false;
@@ -264,18 +359,6 @@ export default function HomeUsuario() {
 				{/* descrição */}
 				<p className="mt-2 text-slate-300 text-center">Bem-vindo à sua Home de usuário.</p>
 
-				<p className="mt-2 text-slate-300 text-center">Cadastre suas habilidades para melhorar seu progresso:</p>
-
-				{/* cadastrar habilidade */}
-				<div className="mt-4 flex justify-center">
-					<Link
-						to="/usuario/cadastro-habilidade"
-						className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-indigo-600 bg-indigo-600/10 text-indigo-300 hover:bg-indigo-600/20"
-					>
-						Cadastrar habilidade
-					</Link>
-				</div>
-
 				{/* Compatibilidade com Carreiras */}
 				<section className="mt-10">
 					<h2 className="text-xl font-medium mb-4 text-center">SUAS CARREIRAS MAIS COMPATÍVEIS</h2>
@@ -307,24 +390,18 @@ export default function HomeUsuario() {
 									</div>
 									<ProgressBar value={item.percentual} />
 									<div className="mt-2 text-slate-400 text-sm">
-										<span>Compatibilidade ponderada pelas habilidades mais relevantes da carreira.</span>
+										<span>Compatibilidade ponderada pelas habilidades exigidas na carreira.</span>
 									</div>
-
-									{Array.isArray(item.habilidades_cobertas) && item.habilidades_cobertas.length > 0 && (
-										<div className="mt-2 text-slate-300 text-sm">
-											<strong>Suas habilidades que contam aqui:</strong> {item.habilidades_cobertas.join(', ')}
-										</div>
-									)}
 
 									{/* Botão de expansão */}
 									<button
 										type="button"
 										onClick={() => toggleExpandCarreira(carreiraIdCard)}
-										className="mt-3 w-full flex items-center justify-between px-4 py-2 bg-slate-800/40 border border-slate-700 rounded-md hover:bg-slate-800"
+										className="mt-3 w-full flex items-center justify-between px-4 py-2 bg-slate-950/50 border border-slate-800 rounded-md hover:bg-slate-900/60 transition-colors group"
 									>
 										<div className="flex items-center gap-2">
 											<svg className={`w-5 h-5 text-indigo-300 transition-transform ${expanded ? 'rotate-90' : ''}`} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-											<span className="text-slate-200 font-medium">Habilidades desta carreira</span>
+											<span className="text-slate-200 font-medium transition-colors group-hover:text-indigo-300">Ver habilidades</span>
 										</div>
 										<span className="text-xs text-slate-400">{expanded ? 'recolher' : 'expandir'}</span>
 									</button>
@@ -339,25 +416,37 @@ export default function HomeUsuario() {
 											) : !entry.itens || entry.itens.length === 0 ? (
 												<div className="p-4 text-slate-400">Nenhuma habilidade mapeada para esta carreira.</div>
 											) : (
-												<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3">
-													{entry.itens.map(h => {
-														const possui = habilidadesUsuarioIds.has(h.id);
-														return (
-															<div key={h.id} className="flex items-center gap-3 p-3 rounded border border-slate-800 bg-slate-950/40">
-																<span className={`inline-flex items-center justify-center w-6 h-6 rounded border ${possui ? 'bg-emerald-600/20 border-emerald-500/50' : 'bg-slate-800/40 border-slate-700'}`}>
-																	{possui ? (
-																		<svg className="w-4 h-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-																	) : (
-																		<svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
-																	)}
-																</span>
-																<div>
-																	<div className="text-slate-200 font-medium">{h.nome}</div>
-																	<div className="text-xs text-slate-400">Frequência: {h.frequencia}</div>
+												<div className="p-3">
+													{erroChecklist && <div className="mb-2 text-sm text-rose-300">{erroChecklist}</div>}
+													<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+														{entry.itens.map(h => {
+															const possui = habilidadesUsuarioIds.has(h.id);
+															const salvando = savingHabIds.has(h.id);
+															return (
+																<div key={h.id} className="flex items-center gap-3 p-3 rounded border border-slate-800 bg-slate-950/40">
+																	<button
+																		type="button"
+																		onClick={() => handleToggleHabilidade(carreiraIdCard, h)}
+																		disabled={salvando}
+																		className={`inline-flex items-center justify-center w-6 h-6 rounded border ${possui ? 'bg-emerald-600/20 border-emerald-500/50' : 'bg-slate-800/40 border-slate-700'} ${salvando ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/60'}`}
+																		aria-pressed={possui}
+																		aria-label={`${possui ? 'Remover' : 'Adicionar'} habilidade ${h.nome}`}
+																		title={salvando ? 'Salvando...' : (possui ? 'Clique para remover' : 'Clique para adicionar')}
+																	>
+																		{possui ? (
+																			<svg className="w-4 h-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+																		) : (
+																			<svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
+																		)}
+																	</button>
+																	<div className={`${salvando ? 'opacity-60' : ''}`}>
+																		<div className="text-slate-200 font-medium">{h.nome}</div>
+																		<div className="text-xs text-slate-400">Frequência: {h.frequencia}</div>
+																	</div>
 																</div>
-															</div>
-														);
-													})}
+															);
+														})}
+													</div>
 												</div>
 											)}
 										</div>
