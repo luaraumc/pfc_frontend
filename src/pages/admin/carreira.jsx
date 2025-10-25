@@ -180,7 +180,14 @@ export default function AdminCarreira() {
                 throw new Error(msg);
             }
             setMensagemCriar(data?.message || 'Carreira cadastrada com sucesso');
-            setCarreiras(estadoAnterior => [{ id: data?.id, nome: payload.nome, descricao: payload.descricao }, ...estadoAnterior]); // update na lista de carreiras inserindo a nova no topo
+            // Recarrega a lista completa para garantir IDs corretos e consistência
+            try {
+                const resList = await authFetch(`${API_URL}/carreira/`);
+                if (resList.ok) {
+                    const list = await resList.json().catch(() => []);
+                    setCarreiras(Array.isArray(list) ? list : []);
+                }
+            } catch (_) { /* atualização silenciosa */ }
             setNovoNome(''); setNovaDescricao('');
         } catch(e){
             setErroCriar(e.message ?? 'Erro ao cadastrar carreira');

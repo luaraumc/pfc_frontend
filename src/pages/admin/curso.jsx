@@ -191,9 +191,14 @@ export default function AdminCurso() {
                 throw new Error(msg);
             }
             setMensagemCriar(data?.message || "Curso cadastrado com sucesso");
-            if (data?.id) {
-                setCursos(estadoAnterior => [{ id: data.id, nome: payload.nome, descricao: payload.descricao }, ...estadoAnterior]); // update na lista de cursos inserindo o novo no topo
-            }
+            // Recarrega a lista completa para garantir IDs corretos e consistência
+            try {
+                const resList = await authFetch(`${API_URL}/curso/`);
+                if (resList.ok) {
+                    const list = await resList.json().catch(() => []);
+                    setCursos(Array.isArray(list) ? list : []);
+                }
+            } catch (_) { /* atualização silenciosa */ }
             setNovoNome(""); setNovaDescricao("");
         } catch (e) {
             setErroCriar(e.message ?? "Erro ao cadastrar curso");
