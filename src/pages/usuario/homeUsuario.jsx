@@ -22,6 +22,11 @@ export default function HomeUsuario() {
 	// ESTADOS NOVOS: controle de salvamento por habilidade e erro do checklist
 	const [savingHabIds, setSavingHabIds] = useState(new Set());
 	const [erroChecklist, setErroChecklist] = useState("");
+	// NOVO: estado de busca por nome por carreira
+	const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
+
+	// Busca de habilidades por carreira (texto -> por carreira_id)
+	// const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
 
 	const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
@@ -357,7 +362,7 @@ export default function HomeUsuario() {
 				<h1 className="text-2xl font-semibold text-center">Olá{nome ? `, ${nome}` : ''}!</h1>
 
 				{/* descrição */}
-				<p className="mt-2 text-slate-300 text-center">Bem-vindo à sua Home de usuário.</p>
+				<p className="mt-2 text-slate-300 text-center">Veja as carreiras de TI que mais combinam com você.</p>
 
 				{/* Compatibilidade com Carreiras */}
 				<section className="mt-10">
@@ -384,8 +389,17 @@ export default function HomeUsuario() {
 							const entry = habPorCarreira[carreiraIdCard] || { loading: false, error: '', itens: null };
 							// gradiente único por card
 							const starGradId = `starGrad-${carreiraIdCard}`;
+							// NOVO: filtro por nome da habilidade para este card
+							const buscaHab = (buscaHabPorCarreira[carreiraIdCard] || '').trim().toLowerCase();
+							const itensFiltrados = Array.isArray(entry.itens)
+								? (buscaHab ? entry.itens.filter(h => (h?.nome || '').toLowerCase().includes(buscaHab)) : entry.itens)
+								: [];
+
 							return (
-								<div key={`${carreiraIdCard}-${idx}`} className="p-4 rounded border border-slate-800 bg-slate-950/50">
+								<div
+									key={`${carreiraIdCard}-${idx}`}
+									className="p-4 rounded bg-slate-950/50 shadow-lg shadow-slate-900/40"
+								>
 									<div className="flex items-center justify-between mb-2">
 										<div className="font-medium flex items-center gap-2">
 											<span>{item.carreira_nome ?? 'Carreira'}</span>
@@ -413,7 +427,7 @@ export default function HomeUsuario() {
 									</div>
 									<ProgressBar value={item.percentual} />
 									<div className="mt-2 flex items-center justify-between gap-2">
-										<span className="text-slate-400 text-sm">Compatibilidade ponderada pelas habilidades exigidas na carreira.</span>
+										<span className="text-slate-400 text-sm">Veja as habilidades exigidas na carreira.</span>
 										<button
 											type="button"
 											onClick={() => toggleExpandCarreira(carreiraIdCard)}
@@ -436,48 +450,67 @@ export default function HomeUsuario() {
 											) : (
 												<div className="p-3">
 													{erroChecklist && <div className="mb-2 text-sm text-rose-300">{erroChecklist}</div>}
-													<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-														{entry.itens.map(h => {
-															const possui = habilidadesUsuarioIds.has(h.id);
-															const salvando = savingHabIds.has(h.id);
-															return (
-																<div key={h.id} className="flex items-center gap-3 p-3 rounded bg-transparent">
-																	<button
-																		type="button"
-																		onClick={() => handleToggleHabilidade(carreiraIdCard, h)}
-																		disabled={salvando}
-																		className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-transparent ${salvando ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/30'} transition-colors group`}
-																		aria-pressed={possui}
-																		aria-label={`${possui ? 'Remover' : 'Adicionar'} habilidade ${h.nome}`}
-																		title={salvando ? 'Salvando...' : (possui ? 'Clique para remover' : 'Clique para adicionar')}
-																	>
-																		{possui ? (
-																			// bolinha preenchida com as cores da barra de progresso
-																			<span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400" />
-																		) : (
-																			// círculo vazado (sem bordas no botão)
-																			<svg
-																				className="w-4 h-4 text-slate-500 transition-colors group-hover:text-slate-300"
-																				viewBox="0 0 24 24"
-																				fill="none"
-																				stroke="currentColor"
-																				strokeWidth="2"
-																				strokeLinecap="round"
-																				strokeLinejoin="round"
-																				aria-hidden="true"
-																			>
-																				<circle cx="12" cy="12" r="8" />
-																			</svg>
-																		)}
-																	</button>
-																	<div className={`${salvando ? 'opacity-60' : ''}`}>
-																		<div className="text-slate-200 font-medium">{h.nome}</div>
-																		<div className="text-xs text-slate-400">Frequência: {h.frequencia}</div>
-																	</div>
-																</div>
-															);
-														})}
+
+													{/* NOVO: Buscar por nome (estilo página admin) */}
+													<div className="mb-3">
+														<label className="block text-sm text-slate-300 mb-1">Buscar por nome</label>
+														<input
+															type="text"
+															placeholder="Digite parte do nome"
+															value={buscaHabPorCarreira[carreiraIdCard] || ''}
+															onChange={(e) =>
+																setBuscaHabPorCarreira(prev => ({ ...prev, [carreiraIdCard]: e.target.value }))
+															}
+															className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
+														/>
 													</div>
+
+													{itensFiltrados.length === 0 ? (
+														<div className="text-slate-400 text-sm">Nenhuma habilidade corresponde à busca.</div>
+													) : (
+														<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+															{itensFiltrados.map(h => {
+																const possui = habilidadesUsuarioIds.has(h.id);
+																const salvando = savingHabIds.has(h.id);
+																return (
+																	<div key={h.id} className="flex items-center gap-3 p-3 rounded bg-transparent">
+																		<button
+																			type="button"
+																			onClick={() => handleToggleHabilidade(carreiraIdCard, h)}
+																			disabled={salvando}
+																			className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-transparent ${salvando ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/30'} transition-colors group`}
+																			aria-pressed={possui}
+																			aria-label={`${possui ? 'Remover' : 'Adicionar'} habilidade ${h.nome}`}
+																			title={salvando ? 'Salvando...' : (possui ? 'Clique para remover' : 'Clique para adicionar')}
+																		>
+																			{possui ? (
+																				// bolinha preenchida com as cores da barra de progresso
+																				<span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400" />
+																			) : (
+																				// círculo vazado (sem bordas no botão)
+																				<svg
+																					className="w-4 h-4 text-slate-500 transition-colors group-hover:text-slate-300"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					strokeWidth="2"
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					aria-hidden="true"
+																				>
+																					<circle cx="12" cy="12" r="8" />
+																				</svg>
+																			)}
+																		</button>
+																		<div className={`${salvando ? 'opacity-60' : ''}`}>
+																			<div className="text-slate-200 font-medium">{h.nome}</div>
+																			<div className="text-xs text-slate-400">Frequência: {h.frequencia}</div>
+																		</div>
+																	</div>
+																);
+															})}
+														</div>
+													)}
 												</div>
 											)}
 										</div>
