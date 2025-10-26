@@ -24,6 +24,8 @@ export default function HomeUsuario() {
 	const [erroChecklist, setErroChecklist] = useState("");
 	// NOVO: estado de busca por nome por carreira
 	const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
+	// novo: mapa carreira_id -> melhor curso
+	const [melhorCursoPorCarreira, setMelhorCursoPorCarreira] = useState(new Map());
 
 	// Busca de habilidades por carreira (texto -> por carreira_id)
 	// const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
@@ -299,6 +301,28 @@ export default function HomeUsuario() {
 		return () => { cancel = true };
 	}, [API_URL]);
 
+	// novo: carregar mapa de cursos e montar carreira_id -> melhor curso
+	useEffect(() => {
+		let cancel = false;
+		(async () => {
+			try {
+				const rMapa = await fetch(`${API_URL}/mapa`);
+				if (!rMapa.ok) return;
+				const mapa = await rMapa.json();
+				if (cancel) return;
+				const ct = mapa?.carreiraToCursos ?? {};
+				const m = new Map();
+				for (const [cid, lista] of Object.entries(ct)) {
+					if (Array.isArray(lista) && lista.length > 0) {
+						m.set(Number(cid), lista[0]); // primeiro curso como recomendado
+					}
+				}
+				setMelhorCursoPorCarreira(m);
+			} catch {}
+		})();
+		return () => { cancel = true };
+	}, [API_URL]);
+
     // HTML
 	return (
 		<div className="min-h-screen bg-slate-900 text-slate-200">
@@ -335,29 +359,6 @@ export default function HomeUsuario() {
 			{/* CONTEÚDO PRINCIPAL */}
 			<main className="max-w-6xl mx-auto px-4 py-10">
 
-				{/* destaque de recomendação */}
-				<div className="mb-8">
-					{loading ? (
-						<div className="rounded-md border border-slate-800 bg-slate-900/40 p-4 text-slate-400">Carregando recomendação…</div>
-					) : erro ? (
-						<div className="rounded-md border border-rose-800 bg-rose-900/30 p-4 text-rose-200">{erro}</div>
-					) : carreiraId == null ? (
-						<div className="rounded-md border border-amber-800 bg-amber-900/30 p-4 text-amber-200">
-							Defina sua carreira no <Link to="/usuario/editar-perfil" className="underline">perfil</Link> para ver o curso mais recomendado.
-						</div>
-					) : melhorCurso ? (
-						<div className="rounded-lg border border-indigo-700 bg-indigo-900/20 p-4 text-center">
-							<p className="text-sm text-indigo-200">Para sua carreira: <span className="font-medium text-indigo-100">{carreiraNome || '—'}</span></p>
-							<h2 className="text-xl font-semibold text-slate-100">Curso recomendado: <span className="text-indigo-300">{melhorCurso.nome}</span></h2>
-							<p className="text-slate-300 text-sm mt-1">Score: {formatScore(melhorCurso.score)}</p>
-						</div>
-					) : (
-						<div className="rounded-md border border-slate-800 bg-slate-900/40 p-4 text-slate-300">
-							Ainda não há cursos mapeados para sua carreira.
-						</div>
-					)}
-				</div>
-
 				{/* título */}
 				<h1 className="text-2xl font-semibold text-center">Olá{nome ? `, ${nome}` : ''}!</h1>
 
@@ -366,7 +367,6 @@ export default function HomeUsuario() {
 
 				{/* Compatibilidade com Carreiras */}
 				<section className="mt-10">
-					<h2 className="text-xl font-medium mb-4 text-center">SUAS CARREIRAS MAIS COMPATÍVEIS</h2>
 					<div className="space-y-4">
 						{loadingCompat && (
 							<p className="text-slate-400">Carregando sua compatibilidade...</p>
@@ -389,11 +389,13 @@ export default function HomeUsuario() {
 							const entry = habPorCarreira[carreiraIdCard] || { loading: false, error: '', itens: null };
 							// gradiente único por card
 							const starGradId = `starGrad-${carreiraIdCard}`;
-							// NOVO: filtro por nome da habilidade para este card
+							// filtro por nome da habilidade para este card
 							const buscaHab = (buscaHabPorCarreira[carreiraIdCard] || '').trim().toLowerCase();
 							const itensFiltrados = Array.isArray(entry.itens)
 								? (buscaHab ? entry.itens.filter(h => (h?.nome || '').toLowerCase().includes(buscaHab)) : entry.itens)
 								: [];
+							// novo: curso recomendado deste card
+							const recCurso = melhorCursoPorCarreira.get(carreiraIdCard);
 
 							return (
 								<div
@@ -404,28 +406,28 @@ export default function HomeUsuario() {
 										<div className="font-medium flex items-center gap-2">
 											<span>{item.carreira_nome ?? 'Carreira'}</span>
 											{item.carreira_id === carreiraId && (
-												<svg
-													className="w-4 h-4"
-													viewBox="0 0 24 24"
-													aria-label="Carreira preferencial"
-													title="Carreira preferencial"
-												>
+												<svg className="w-4 h-4" viewBox="0 0 24 24" aria-label="Carreira preferencial" title="Carreira preferencial">
 													<defs>
 														<linearGradient id={starGradId} x1="0%" y1="0%" x2="100%" y2="0%">
 															<stop offset="0%" stopColor="#6366F1" /> {/* indigo-500 */}
 															<stop offset="100%" stopColor="#22D3EE" /> {/* cyan-400 */}
 														</linearGradient>
 													</defs>
-													<path
-														fill={`url(#${starGradId})`}
-														d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-													/>
+													<path fill={`url(#${starGradId})`} d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
 												</svg>
 											)}
 										</div>
 										<div className="text-slate-300 text-sm">{item.percentual}%</div>
 									</div>
 									<ProgressBar value={item.percentual} />
+
+									{/* novo: curso recomendado por carreira */}
+									{recCurso && (
+										<div className="mt-2 text-slate-300 text-sm">
+											Faculdade recomendada: <span className="text-indigo-300">{recCurso.nome}</span>
+										</div>
+									)}
+
 									<div className="mt-2 flex items-center justify-between gap-2">
 										<span className="text-slate-400 text-sm">Veja as habilidades exigidas na carreira.</span>
 										<button
