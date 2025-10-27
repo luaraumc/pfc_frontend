@@ -233,7 +233,7 @@ export default function CadastroUsuario() {
 					<div className="mt-4">
 						<button
 							type="button"
-							onClick={() => (window.location.href = "/login")}
+							onClick={() => navigate("/login")}
 							className="w-full py-2 text-slate-200"
 						>
 							Já possui uma conta? <span className="underline underline-offset-2">Fazer login</span>

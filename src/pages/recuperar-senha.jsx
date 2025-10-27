@@ -249,7 +249,7 @@ export default function RecuperarSenha() {
 						{/* botão voltar ao login */}
 						<button
 							type="button"
-							onClick={() => (window.location.href = "/login")}
+							onClick={() => navigate("/login")}
 							className="mt-2 w-full py-2 rounded-md border border-slate-600 text-slate-200 hover:bg-slate-800"
 						>
 							Voltar ao login
@@ -257,7 +257,7 @@ export default function RecuperarSenha() {
 						{/* botão ir para cadastro */}
 						<button
 							type="button"
-							onClick={() => (window.location.href = "/cadastro")}
+							onClick={() => navigate("/cadastro")}
 							className="w-full py-2 text-slate-200"
 						>
 							Não possui uma conta? <span className="underline underline-offset-2">Cadastre-se</span>

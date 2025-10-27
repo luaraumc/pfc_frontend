@@ -97,6 +97,12 @@ export async function authFetch(input, init = {}) {
     return response;
 }
 
+// Navigation helper: permite injetar a função `navigate` do react-router
+let _navigate = null;
+export function setNavigate(navigateFunc) {
+    _navigate = navigateFunc;
+}
+
 // Limpa tokens e dados do usuário e redireciona para login
 export function logoutRedirecionar() {
     localStorage.removeItem('access_token');
@@ -105,5 +111,15 @@ export function logoutRedirecionar() {
     localStorage.removeItem('usuario_id');
     localStorage.removeItem('is_admin');
     localStorage.removeItem('usuario_nome');
+    // se a função navigate foi injetada (via setNavigate), use-a para navegação SPA
+    try {
+        if (typeof _navigate === 'function') {
+            _navigate('/login', { replace: true });
+            return;
+        }
+    } catch (e) {
+        // fallback para redirecionamento por full reload
+    }
+    // fallback: redirecionamento completo (garante compatibilidade)
     window.location.href = '/login';
 }
