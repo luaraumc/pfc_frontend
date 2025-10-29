@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { authFetch, logoutRedirecionar } from "../../utils/auth";
 import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-test.up.railway.app";
 
 // Página: Cadastro de Habilidades do Usuário
 export default function CadastroHabilidade() {
@@ -296,3 +296,4 @@ export default function CadastroHabilidade() {
 		</div>
 	);
 }
+
