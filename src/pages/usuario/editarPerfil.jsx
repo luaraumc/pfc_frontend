@@ -12,7 +12,6 @@ export default function EditarPerfil() {
 	// Estados dos campos
 	const navigate = useNavigate() // navegação de páginas (voltar)
 	const [nome, setNome] = useState('')
-	const [email, setEmail] = useState('')
 	const [carreiraId, setCarreiraId] = useState('')
 	const [cursoId, setCursoId] = useState('')
 	const [carreiras, setCarreiras] = useState([])
@@ -54,7 +53,6 @@ export default function EditarPerfil() {
 				const data = await res.json() // converte resposta em JSON
 				if(cancelado) return
 				setNome(data.nome || '')
-				setEmail(data.email || '')
 				setCarreiraId(data.carreira_id ?? '')
 				setCursoId(data.curso_id ?? '')
 				// manter nome e email em localStorage
@@ -320,11 +318,6 @@ export default function EditarPerfil() {
 							<label className="block text-sm mb-1">Nome</label>
 							<input value={nome} onChange={e=>setNome(e.target.value)} required className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 						</div>
-						{/* Email */}
-						<div>
-							<label className="block text-sm mb-1">Email</label>
-							<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-						</div>
 						{/* Carreira e Curso */}
 						<div className="grid grid-cols-2 gap-4">
 							<div>
@@ -400,4 +393,5 @@ export default function EditarPerfil() {
 		</div>
 	)
 }
+
 
