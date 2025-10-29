@@ -12,6 +12,7 @@ export default function EditarPerfil() {
 	// Estados dos campos
 	const navigate = useNavigate() // navegação de páginas (voltar)
 	const [nome, setNome] = useState('')
+	const [usuarioEmail, setUsuarioEmail] = useState('')
 	const [carreiraId, setCarreiraId] = useState('')
 	const [cursoId, setCursoId] = useState('')
 	const [carreiras, setCarreiras] = useState([])
@@ -24,7 +25,6 @@ export default function EditarPerfil() {
     const [secao, setSecao] = useState('dados') // 'dados' | 'senha' | 'excluir'
 
 	// Alterar senha
-	const [emailSenha, setEmailSenha] = useState('')
 	const [codigoSenha, setCodigoSenha] = useState('')
 	const [novaSenha, setNovaSenha] = useState('')
 	const [senhaMsg, setSenhaMsg] = useState(null)
@@ -57,6 +57,8 @@ export default function EditarPerfil() {
 				setCursoId(data.curso_id ?? '')
 				// manter nome em localStorage
 				localStorage.setItem('usuario_nome', data.nome || '')
+				// armazenar o email do usuário em estado (não exibido) para ações que precisam dele
+				setUsuarioEmail(data.email || '')
 			})
 			.catch(err => setError(err.message))
 			.finally(()=> setLoading(false))
@@ -142,15 +144,16 @@ export default function EditarPerfil() {
 		setSenhaErr(null); setSenhaMsg(null)
 		try {
 			setSenhaLoading(true)
+			if (!usuarioEmail) throw new Error('Email do usuário não disponível')
 			// chama backend
 			const resp = await fetch(`${API_URL}/usuario/solicitar-codigo/atualizar-senha`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: emailSenha }) // converte para JSON
+				body: JSON.stringify({ email: usuarioEmail }) // converte para JSON
 			})
 			if(!resp.ok) throw new Error(await resp.text() || 'Erro ao solicitar código')
 			const data = await resp.json().catch(()=> ({})) // converte resposta em JSON, se falhar retorna objeto vazio
-			setSenhaMsg(data.message || 'Código enviado para o email')
+			setSenhaMsg(data.message || 'Código enviado para o seu email')
 		} catch(err){
 			setSenhaErr(err.message)
 		} finally { setSenhaLoading(false) }
@@ -164,11 +167,12 @@ export default function EditarPerfil() {
 		if (!usuarioId) { navigate('/login'); return } // se não tiver id, redireciona para login
 		try {
 		setSenhaLoading(true)
+		if (!usuarioEmail) throw new Error('Email do usuário não disponível')
 		// chama backend
 		const resp = await authFetch(`${API_URL}/usuario/atualizar-senha/${usuarioId}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email: emailSenha, codigo: codigoSenha, nova_senha: novaSenha }) // converte para JSON
+			body: JSON.stringify({ email: usuarioEmail, codigo: codigoSenha, nova_senha: novaSenha }) // converte para JSON
 		})
 		if (!resp.ok) throw new Error(await resp.text() || 'Erro ao atualizar senha')
 		const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
@@ -348,13 +352,10 @@ export default function EditarPerfil() {
 						{senhaErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{senhaErr}</div>}
 						{senhaMsg && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{senhaMsg}</div>}
 						{/* Email */}
-						<div>
-							<label className="block text-xs mb-1">Email</label>
-							<input type="email" value={emailSenha} onChange={e=>setEmailSenha(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
-						</div>
+						<div className="text-sm text-slate-300">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
 						<div className="flex gap-2">
-							<button onClick={solicitarCodigoSenha} disabled={!emailSenha || senhaLoading} className="px-3 py-2 bg-indigo-600 disabled:opacity-40 rounded text-xs hover:bg-indigo-500">Enviar Código</button>
+							<button type="button" onClick={solicitarCodigoSenha} disabled={!usuarioEmail || senhaLoading} className="px-3 py-2 bg-indigo-600 disabled:opacity-40 rounded text-xs hover:bg-indigo-500">Enviar Código</button>
 							<input placeholder="Código" value={codigoSenha} onChange={e=>setCodigoSenha(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
 						{/* Nova Senha */}
@@ -391,6 +392,7 @@ export default function EditarPerfil() {
 		</div>
 	)
 }
+
 
 
 
