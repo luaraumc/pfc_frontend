@@ -4,7 +4,7 @@ import { authFetch } from "../../utils/auth"; // fetch autenticado com renovaç�
 import { logoutRedirecionar } from "../../utils/auth"; // logout e redirecionamento
 import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-production-668a.up.railway.app'
+const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-test.up.railway.app'
 
 // Página de edição de perfil
 export default function EditarPerfil() {
@@ -389,6 +389,7 @@ export default function EditarPerfil() {
 		</div>
 	)
 }
+
 
 
 
