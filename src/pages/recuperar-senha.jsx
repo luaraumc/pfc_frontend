@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"; // useMemo: armazenamento em cache | useState: gerenciar estado de componentes
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
 
 // Página de recuperação de senha
 export default function RecuperarSenha() {
@@ -48,7 +48,7 @@ export default function RecuperarSenha() {
 		setSubmitting(true);
 		try {
 			// chama backend
-			const res = await fetch(`${API_URL}/auth/solicitar-codigo/recuperar-senha`, {
+			const res = await fetch(`${API_URL}/auth/solicitar-codigo/recuperar-senha/`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim() }), // converte para JSON
@@ -80,7 +80,7 @@ export default function RecuperarSenha() {
 		setSubmitting(true);
 		try {
 			// chama backend
-			const res = await fetch(`${API_URL}/auth/recuperar-senha`, {
+			const res = await fetch(`${API_URL}/auth/recuperar-senha/`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim(), codigo: codigo.trim(), nova_senha: novaSenha }), // converte para JSON
@@ -249,7 +249,7 @@ export default function RecuperarSenha() {
 						{/* botão voltar ao login */}
 						<button
 							type="button"
-							onClick={() => (window.location.href = "/login")}
+							onClick={() => navigate("/login")}
 							className="mt-2 w-full py-2 rounded-md border border-slate-600 text-slate-200 hover:bg-slate-800"
 						>
 							Voltar ao login
@@ -257,7 +257,7 @@ export default function RecuperarSenha() {
 						{/* botão ir para cadastro */}
 						<button
 							type="button"
-							onClick={() => (window.location.href = "/cadastro")}
+							onClick={() => navigate("/cadastro")}
 							className="w-full py-2 text-slate-200"
 						>
 							Não possui uma conta? <span className="underline underline-offset-2">Cadastre-se</span>

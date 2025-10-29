@@ -4,7 +4,7 @@ import { authFetch } from "../../utils/auth"; // fetch autenticado com renovaç�
 import { logoutRedirecionar } from "../../utils/auth"; // logout e redirecionamento
 import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-production-668a.up.railway.app'
 
 // Página de edição de perfil
 export default function EditarPerfil() {
@@ -12,7 +12,7 @@ export default function EditarPerfil() {
 	// Estados dos campos
 	const navigate = useNavigate() // navegação de páginas (voltar)
 	const [nome, setNome] = useState('')
-	const [email, setEmail] = useState('')
+	const [usuarioEmail, setUsuarioEmail] = useState('')
 	const [carreiraId, setCarreiraId] = useState('')
 	const [cursoId, setCursoId] = useState('')
 	const [carreiras, setCarreiras] = useState([])
@@ -25,7 +25,6 @@ export default function EditarPerfil() {
     const [secao, setSecao] = useState('dados') // 'dados' | 'senha' | 'excluir'
 
 	// Alterar senha
-	const [emailSenha, setEmailSenha] = useState('')
 	const [codigoSenha, setCodigoSenha] = useState('')
 	const [novaSenha, setNovaSenha] = useState('')
 	const [senhaMsg, setSenhaMsg] = useState(null)
@@ -33,7 +32,6 @@ export default function EditarPerfil() {
 	const [senhaLoading, setSenhaLoading] = useState(false)
 
 	// Deletar conta
-	const [emailExclusao, setEmailExclusao] = useState('')
 	const [codigoExclusao, setCodigoExclusao] = useState('')
 	const [excluirMsg, setExcluirMsg] = useState(null)
 	const [excluirErr, setExcluirErr] = useState(null)
@@ -54,12 +52,12 @@ export default function EditarPerfil() {
 				const data = await res.json() // converte resposta em JSON
 				if(cancelado) return
 				setNome(data.nome || '')
-				setEmail(data.email || '')
 				setCarreiraId(data.carreira_id ?? '')
 				setCursoId(data.curso_id ?? '')
-				// manter nome e email em localStorage
+				// manter nome em localStorage
 				localStorage.setItem('usuario_nome', data.nome || '')
-				localStorage.setItem('usuario_email', data.email || '')
+				// armazenar o email do usuário em estado (não exibido) para ações que precisam dele
+				setUsuarioEmail(data.email || '')
 			})
 			.catch(err => setError(err.message))
 			.finally(()=> setLoading(false))
@@ -101,7 +99,7 @@ export default function EditarPerfil() {
 		setSaving(true) // inicia salvamento
 		try {
 			// monta o payload (dados a serem enviados)
-			const payload = { nome, email, carreira_id: carreiraId ? Number(carreiraId) : null, curso_id: cursoId ? Number(cursoId) : null }
+			const payload = { nome, carreira_id: carreiraId ? Number(carreiraId) : null, curso_id: cursoId ? Number(cursoId) : null }
 			// chama backend
 			const resp = await authFetch(`${API_URL}/usuario/atualizar/${usuarioId}`, {
 				method: 'PUT',
@@ -132,7 +130,6 @@ export default function EditarPerfil() {
 			setMessage(data.message || 'Atualizado com sucesso')
 			// atualiza localStorage
 			localStorage.setItem('usuario_nome', nome)
-			localStorage.setItem('usuario_email', email)
 		} catch(err){
 			setError(err?.message || 'Não foi possível atualizar agora.')
 		} finally {
@@ -146,15 +143,16 @@ export default function EditarPerfil() {
 		setSenhaErr(null); setSenhaMsg(null)
 		try {
 			setSenhaLoading(true)
+			if (!usuarioEmail) throw new Error('Email do usuário não disponível')
 			// chama backend
 			const resp = await fetch(`${API_URL}/usuario/solicitar-codigo/atualizar-senha`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: emailSenha }) // converte para JSON
+				body: JSON.stringify({ email: usuarioEmail }) // converte para JSON
 			})
 			if(!resp.ok) throw new Error(await resp.text() || 'Erro ao solicitar código')
 			const data = await resp.json().catch(()=> ({})) // converte resposta em JSON, se falhar retorna objeto vazio
-			setSenhaMsg(data.message || 'Código enviado para o email')
+			setSenhaMsg(data.message || 'Código enviado para o seu e-mail.')
 		} catch(err){
 			setSenhaErr(err.message)
 		} finally { setSenhaLoading(false) }
@@ -167,22 +165,23 @@ export default function EditarPerfil() {
 		const usuarioId = localStorage.getItem('usuario_id') // pega id do usuário do localStorage
 		if (!usuarioId) { navigate('/login'); return } // se não tiver id, redireciona para login
 		try {
-		setSenhaLoading(true)
-		// chama backend
-		const resp = await authFetch(`${API_URL}/usuario/atualizar-senha/${usuarioId}`, {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email: emailSenha, codigo: codigoSenha, nova_senha: novaSenha }) // converte para JSON
-		})
-		if (!resp.ok) throw new Error(await resp.text() || 'Erro ao atualizar senha')
-		const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
-		setSenhaMsg(data.message || 'Senha atualizada')
-		setCodigoSenha('')
-		setNovaSenha('')
+			setSenhaLoading(true)
+			if (!usuarioEmail) throw new Error('Email do usuário não disponível')
+			// chama backend
+			const resp = await authFetch(`${API_URL}/usuario/atualizar-senha/${usuarioId}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: usuarioEmail, codigo: codigoSenha, nova_senha: novaSenha }) // converte para JSON
+			})
+			if (!resp.ok) throw new Error(await resp.text() || 'Erro ao atualizar senha')
+			const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
+			setSenhaMsg(data.message || 'Senha atualizada')
+			setCodigoSenha('')
+			setNovaSenha('')
 		} catch (err) {
-		setSenhaErr(err.message)
+			setSenhaErr(err.message)
 		} finally {
-		setSenhaLoading(false)
+			setSenhaLoading(false)
 		}
 	}
 
@@ -191,20 +190,21 @@ export default function EditarPerfil() {
 		e.preventDefault() // evita reload da página
 		setExcluirErr(null); setExcluirMsg(null)
 		try {
-		setExcluirLoading(true)
-		// chama backend
-		const resp = await fetch(`${API_URL}/usuario/solicitar-codigo/exclusao-conta`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email: emailExclusao }) // converte para JSON
-		})
-		if (!resp.ok) throw new Error(await resp.text() || 'Erro ao solicitar código')
-		const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
-		setExcluirMsg(data.message || 'Código enviado')
+			setExcluirLoading(true)
+			if (!usuarioEmail) throw new Error('Email do usuário não disponível')
+			// chama backend
+			const resp = await fetch(`${API_URL}/usuario/solicitar-codigo/exclusao-conta`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: usuarioEmail }) // converte para JSON
+			})
+			if (!resp.ok) throw new Error(await resp.text() || 'Erro ao solicitar código')
+			const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
+			setExcluirMsg(data.message || 'Código enviado para o seu e-mail.')
 		} catch (err) {
-		setExcluirErr(err.message)
+			setExcluirErr(err.message)
 		} finally {
-		setExcluirLoading(false)
+			setExcluirLoading(false)
 		}
 	}
 
@@ -220,7 +220,7 @@ export default function EditarPerfil() {
 		const resp = await authFetch(`${API_URL}/usuario/deletar/${usuarioId}`, {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email: emailExclusao, codigo: codigoExclusao, motivo: 'exclusao_conta' })
+			body: JSON.stringify({ email: usuarioEmail, codigo: codigoExclusao, motivo: 'exclusao_conta' })
 		})
 		if (!resp.ok) throw new Error(await resp.text() || 'Erro ao excluir conta')
 		const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
@@ -320,11 +320,6 @@ export default function EditarPerfil() {
 							<label className="block text-sm mb-1">Nome</label>
 							<input value={nome} onChange={e=>setNome(e.target.value)} required className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 						</div>
-						{/* Email */}
-						<div>
-							<label className="block text-sm mb-1">Email</label>
-							<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-						</div>
 						{/* Carreira e Curso */}
 						<div className="grid grid-cols-2 gap-4">
 							<div>
@@ -357,13 +352,10 @@ export default function EditarPerfil() {
 						{senhaErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{senhaErr}</div>}
 						{senhaMsg && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{senhaMsg}</div>}
 						{/* Email */}
-						<div>
-							<label className="block text-xs mb-1">Email</label>
-							<input type="email" value={emailSenha} onChange={e=>setEmailSenha(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
-						</div>
+						<div className="text-sm text-slate-300">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
 						<div className="flex gap-2">
-							<button onClick={solicitarCodigoSenha} disabled={!emailSenha || senhaLoading} className="px-3 py-2 bg-indigo-600 disabled:opacity-40 rounded text-xs hover:bg-indigo-500">Enviar Código</button>
+							<button type="button" onClick={solicitarCodigoSenha} disabled={!usuarioEmail || senhaLoading} className="px-3 py-2 bg-indigo-600 disabled:opacity-40 rounded text-xs hover:bg-indigo-500">Enviar Código</button>
 							<input placeholder="Código" value={codigoSenha} onChange={e=>setCodigoSenha(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
 						{/* Nova Senha */}
@@ -381,15 +373,12 @@ export default function EditarPerfil() {
 					<form onSubmit={excluirConta} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário excluir conta">
 						{excluirErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{excluirErr}</div>}
 						{excluirMsg && <div className="text-xs text-amber-300 bg-amber-900/30 border border-amber-600 px-2 py-1 rounded">{excluirMsg}</div>}
-						<p className="text-xs text-slate-300 leading-snug text-center">ATENÇÃO! Esta ação é definitiva e não poderá ser desfeita.</p>
+						<p className="text-sm text-slate-300 leading-snug text-center">ATENÇÃO! Esta ação é definitiva e não poderá ser desfeita.</p>
 						{/* Email */}
-						<div>
-							<label className="block text-xs mb-1">Email</label>
-							<input type="email" value={emailExclusao} onChange={e=>setEmailExclusao(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
-						</div>
+						<div className="text-sm text-slate-300">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
 						<div className="flex gap-2">
-							<button onClick={solicitarCodigoExclusao} disabled={!emailExclusao || excluirLoading} className="px-3 py-2 bg-red-600 disabled:opacity-40 rounded text-xs hover:bg-red-500">Enviar Código</button>
+							<button type="button" onClick={solicitarCodigoExclusao} disabled={!usuarioEmail || excluirLoading} className="px-3 py-2 bg-red-600 disabled:opacity-40 rounded text-xs hover:bg-red-500">Enviar Código</button>
 							<input placeholder="Código" value={codigoExclusao} onChange={e=>setCodigoExclusao(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
 						{/* Botão Excluir */}
@@ -400,3 +389,9 @@ export default function EditarPerfil() {
 		</div>
 	)
 }
+
+
+
+
+
+

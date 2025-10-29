@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom"; // criar links de navegaç
 import { useEffect, useState } from "react"; // estados e efeitos
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento | fetch autenticado com renovação automática de token
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
 
 // Página de cadastramento de vagas
 export default function Vaga() {

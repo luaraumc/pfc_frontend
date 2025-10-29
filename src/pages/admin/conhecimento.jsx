@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react"; // estados, memos e efeito
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento | fetch autenticado com renovação automática de token
 import lapisIcon from "../../../images/lapis.png"; // ícone de edição
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
 
 // Página de administração de conhecimentos
 export default function AdminConhecimento() {
@@ -99,7 +99,7 @@ export default function AdminConhecimento() {
     try {
       setCriando(true);
       // chama backend
-      const res = await authFetch(`${API_URL}/conhecimento/cadastro`, {
+      const res = await authFetch(`${API_URL}/conhecimento/cadastro/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome: novoNome.trim() }) // converte para JSON

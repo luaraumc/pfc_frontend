@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"; // useMemo: armazenamento em cache | 
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
 import { authFetch } from "../utils/auth"; // fetch autenticado com renovação automática de token
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
 
 // Pega os dados do token e transforma em JSON
 export function transformarJwt(token) {
@@ -81,7 +81,8 @@ export default function LoginUsuario() {
 			localStorage.setItem("usuario_id", String(userId));
 			localStorage.setItem("is_admin", String(isAdmin));
 			if (user?.nome) localStorage.setItem("usuario_nome", String(user.nome));
-			window.location.href = isAdmin ? "/homeAdmin" : "/homeUsuario"; // redireciona conforme o tipo de usuário
+			// redireciona sem recarregar a página
+			navigate(isAdmin ? "/homeAdmin" : "/homeUsuario", { replace: true });
 		} catch (e) {
 			clearAuth(); // limpa dados de autenticação
 			setErro("Não foi possível obter os dados do usuário. Tente novamente.");
@@ -102,7 +103,7 @@ export default function LoginUsuario() {
 		setSubmitting(true);
 		try {
 			// chama backend
-			const res = await fetch(`${API_URL}/auth/login`, {
+			const res = await fetch(`${API_URL}/auth/login/`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim(), senha }), // converte para JSON
@@ -196,7 +197,7 @@ export default function LoginUsuario() {
 							<div className="mt-4 flex flex-col gap-2">
 									<button
 										type="button"
-										onClick={() => (window.location.href = "/recuperar-senha")}
+										onClick={() => navigate("/recuperar-senha")}
 										className="w-full py-2 text-slate-200"
 									>
 										<span className="underline underline-offset-2">Esqueceu sua senha?</span>
@@ -217,7 +218,7 @@ export default function LoginUsuario() {
 						<div className="mt-4 flex flex-col gap-2">
 							<button
 								type="button"
-								onClick={() => (window.location.href = "/cadastro")}
+								onClick={() => navigate("/cadastro")}
 								className="w-full py-2 text-slate-200"
 							>
 								Não possui uma conta? <span className="underline underline-offset-2">Cadastre-se</span>

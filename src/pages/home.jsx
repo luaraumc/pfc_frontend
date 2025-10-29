@@ -10,7 +10,7 @@ export default function Home() {
 	const [cursoToCarreiras, setCursoToCarreiras] = useState({}); // {cursoId: [{id,nome,score}]}
 	const [carreiraToCursos, setCarreiraToCursos] = useState({}); // {carreiraId: [{id,nome,score}]}
 
-	const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+	const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-production-668a.up.railway.app';
 
 	function formatScore(v) {
 		if (v == null || Number.isNaN(v)) return '0.00';
@@ -27,7 +27,7 @@ export default function Home() {
 		let cancel = false;
 		async function carregar() {
 			try {
-				const r = await fetch(`${API_URL}/mapa`);
+				const r = await fetch(`${API_URL}/mapa/`);
 				if (!r.ok) throw new Error(`Falha ao carregar mapa (${r.status})`);
 				const j = await r.json();
 				if (!cancel) {

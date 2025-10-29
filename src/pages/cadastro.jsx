@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"; // useEffect: executar funções | useMemo: armazenamento em cache | useState: gerenciar estado de componentes
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
 
 // Página de cadastro de usuário comum
 export default function CadastroUsuario() {
@@ -87,7 +87,7 @@ export default function CadastroUsuario() {
 		setSubmitting(true);
 		try {
 			// chama backend
-			const res = await fetch(`${API_URL}/auth/cadastro`, {
+			const res = await fetch(`${API_URL}/auth/cadastro/`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
@@ -233,7 +233,7 @@ export default function CadastroUsuario() {
 					<div className="mt-4">
 						<button
 							type="button"
-							onClick={() => (window.location.href = "/login")}
+							onClick={() => navigate("/login")}
 							className="w-full py-2 text-slate-200"
 						>
 							Já possui uma conta? <span className="underline underline-offset-2">Fazer login</span>
