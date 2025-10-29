@@ -101,7 +101,7 @@ export default function EditarPerfil() {
 		setSaving(true) // inicia salvamento
 		try {
 			// monta o payload (dados a serem enviados)
-			const payload = { nome, email, carreira_id: carreiraId ? Number(carreiraId) : null, curso_id: cursoId ? Number(cursoId) : null }
+			const payload = { nome, carreira_id: carreiraId ? Number(carreiraId) : null, curso_id: cursoId ? Number(cursoId) : null }
 			// chama backend
 			const resp = await authFetch(`${API_URL}/usuario/atualizar/${usuarioId}`, {
 				method: 'PUT',
@@ -400,3 +400,4 @@ export default function EditarPerfil() {
 		</div>
 	)
 }
+
