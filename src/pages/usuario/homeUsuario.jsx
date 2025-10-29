@@ -19,6 +19,16 @@ export default function HomeUsuario() {
 	const [topCarreiras, setTopCarreiras] = useState([]);
 	const [loadingCompat, setLoadingCompat] = useState(true);
 	const [erroCompat, setErroCompat] = useState("");
+	// ESTADOS NOVOS: controle de salvamento por habilidade e erro do checklist
+	const [savingHabIds, setSavingHabIds] = useState(new Set());
+	const [erroChecklist, setErroChecklist] = useState("");
+	// NOVO: estado de busca por nome por carreira
+	const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
+	// novo: mapa carreira_id -> melhor curso
+	const [melhorCursoPorCarreira, setMelhorCursoPorCarreira] = useState(new Map());
+
+	// Busca de habilidades por carreira (texto -> por carreira_id)
+	// const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
 
 	const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-production-668a.up.railway.app';
 
@@ -171,6 +181,98 @@ export default function HomeUsuario() {
 		});
 	}
 
+	// Recarrega compatibilidade do backend (atualiza percentuais e cobertas)
+	async function recarregarCompatibilidade() {
+		try {
+			const usuarioId = localStorage.getItem('usuario_id');
+			if (!usuarioId) {
+				setErroCompat("Usuário não identificado. Faça login novamente.");
+				return;
+			}
+			const res = await authFetch(`${API_URL}/usuario/${usuarioId}/compatibilidade/top`);
+			if (!res.ok) throw new Error(`Erro ${res.status}`);
+			const data = await res.json();
+			setTopCarreiras(Array.isArray(data) ? data : []);
+		} catch (e) {
+			setErroCompat("Não foi possível carregar sua compatibilidade agora.");
+		} finally {
+			setLoadingCompat(false);
+		}
+	}
+
+	// Atualização silenciosa (sem alterar loading/placeholder) para evitar flicker
+	async function recarregarCompatibilidadeSilenciosa() {
+		try {
+			const usuarioId = localStorage.getItem('usuario_id');
+			if (!usuarioId) return;
+			const res = await authFetch(`${API_URL}/usuario/${usuarioId}/compatibilidade/top`);
+			if (!res.ok) return;
+			const data = await res.json();
+			setTopCarreiras(Array.isArray(data) ? data : []);
+		} catch {}
+	}
+
+	// Endpoints de adicionar/remover habilidade do usuário
+	async function adicionarHabilidadeUsuario(usuarioId, habilidadeId) {
+		return authFetch(`${API_URL}/usuario/${usuarioId}/adicionar-habilidade/${habilidadeId}`, {
+			method: 'POST'
+		});
+	}
+	async function removerHabilidadeUsuario(usuarioId, habilidadeId) {
+		return authFetch(`${API_URL}/usuario/${usuarioId}/remover-habilidade/${habilidadeId}`, {
+			method: 'DELETE'
+		});
+	}
+
+	// Toggle do checklist
+	async function handleToggleHabilidade(carreiraId, habilidade) {
+		setErroChecklist("");
+		const usuarioId = localStorage.getItem('usuario_id');
+		if (!usuarioId) {
+			setErroChecklist("Usuário não identificado.");
+			return;
+		}
+		// evita cliques simultâneos na mesma habilidade
+		if (savingHabIds.has(habilidade.id)) return;
+
+		const possui = habilidadesUsuarioIds.has(habilidade.id);
+
+		// marca como salvando
+		setSavingHabIds(prev => {
+			const novo = new Set(prev);
+			novo.add(habilidade.id);
+			return novo;
+		});
+
+		try {
+			// chama backend
+			const res = possui
+				? await removerHabilidadeUsuario(usuarioId, habilidade.id)
+				: await adicionarHabilidadeUsuario(usuarioId, habilidade.id);
+
+			if (!res.ok) throw new Error('Falha ao atualizar habilidade');
+
+			// sucesso: atualiza set local
+			setHabilidadesUsuarioIds(prev => {
+				const novo = new Set(prev);
+				if (possui) novo.delete(habilidade.id);
+				else novo.add(habilidade.id);
+				return novo;
+			});
+
+			// recarrega compatibilidade real (barra) em background para evitar flicker
+			await recarregarCompatibilidadeSilenciosa();
+		} catch (e) {
+			setErroChecklist(e?.message || "Erro ao atualizar habilidade");
+		} finally {
+			setSavingHabIds(prev => {
+				const novo = new Set(prev);
+				novo.delete(habilidade.id);
+				return novo;
+			});
+		}
+	}
+
 	// Carrega compatibilidade do usuário com carreiras (barras de progresso)
 	useEffect(() => {
 		let cancel = false;
@@ -195,6 +297,28 @@ export default function HomeUsuario() {
 			} finally {
 				if (!cancel) setLoadingCompat(false);
 			}
+		})();
+		return () => { cancel = true };
+	}, [API_URL]);
+
+	// novo: carregar mapa de cursos e montar carreira_id -> melhor curso
+	useEffect(() => {
+		let cancel = false;
+		(async () => {
+			try {
+				const rMapa = await fetch(`${API_URL}/mapa`);
+				if (!rMapa.ok) return;
+				const mapa = await rMapa.json();
+				if (cancel) return;
+				const ct = mapa?.carreiraToCursos ?? {};
+				const m = new Map();
+				for (const [cid, lista] of Object.entries(ct)) {
+					if (Array.isArray(lista) && lista.length > 0) {
+						m.set(Number(cid), lista[0]); // primeiro curso como recomendado
+					}
+				}
+				setMelhorCursoPorCarreira(m);
+			} catch {}
 		})();
 		return () => { cancel = true };
 	}, [API_URL]);
@@ -235,50 +359,14 @@ export default function HomeUsuario() {
 			{/* CONTEÚDO PRINCIPAL */}
 			<main className="max-w-6xl mx-auto px-4 py-10">
 
-				{/* destaque de recomendação */}
-				<div className="mb-8">
-					{loading ? (
-						<div className="rounded-md border border-slate-800 bg-slate-900/40 p-4 text-slate-400">Carregando recomendação…</div>
-					) : erro ? (
-						<div className="rounded-md border border-rose-800 bg-rose-900/30 p-4 text-rose-200">{erro}</div>
-					) : carreiraId == null ? (
-						<div className="rounded-md border border-amber-800 bg-amber-900/30 p-4 text-amber-200">
-							Defina sua carreira no <Link to="/usuario/editar-perfil" className="underline">perfil</Link> para ver o curso mais recomendado.
-						</div>
-					) : melhorCurso ? (
-						<div className="rounded-lg border border-indigo-700 bg-indigo-900/20 p-4 text-center">
-							<p className="text-sm text-indigo-200">Para sua carreira: <span className="font-medium text-indigo-100">{carreiraNome || '—'}</span></p>
-							<h2 className="text-xl font-semibold text-slate-100">Curso recomendado: <span className="text-indigo-300">{melhorCurso.nome}</span></h2>
-							<p className="text-slate-300 text-sm mt-1">Score: {formatScore(melhorCurso.score)}</p>
-						</div>
-					) : (
-						<div className="rounded-md border border-slate-800 bg-slate-900/40 p-4 text-slate-300">
-							Ainda não há cursos mapeados para sua carreira.
-						</div>
-					)}
-				</div>
-
 				{/* título */}
 				<h1 className="text-2xl font-semibold text-center">Olá{nome ? `, ${nome}` : ''}!</h1>
 
 				{/* descrição */}
-				<p className="mt-2 text-slate-300 text-center">Bem-vindo à sua Home de usuário.</p>
-
-				<p className="mt-2 text-slate-300 text-center">Cadastre suas habilidades para melhorar seu progresso:</p>
-
-				{/* cadastrar habilidade */}
-				<div className="mt-4 flex justify-center">
-					<Link
-						to="/usuario/cadastro-habilidade"
-						className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-indigo-600 bg-indigo-600/10 text-indigo-300 hover:bg-indigo-600/20"
-					>
-						Cadastrar habilidade
-					</Link>
-				</div>
+				<p className="mt-2 text-slate-300 text-center">Veja as carreiras de TI que mais combinam com você.</p>
 
 				{/* Compatibilidade com Carreiras */}
 				<section className="mt-10">
-					<h2 className="text-xl font-medium mb-4 text-center">SUAS CARREIRAS MAIS COMPATÍVEIS</h2>
 					<div className="space-y-4">
 						{loadingCompat && (
 							<p className="text-slate-400">Carregando sua compatibilidade...</p>
@@ -299,35 +387,58 @@ export default function HomeUsuario() {
 							const carreiraIdCard = item.carreira_id;
 							const expanded = expandedCarreiras.has(carreiraIdCard);
 							const entry = habPorCarreira[carreiraIdCard] || { loading: false, error: '', itens: null };
+							// gradiente único por card
+							const starGradId = `starGrad-${carreiraIdCard}`;
+							// filtro por nome da habilidade para este card
+							const buscaHab = (buscaHabPorCarreira[carreiraIdCard] || '').trim().toLowerCase();
+							const itensFiltrados = Array.isArray(entry.itens)
+								? (buscaHab ? entry.itens.filter(h => (h?.nome || '').toLowerCase().includes(buscaHab)) : entry.itens)
+								: [];
+							// novo: curso recomendado deste card
+							const recCurso = melhorCursoPorCarreira.get(carreiraIdCard);
+
 							return (
-								<div key={`${carreiraIdCard}-${idx}`} className="p-4 rounded border border-slate-800 bg-slate-950/50">
+								<div
+									key={`${carreiraIdCard}-${idx}`}
+									className="p-4 rounded bg-slate-950/50 shadow-lg shadow-slate-900/40"
+								>
 									<div className="flex items-center justify-between mb-2">
-										<div className="font-medium">{item.carreira_nome ?? 'Carreira'}</div>
+										<div className="font-medium flex items-center gap-2">
+											<span>{item.carreira_nome ?? 'Carreira'}</span>
+											{item.carreira_id === carreiraId && (
+												<svg className="w-4 h-4" viewBox="0 0 24 24" aria-label="Carreira preferencial" title="Carreira preferencial">
+													<defs>
+														<linearGradient id={starGradId} x1="0%" y1="0%" x2="100%" y2="0%">
+															<stop offset="0%" stopColor="#6366F1" /> {/* indigo-500 */}
+															<stop offset="100%" stopColor="#22D3EE" /> {/* cyan-400 */}
+														</linearGradient>
+													</defs>
+													<path fill={`url(#${starGradId})`} d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+												</svg>
+											)}
+										</div>
 										<div className="text-slate-300 text-sm">{item.percentual}%</div>
 									</div>
 									<ProgressBar value={item.percentual} />
-									<div className="mt-2 text-slate-400 text-sm">
-										<span>Compatibilidade ponderada pelas habilidades mais relevantes da carreira.</span>
-									</div>
 
-									{Array.isArray(item.habilidades_cobertas) && item.habilidades_cobertas.length > 0 && (
+									{/* novo: curso recomendado por carreira */}
+									{recCurso && (
 										<div className="mt-2 text-slate-300 text-sm">
-											<strong>Suas habilidades que contam aqui:</strong> {item.habilidades_cobertas.join(', ')}
+											Faculdade recomendada: <span className="text-indigo-300">{recCurso.nome}</span>
 										</div>
 									)}
 
-									{/* Botão de expansão */}
-									<button
-										type="button"
-										onClick={() => toggleExpandCarreira(carreiraIdCard)}
-										className="mt-3 w-full flex items-center justify-between px-4 py-2 bg-slate-800/40 border border-slate-700 rounded-md hover:bg-slate-800"
-									>
-										<div className="flex items-center gap-2">
+									<div className="mt-2 flex items-center justify-between gap-2">
+										<span className="text-slate-400 text-sm">Veja as habilidades exigidas na carreira.</span>
+										<button
+											type="button"
+											onClick={() => toggleExpandCarreira(carreiraIdCard)}
+											className="inline-flex items-center gap-2 px-2 py-1 bg-transparent border-0 rounded-md transition-colors group"
+										>
 											<svg className={`w-5 h-5 text-indigo-300 transition-transform ${expanded ? 'rotate-90' : ''}`} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-											<span className="text-slate-200 font-medium">Habilidades desta carreira</span>
-										</div>
-										<span className="text-xs text-slate-400">{expanded ? 'recolher' : 'expandir'}</span>
-									</button>
+											<span className="text-slate-200 font-medium transition-colors group-hover:text-indigo-300">Ver habilidades</span>
+										</button>
+									</div>
 
 									{/* Lista expandida de habilidades da carreira */}
 									{expanded && (
@@ -339,25 +450,69 @@ export default function HomeUsuario() {
 											) : !entry.itens || entry.itens.length === 0 ? (
 												<div className="p-4 text-slate-400">Nenhuma habilidade mapeada para esta carreira.</div>
 											) : (
-												<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3">
-													{entry.itens.map(h => {
-														const possui = habilidadesUsuarioIds.has(h.id);
-														return (
-															<div key={h.id} className="flex items-center gap-3 p-3 rounded border border-slate-800 bg-slate-950/40">
-																<span className={`inline-flex items-center justify-center w-6 h-6 rounded border ${possui ? 'bg-emerald-600/20 border-emerald-500/50' : 'bg-slate-800/40 border-slate-700'}`}>
-																	{possui ? (
-																		<svg className="w-4 h-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-																	) : (
-																		<svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
-																	)}
-																</span>
-																<div>
-																	<div className="text-slate-200 font-medium">{h.nome}</div>
-																	<div className="text-xs text-slate-400">Frequência: {h.frequencia}</div>
-																</div>
-															</div>
-														);
-													})}
+												<div className="p-3">
+													{erroChecklist && <div className="mb-2 text-sm text-rose-300">{erroChecklist}</div>}
+
+													{/* NOVO: Buscar por nome (estilo página admin) */}
+													<div className="mb-3">
+														<label className="block text-sm text-slate-300 mb-1">Buscar por nome</label>
+														<input
+															type="text"
+															placeholder="Digite parte do nome"
+															value={buscaHabPorCarreira[carreiraIdCard] || ''}
+															onChange={(e) =>
+																setBuscaHabPorCarreira(prev => ({ ...prev, [carreiraIdCard]: e.target.value }))
+															}
+															className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
+														/>
+													</div>
+
+													{itensFiltrados.length === 0 ? (
+														<div className="text-slate-400 text-sm">Nenhuma habilidade corresponde à busca.</div>
+													) : (
+														<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+															{itensFiltrados.map(h => {
+																const possui = habilidadesUsuarioIds.has(h.id);
+																const salvando = savingHabIds.has(h.id);
+																return (
+																	<div key={h.id} className="flex items-center gap-3 p-3 rounded bg-transparent">
+																		<button
+																			type="button"
+																			onClick={() => handleToggleHabilidade(carreiraIdCard, h)}
+																			disabled={salvando}
+																			className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-transparent ${salvando ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/30'} transition-colors group`}
+																			aria-pressed={possui}
+																			aria-label={`${possui ? 'Remover' : 'Adicionar'} habilidade ${h.nome}`}
+																			title={salvando ? 'Salvando...' : (possui ? 'Clique para remover' : 'Clique para adicionar')}
+																		>
+																			{possui ? (
+																				// bolinha preenchida com as cores da barra de progresso
+																				<span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400" />
+																			) : (
+																				// círculo vazado (sem bordas no botão)
+																				<svg
+																					className="w-4 h-4 text-slate-500 transition-colors group-hover:text-slate-300"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					strokeWidth="2"
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					aria-hidden="true"
+																				>
+																					<circle cx="12" cy="12" r="8" />
+																				</svg>
+																			)}
+																		</button>
+																		<div className={`${salvando ? 'opacity-60' : ''}`}>
+																			<div className="text-slate-200 font-medium">{h.nome}</div>
+																			<div className="text-xs text-slate-400">Frequência: {h.frequencia}</div>
+																		</div>
+																	</div>
+																);
+															})}
+														</div>
+													)}
 												</div>
 											)}
 										</div>
