@@ -220,7 +220,7 @@ export default function EditarPerfil() {
 		const resp = await authFetch(`${API_URL}/usuario/deletar/${usuarioId}`, {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email: emailExclusao, codigo: codigoExclusao, motivo: 'exclusao_conta' })
+			body: JSON.stringify({ email: usuarioEmail, codigo: codigoExclusao, motivo: 'exclusao_conta' })
 		})
 		if (!resp.ok) throw new Error(await resp.text() || 'Erro ao excluir conta')
 		const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
@@ -373,7 +373,7 @@ export default function EditarPerfil() {
 					<form onSubmit={excluirConta} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário excluir conta">
 						{excluirErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{excluirErr}</div>}
 						{excluirMsg && <div className="text-xs text-amber-300 bg-amber-900/30 border border-amber-600 px-2 py-1 rounded">{excluirMsg}</div>}
-						<p className="text-xs text-slate-300 leading-snug text-center">ATENÇÃO! Esta ação é definitiva e não poderá ser desfeita.</p>
+						<p className="text-sm text-slate-300 leading-snug text-center">ATENÇÃO! Esta ação é definitiva e não poderá ser desfeita.</p>
 						{/* Email */}
 						<div className="text-sm text-slate-300">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
@@ -389,6 +389,7 @@ export default function EditarPerfil() {
 		</div>
 	)
 }
+
 
 
 
