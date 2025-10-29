@@ -55,9 +55,8 @@ export default function EditarPerfil() {
 				setNome(data.nome || '')
 				setCarreiraId(data.carreira_id ?? '')
 				setCursoId(data.curso_id ?? '')
-				// manter nome e email em localStorage
+				// manter nome em localStorage
 				localStorage.setItem('usuario_nome', data.nome || '')
-				localStorage.setItem('usuario_email', data.email || '')
 			})
 			.catch(err => setError(err.message))
 			.finally(()=> setLoading(false))
@@ -130,7 +129,6 @@ export default function EditarPerfil() {
 			setMessage(data.message || 'Atualizado com sucesso')
 			// atualiza localStorage
 			localStorage.setItem('usuario_nome', nome)
-			localStorage.setItem('usuario_email', email)
 		} catch(err){
 			setError(err?.message || 'Não foi possível atualizar agora.')
 		} finally {
@@ -393,5 +391,6 @@ export default function EditarPerfil() {
 		</div>
 	)
 }
+
 
 
