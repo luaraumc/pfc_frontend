@@ -30,7 +30,7 @@ export default function HomeUsuario() {
 	// Busca de habilidades por carreira (texto -> por carreira_id)
 	// const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
 
-	const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-production-668a.up.railway.app';
+	const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-test.up.railway.app';
 
 	function formatScore(v) {
 		if (v == null || Number.isNaN(v)) return '0.00';
