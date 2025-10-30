@@ -120,7 +120,7 @@ export default function Home() {
 				{/* hero padronizado com tema escuro em largura total */}
 				<section
 					id="inicio"
-					className="relative overflow-hidden border-y border-slate-800 bg-slate-950/60 px-4 sm:px-6 md:px-8 py-16 text-center"
+					className="relative overflow-hidden bg-slate-950/60 px-4 sm:px-6 md:px-8 py-16 text-center"
 				>
 					<div className="mx-auto max-w-3xl">
 						<h1 className="text-4xl md:text-5xl font-bold leading-tight text-slate-100">
@@ -152,7 +152,7 @@ export default function Home() {
 				</section>
 
 				{/* ===== COMO FUNCIONA ===== */}
-				<section id="sobre" className="relative border-y border-slate-800 bg-slate-900/40 px-4 sm:px-6 md:px-8 py-16">
+				<section id="sobre" className="relative bg-slate-900/40 px-4 sm:px-6 md:px-8 py-16">
 					<div className="max-w-5xl mx-auto text-center">
 						<h2 className="text-3xl font-bold text-slate-100 mb-6">
 							Entenda o que o mercado espera de você.
@@ -171,19 +171,19 @@ export default function Home() {
 						{/* Cards com alternância de cores */}
 						<div className="grid md:grid-cols-3 gap-6 mt-12">
 							<div className="rounded-md border border-slate-800 odd:bg-slate-900/40 even:bg-slate-950/40 hover:bg-slate-800/40 transition p-6">
-								<h3 className="text-lg font-semibold text-slate-100 mb-2">1️⃣ Coleta de Vagas</h3>
+								<h3 className="text-lg font-semibold text-slate-100 mb-2">Coleta de Vagas</h3>
 								<p className="text-slate-400">
 									Buscamos dados em plataformas reais como LinkedIn, Indeed e Catho.
 								</p>
 							</div>
 							<div className="rounded-md border border-slate-800 odd:bg-slate-900/40 even:bg-slate-950/40 hover:bg-slate-800/40 transition p-6">
-								<h3 className="text-lg font-semibold text-slate-100 mb-2">2️⃣ Comparação Inteligente</h3>
+								<h3 className="text-lg font-semibold text-slate-100 mb-2">Comparação Inteligente</h3>
 								<p className="text-slate-400">
 									Comparamos as habilidades do mercado com as suas, em tempo real.
 								</p>
 							</div>
 							<div className="rounded-md border border-slate-800 odd:bg-slate-900/40 even:bg-slate-950/40 hover:bg-slate-800/40 transition p-6">
-								<h3 className="text-lg font-semibold text-slate-100 mb-2">3️⃣ Recomendação de Faculdades</h3>
+								<h3 className="text-lg font-semibold text-slate-100 mb-2">Recomendação de Faculdades</h3>
 								<p className="text-slate-400">
 									Indicamos os cursos que mais desenvolvem as habilidades que o mercado exige.
 								</p>
@@ -193,7 +193,7 @@ export default function Home() {
 				</section>
 
 				{/* ===== CTA ===== */}
-				<section className="relative border-y border-slate-800 bg-gradient-to-r from-indigo-700/20 via-slate-950/40 to-indigo-700/20 px-4 sm:px-6 md:px-8 py-16 text-center">
+				<section className="relative overflow-hidden bg-slate-950/60 px-4 sm:px-6 md:px-8 py-16 text-center">
 					<div className="max-w-4xl mx-auto">
 						<h2 className="text-3xl md:text-4xl font-bold mb-6 text-slate-100">
 							Construa seu futuro com base em dados reais.
@@ -205,13 +205,13 @@ export default function Home() {
 						<div className="flex flex-wrap justify-center gap-4">
 							<Link
 								to="/cadastro"
-								className="px-6 py-3 rounded-full border border-indigo-600 bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition"
+								className="px-5 py-2.5 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
 							>
 								Cadastrar agora
 							</Link>
 							<Link
 								to="/login"
-								className="px-6 py-3 rounded-full border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-600 transition"
+								className="px-5 py-2.5 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-600"
 							>
 								Entrar na plataforma
 							</Link>
@@ -300,6 +300,14 @@ export default function Home() {
 						</div>
 					</section>
 				</div>
+
+				{/* ===== FOOTER ===== */}
+				<footer className="w-full px-4 sm:px-6 md:px-8 py-10 bg-slate-950/60 text-slate-400 text-center">
+					<p>© 2025 RumoTechno. Todos os direitos reservados.</p>
+					<div className="mt-4 flex justify-center gap-6 text-sm">
+						<Link to="/privacidade" className="hover:text-slate-200 transition">Política de Privacidade</Link>
+					</div>
+				</footer>
 			</main>
 			
 		</div>
