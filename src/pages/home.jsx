@@ -3,6 +3,8 @@ import { useEffect, useState } from "react"; // useEffect: executar funções | 
 import { useNavigate } from "react-router-dom"; // navegação programática
 import { getAccessToken, VerificarTokenExpirado, refreshAccessToken, authFetch, transformarJwt } from '../utils/auth'; // funções de autenticação
 
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-test.up.railway.app";
+
 // Página inicial pública
 export default function Home() {
 	const navigate = useNavigate(); // navegação programática
@@ -12,8 +14,6 @@ export default function Home() {
 	const [error, setError] = useState(null);
 	const [cursoToCarreiras, setCursoToCarreiras] = useState({}); // {cursoId: [{id,nome,score}]}
 	const [carreiraToCursos, setCarreiraToCursos] = useState({}); // {carreiraId: [{id,nome,score}]}
-
-	const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 	// Se o usuário já está autenticado, redireciona para a home apropriada
 	useEffect(() => {
