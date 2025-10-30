@@ -1,6 +1,6 @@
-import { useMemo, useState, useEffect } from "react"; // useMemo: armazenamento em cache | useState: gerenciar estado de componentes
+import { useMemo, useState } from "react"; // useMemo: armazenamento em cache | useState: gerenciar estado de componentes
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
-import { authFetch, getAccessToken, VerificarTokenExpirado, refreshAccessToken, transformarJwt } from "../utils/auth"; // fetch autenticado com renovação automática de token
+import { authFetch, transformarJwt } from "../utils/auth"; // fetch autenticado com renovação automática de token
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -15,36 +15,10 @@ export default function LoginUsuario() {
 	const [erro, setErro] = useState("");
 	const [mensagem, setMensagem] = useState("");
 
-	// Se o usuário já possui token válido (ou renovável), redireciona automaticamente
-	useEffect(() => {
-		let cancelled = false;
-		async function checkAndRedirect() {
-			const token = getAccessToken();
-			if (!token) return; // não está logado
-			try {
-				if (VerificarTokenExpirado(token)) {
-					// tenta renovar
-					await refreshAccessToken();
-					const newToken = getAccessToken();
-					if (!newToken) return;
-					if (!cancelled) await descobrirPerfilERedirecionar(newToken);
-				} else {
-					if (!cancelled) await descobrirPerfilERedirecionar(token);
-				}
-			} catch (e) {
-				// falha ao renovar/validar -> limpa dados e permite que o usuário veja a tela de login
-				try { localStorage.removeItem("access_token"); localStorage.removeItem("refresh_token"); } catch {}
-			}
-		}
-		checkAndRedirect();
-		return () => { cancelled = true; };
-	}, [navigate]);
-
 	// Limpa dados de autenticação
 	function clearAuth() {
 		try {
 			localStorage.removeItem("access_token");
-			localStorage.removeItem("refresh_token");
 			localStorage.removeItem("token_type");
 			localStorage.removeItem("usuario_id");
 			localStorage.removeItem("is_admin");
@@ -107,17 +81,17 @@ export default function LoginUsuario() {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim(), senha }), // converte para JSON
+				credentials: 'include', // permite que o browser receba e envie cookies HttpOnly
 			});
 			const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Falha no login (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
-			const { access_token, refresh_token, token_type } = data; // pega os tokens retornados
+			const { access_token, token_type } = data; // pega os tokens retornados (refresh token é armazenado em cookie HttpOnly)
 			if (!access_token) throw new Error("Token de acesso não retornado");
-			// Persistência dos tokens no localStorage
+			// Persistência do access token no localStorage
 			localStorage.setItem("access_token", access_token);
-			if (refresh_token) localStorage.setItem("refresh_token", refresh_token);
 			if (token_type) localStorage.setItem("token_type", token_type);
 			setMensagem("Login realizado com sucesso. Redirecionando…");
 			await descobrirPerfilERedirecionar(access_token); // descobre o perfil e redireciona
