@@ -4,6 +4,8 @@ import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e re
 import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
 import logoRumoTechno from "../../../images/rumotechno-logo.svg"; // logotipo do site (SVG)
 
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+
 // Página inicial do usuário comum
 export default function HomeUsuario() {
 
@@ -30,8 +32,6 @@ export default function HomeUsuario() {
 
 	// Busca de habilidades por carreira (texto -> por carreira_id)
 	// const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
-
-	const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 	function formatScore(v) {
 		if (v == null || Number.isNaN(v)) return '0.00';
