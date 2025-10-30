@@ -5,7 +5,7 @@ import { logoutRedirecionar } from "../../utils/auth"; // logout e redirecioname
 import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
 import logoRumoTechno from "../../../images/rumotechno-logo.svg"; // logotipo do site
 
-	const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de edição de perfil
 export default function EditarPerfil() {
@@ -388,6 +388,7 @@ export default function EditarPerfil() {
 		</div>
 	)
 }
+
 
 
 
