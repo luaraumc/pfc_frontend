@@ -1,5 +1,5 @@
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-test.up.railway.app'; // URL da API backend
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'; // URL da API backend   // const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-test.up.railway.app'; // URL da API backend
 
 // Pega os dados de um JWT e transforma em JSON
 export function transformarJwt(token) {
