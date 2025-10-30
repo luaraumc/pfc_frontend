@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"; // useEffect: executar funções | useMemo: armazenamento em cache | useState: gerenciar estado de componentes
-import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
+import { useNavigate, Link } from "react-router-dom"; // navegação programática (voltar)
 import { getAccessToken, VerificarTokenExpirado, refreshAccessToken, authFetch, transformarJwt } from "../utils/auth"; // checar token e redirecionar se já autenticado
+import logoRumoTechno from "../../images/rumotechno-logo.svg";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -150,12 +151,35 @@ export default function CadastroUsuario() {
 
 	// HTML
 	return (
-		<div className="min-h-screen relative bg-slate-900">
+			<div className="min-h-screen relative bg-slate-900 pt-16">
+
+			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
+				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+					{/* Logo redireciona para a Home */}
+					<Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200" aria-label="Ir para a Home">
+						<img src={logoRumoTechno} alt="RumoTechno" className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103" />
+					</Link>
+					<div className="flex items-center gap-3">
+						<Link
+							to="/login"
+							className="px-4 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-600"
+						>
+							Entrar
+						</Link>
+						<Link
+							to="/cadastro"
+							className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
+						>
+							Cadastre-se
+						</Link>
+					</div>
+				</div>
+			</header>
 			{/* CONTEÚDO PRINCIPAL */}
 			<div className="min-h-screen flex flex-col items-center pb-15 px-4">
 
 				{/* título */}
-				<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Cadastro de Usuário</h1>
+				<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center pt-5">Cadastro de Usuário</h1>
 
 				<div className="w-full max-w-md bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
 
