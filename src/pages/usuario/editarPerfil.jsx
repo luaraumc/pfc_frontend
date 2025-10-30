@@ -377,7 +377,7 @@ export default function EditarPerfil() {
 						<div className="text-sm text-slate-300">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
 						<div className="flex gap-2">
-							<button type="button" onClick={solicitarCodigoExclusao} disabled={!usuarioEmail || excluirLoading} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40">Enviar Código</button>
+							<button type="button" onClick={solicitarCodigoExclusao} disabled={!usuarioEmail || excluirLoading} className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm">Enviar Código</button>
 							<input placeholder="Código" value={codigoExclusao} onChange={e=>setCodigoExclusao(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
 						{/* Botão Excluir */}
