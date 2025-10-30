@@ -1,33 +1,8 @@
-import { useMemo, useState } from "react"; // useMemo: armazenamento em cache | useState: gerenciar estado de componentes
+import { useMemo, useState, useEffect } from "react"; // useMemo: armazenamento em cache | useState: gerenciar estado de componentes
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
-import { authFetch } from "../utils/auth"; // fetch autenticado com renovação automática de token
+import { authFetch, getAccessToken, VerificarTokenExpirado, refreshAccessToken, transformarJwt } from "../utils/auth"; // fetch autenticado com renovação automática de token
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
-
-// Pega os dados do token e transforma em JSON
-export function transformarJwt(token) {
-
-	/**
-    Entrada: uma string JWT no formato header.payload.signature (dois .)
-    Saída: objeto JSON com os dados do payload ou null se falhar
-	*/
-
-    try {
-        const base64Url = token.split('.')[1]; // pega o payload (parte do meio) do JWT
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // converte para base64 padrão
-        const padded = base64 + '==='.slice(0, (4 - (base64.length % 4)) % 4); // adiciona padding se necessário
-        // Decodifica base64 para string
-        const jsonPayload = decodeURIComponent(
-        atob(padded) // retorna uma string onde cada caractere representa um byte
-            .split('') // divide em caracteres
-            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)) // converte para percent-encoding (apenas caracteres permitidos em URLs)
-            .join('') // junta de volta em string
-        );
-        return JSON.parse(jsonPayload); // estrutura em JSON
-    } catch {
-        return null;
-    }
-}
 
 // Página de login
 export default function LoginUsuario() {
@@ -39,6 +14,31 @@ export default function LoginUsuario() {
 	const [submitting, setSubmitting] = useState(false);
 	const [erro, setErro] = useState("");
 	const [mensagem, setMensagem] = useState("");
+
+	// Se o usuário já possui token válido (ou renovável), redireciona automaticamente
+	useEffect(() => {
+		let cancelled = false;
+		async function checkAndRedirect() {
+			const token = getAccessToken();
+			if (!token) return; // não está logado
+			try {
+				if (VerificarTokenExpirado(token)) {
+					// tenta renovar
+					await refreshAccessToken();
+					const newToken = getAccessToken();
+					if (!newToken) return;
+					if (!cancelled) await descobrirPerfilERedirecionar(newToken);
+				} else {
+					if (!cancelled) await descobrirPerfilERedirecionar(token);
+				}
+			} catch (e) {
+				// falha ao renovar/validar -> limpa dados e permite que o usuário veja a tela de login
+				try { localStorage.removeItem("access_token"); localStorage.removeItem("refresh_token"); } catch {}
+			}
+		}
+		checkAndRedirect();
+		return () => { cancelled = true; };
+	}, [navigate]);
 
 	// Limpa dados de autenticação
 	function clearAuth() {
