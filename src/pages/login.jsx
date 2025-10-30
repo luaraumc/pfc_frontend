@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"; // useMemo: armazenamento em cache | 
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
 import { authFetch } from "../utils/auth"; // fetch autenticado com renovação automática de token
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-test.up.railway.app";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Pega os dados do token e transforma em JSON
 export function transformarJwt(token) {

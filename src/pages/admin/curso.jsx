@@ -4,7 +4,7 @@ import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e re
 import lixeiraIcon from "../../../images/lixeira.png"; // ícone de lixeira para deletar
 import setaIcon from "../../../images/seta.png"; // ícone de seta para expandir
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-test.up.railway.app";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de administração de cursos
 export default function AdminCurso() {

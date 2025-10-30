@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"; // useEffect: executar funções | useMemo: armazenamento em cache | useState: gerenciar estado de componentes
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-test.up.railway.app";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de cadastro de usuário comum
 export default function CadastroUsuario() {

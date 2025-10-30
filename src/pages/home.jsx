@@ -10,7 +10,7 @@ export default function Home() {
 	const [cursoToCarreiras, setCursoToCarreiras] = useState({}); // {cursoId: [{id,nome,score}]}
 	const [carreiraToCursos, setCarreiraToCursos] = useState({}); // {carreiraId: [{id,nome,score}]}
 
-	const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-test.up.railway.app';
+	const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 	function formatScore(v) {
 		if (v == null || Number.isNaN(v)) return '0.00';

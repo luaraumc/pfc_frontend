@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react"; // estados, memos e efeito
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento | fetch autenticado com renovação automática de token
 import lapisIcon from "../../../images/lapis.png"; // ícone de edição
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-test.up.railway.app";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de administração de conhecimentos
 export default function AdminConhecimento() {
