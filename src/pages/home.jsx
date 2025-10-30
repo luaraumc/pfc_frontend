@@ -57,6 +57,19 @@ export default function Home() {
 		return () => { cancel = true; };
 	}, [API_URL, navigate]);
 
+	// Smooth scroll para a seção #inicio compensando o header fixo
+	const scrollToInicio = (e) => {
+		e.preventDefault();
+		const headerOffset = 64; // h-16 (4rem)
+		const el = document.getElementById('inicio');
+		if (el) {
+			const y = el.getBoundingClientRect().top + window.scrollY - headerOffset;
+			window.scrollTo({ top: y, behavior: 'smooth' });
+		} else {
+			window.location.hash = '#inicio';
+		}
+	};
+
 	// HTML
 	return (
 		<div className="min-h-screen bg-slate-900 text-slate-200 pt-16">
@@ -64,9 +77,10 @@ export default function Home() {
 			{/* HEADER */}
 			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
 				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-					<Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
+					{/* Logo com âncora para rolar para a seção inicial */}
+					<a href="#inicio" onClick={scrollToInicio} className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
 						<img src={logoRumoTechno} alt="RumoTechno" className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103" />
-					</Link>
+					</a>
 					<div className="flex items-center gap-3">
 						<Link
 							to="/login"

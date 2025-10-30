@@ -324,20 +324,31 @@ export default function HomeUsuario() {
 		return () => { cancel = true };
 	}, [API_URL]);
 
-    // HTML
+	// Rolagem suave para o topo ao clicar na logo
+	const scrollToTop = (e) => {
+		e.preventDefault();
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+
+	// HTML
 	return (
-		<div className="min-h-screen bg-slate-900 text-slate-200">
+		<div className="min-h-screen bg-slate-900 text-slate-200 pt-16">
 
 			{/* HEADER */}
-			<header className="w-full border-b border-slate-800 bg-slate-950/80">
+			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
 				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
-					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
+					<a
+						href="#topo"
+						onClick={scrollToTop}
+						className="text-xl font-semibold text-indigo-300 hover:text-indigo-200"
+						aria-label="Voltar ao topo"
+					>
 						<img
 							src={logoRumoTechno}
 							alt="RumoTechno"
 							className="h-10 w-auto transition-transform duration-200 ease-out hover:scale-103"
 						/>
-					</Link>
+					</a>
 					<div className="flex items-center gap-3">
 						<Link
 							to="/usuario/editar-perfil"
