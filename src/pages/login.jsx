@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react"; // useMemo: armazenamento 
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
 import { authFetch, getAccessToken, VerificarTokenExpirado, refreshAccessToken, transformarJwt } from "../utils/auth"; // fetch autenticado com renovação automática de token
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-test.up.railway.app";
 
 // Página de login
 export default function LoginUsuario() {
