@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"; // criar links de navegação para redi
 import { useEffect, useState } from "react"; // useEffect: executar funções | useState: gerenciar estado de componentes
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento + fetch autenticado
 import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
+import logoRumoTechno from "../../../images/rumotechno-logo.svg"; // logotipo do site (SVG)
 
 // Página inicial do usuário comum
 export default function HomeUsuario() {
@@ -17,7 +18,7 @@ export default function HomeUsuario() {
 	const [expandedCarreiras, setExpandedCarreiras] = useState(new Set());
 	const [habPorCarreira, setHabPorCarreira] = useState({}); // { [carreiraId]: { loading, error, itens: [{id, nome, frequencia}] } }
 	const [topCarreiras, setTopCarreiras] = useState([]);
-	const [loadingCompat, setLoadingCompat] = useState(true);
+	const [loadingCompat, setLoadingCompat] = useState(true);	
 	const [erroCompat, setErroCompat] = useState("");
 	// ESTADOS NOVOS: controle de salvamento por habilidade e erro do checklist
 	const [savingHabIds, setSavingHabIds] = useState(new Set());
@@ -30,7 +31,7 @@ export default function HomeUsuario() {
 	// Busca de habilidades por carreira (texto -> por carreira_id)
 	// const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
 
-	const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-test.up.railway.app';
+	const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 	function formatScore(v) {
 		if (v == null || Number.isNaN(v)) return '0.00';
@@ -331,27 +332,24 @@ export default function HomeUsuario() {
 			<header className="w-full border-b border-slate-800 bg-slate-950/80">
 				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
 					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-						Home
+						<img
+							src={logoRumoTechno}
+							alt="RumoTechno"
+							className="h-10 w-auto transition-transform duration-200 ease-out hover:scale-103"
+						/>
 					</Link>
 					<div className="flex items-center gap-3">
-					<Link
-	                    to="/usuario/cadastro-habilidade"
-	                    className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-	                >
-	                    Cadastrar Habilidade
-	                </Link>
-					<Link
-						to="/usuario/editar-perfil"
-						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-					>
-						<img src={perfilIcon} alt="Perfil" className="w-5 h-5" />
-						<span>Editar Perfil</span>
-					</Link>
-					<button
-						onClick={logoutRedirecionar}
-						className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
-						Sair
-					</button>
+						<Link
+							to="/usuario/editar-perfil"
+							className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
+						>
+							<span>Editar Perfil</span>
+						</Link>
+						<button
+							onClick={logoutRedirecionar}
+							className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
+							Sair
+						</button>
 					</div>
 				</div>
 			</header>
@@ -363,7 +361,9 @@ export default function HomeUsuario() {
 				<h1 className="text-2xl font-semibold text-center">Olá{nome ? `, ${nome}` : ''}!</h1>
 
 				{/* descrição */}
-				<p className="mt-2 text-slate-300 text-center">Veja as carreiras de TI que mais combinam com você.</p>
+				<p className="mt-2 text-slate-300 text-center">Cadastre suas habilidades e veja quais carreiras de TI mais combinam com você!
+Nosso sistema compara suas habilidades com as mais procuradas no mercado e mostra o quanto você está preparado para cada área.
+</p>
 
 				{/* Compatibilidade com Carreiras */}
 				<section className="mt-10">
@@ -378,9 +378,6 @@ export default function HomeUsuario() {
 							<div className="text-slate-300">
 								<p>Nenhuma carreira encontrada ainda.</p>
 								<p className="mt-1">Dica: cadastre suas habilidades para ver sua compatibilidade!</p>
-								<div className="mt-3">
-									<Link to="/usuario/cadastro-habilidade" className="text-indigo-300 underline">Cadastrar habilidades</Link>
-								</div>
 							</div>
 						)}
 						{!loadingCompat && !erroCompat && topCarreiras.map((item, idx) => {
