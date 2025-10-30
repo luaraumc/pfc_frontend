@@ -116,13 +116,110 @@ export default function Home() {
 			</header>
 
 			{/* CONTEÚDO PRINCIPAL */}
-			<main className="max-w-6xl mx-auto px-4 py-10">
-				<div className="text-center">
-					<h1 className="text-3xl font-bold text-slate-100">Mapa informativo</h1>
-					<p className="mt-2 text-slate-300">Saiba qual curso melhor prepara para cada carreira — sem gráficos, direto ao ponto.</p>
-				</div>
+			<main className="w-full">
+				{/* hero padronizado com tema escuro em largura total */}
+				<section
+					id="inicio"
+					className="relative overflow-hidden border-y border-slate-800 bg-slate-950/60 px-4 sm:px-6 md:px-8 py-16 text-center"
+				>
+					<div className="mx-auto max-w-3xl">
+						<h1 className="text-4xl md:text-5xl font-bold leading-tight text-slate-100">
+							Descubra sua compatibilidade com o mercado — e a faculdade certa para chegar lá.
+						</h1>
+						<p className="mt-6 text-lg text-slate-400">
+							Saiba exatamente quais habilidades te aproximam da carreira dos seus sonhos,
+							com base em dados reais do mercado e da educação.
+						</p>
+						<div className="mt-8 flex flex-wrap justify-center gap-3">
+							<Link
+								to="/cadastro"
+								className="px-5 py-2.5 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
+							>
+								Cadastrar agora
+							</Link>
+							<Link
+								to="/login"
+								className="px-5 py-2.5 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-600"
+							>
+								Entrar na plataforma
+							</Link>
+						</div>
+					</div>
+					<div
+						aria-hidden="true"
+						className="pointer-events-none absolute inset-0 bg-gradient-to-b from-indigo-600/10 via-slate-900/0 to-slate-900/30"
+					/>
+				</section>
 
-				<div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+				{/* ===== COMO FUNCIONA ===== */}
+				<section id="sobre" className="relative border-y border-slate-800 bg-slate-900/40 px-4 sm:px-6 md:px-8 py-16">
+					<div className="max-w-5xl mx-auto text-center">
+						<h2 className="text-3xl font-bold text-slate-100 mb-6">
+							Entenda o que o mercado espera de você.
+						</h2>
+						<p className="text-slate-400 leading-relaxed mb-4">
+							Nosso sistema analisa centenas de vagas reais em plataformas como LinkedIn, Indeed e Catho
+							para identificar as habilidades mais requisitadas em cada carreira.
+						</p>
+						<p className="text-slate-400 leading-relaxed">
+							Depois, compara essas habilidades com as que você já possui — revelando o quanto está pronto
+							para o mercado e o que ainda precisa desenvolver. Também cruzamos essas informações com as diretrizes
+							curriculares do MEC e as disciplinas das principais faculdades, mostrando quais cursos mais
+							contribuem para o seu crescimento profissional.
+						</p>
+
+						{/* Cards com alternância de cores */}
+						<div className="grid md:grid-cols-3 gap-6 mt-12">
+							<div className="rounded-md border border-slate-800 odd:bg-slate-900/40 even:bg-slate-950/40 hover:bg-slate-800/40 transition p-6">
+								<h3 className="text-lg font-semibold text-slate-100 mb-2">1️⃣ Coleta de Vagas</h3>
+								<p className="text-slate-400">
+									Buscamos dados em plataformas reais como LinkedIn, Indeed e Catho.
+								</p>
+							</div>
+							<div className="rounded-md border border-slate-800 odd:bg-slate-900/40 even:bg-slate-950/40 hover:bg-slate-800/40 transition p-6">
+								<h3 className="text-lg font-semibold text-slate-100 mb-2">2️⃣ Comparação Inteligente</h3>
+								<p className="text-slate-400">
+									Comparamos as habilidades do mercado com as suas, em tempo real.
+								</p>
+							</div>
+							<div className="rounded-md border border-slate-800 odd:bg-slate-900/40 even:bg-slate-950/40 hover:bg-slate-800/40 transition p-6">
+								<h3 className="text-lg font-semibold text-slate-100 mb-2">3️⃣ Recomendação de Faculdades</h3>
+								<p className="text-slate-400">
+									Indicamos os cursos que mais desenvolvem as habilidades que o mercado exige.
+								</p>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* ===== CTA ===== */}
+				<section className="relative border-y border-slate-800 bg-gradient-to-r from-indigo-700/20 via-slate-950/40 to-indigo-700/20 px-4 sm:px-6 md:px-8 py-16 text-center">
+					<div className="max-w-4xl mx-auto">
+						<h2 className="text-3xl md:text-4xl font-bold mb-6 text-slate-100">
+							Construa seu futuro com base em dados reais.
+						</h2>
+						<p className="text-lg leading-relaxed mb-8 text-slate-400">
+							Descubra seu potencial, identifique suas lacunas e escolha a faculdade que vai te levar mais longe.
+							<br />O primeiro passo para sua evolução profissional começa agora.
+						</p>
+						<div className="flex flex-wrap justify-center gap-4">
+							<Link
+								to="/cadastro"
+								className="px-6 py-3 rounded-full border border-indigo-600 bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition"
+							>
+								Cadastrar agora
+							</Link>
+							<Link
+								to="/login"
+								className="px-6 py-3 rounded-full border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-600 transition"
+							>
+								Entrar na plataforma
+							</Link>
+						</div>
+					</div>
+				</section>
+
+				<div className="mt-8 max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
 					<section>
 						<h2 className="text-xl font-semibold text-slate-100 mb-3 text-center flex items-center justify-center gap-2">
 							<svg className="w-5 h-5 text-indigo-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l9 4.5v9L12 21l-9-4.5v-9L12 3zm0 2.236L5 8.118v7.764L12 18.764l7-2.882V8.118L12 5.236z"/></svg>
