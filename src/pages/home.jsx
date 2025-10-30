@@ -10,6 +10,7 @@ import recomendationIcon from '../../images/recomendation.png';
 // Nova ilustração do header
 import headerIllustration from '../../images/ilustracao-header.svg';
 import logoRumoTechno from "../../images/rumotechno-logo.svg"; // logo RumoTechno
+import logoCta from "../../images/LOGOTIPO.svg"; // logo CTA
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -58,10 +59,10 @@ export default function Home() {
 
 	// HTML
 	return (
-		<div className="min-h-screen bg-slate-900 text-slate-200">
+		<div className="min-h-screen bg-slate-900 text-slate-200 pt-16">
 
 			{/* HEADER */}
-			<header className="w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
+			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
 				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
 					<Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
 						<img src={logoRumoTechno} alt="RumoTechno" className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103" />
@@ -122,6 +123,7 @@ export default function Home() {
 									className="w-full max-w-md md:max-w-lg h-auto object-contain drop-shadow-sm"
 									loading="lazy"
 									onError={(e) => { e.currentTarget.style.display = 'none'; }}
+									style={{ transform: 'scaleX(-1)' }}
 								/>
 							</div>
 						</div>
@@ -182,16 +184,30 @@ export default function Home() {
 					</div>
 				</section>
 				{/* ===== CTA ===== */}
-				<section className="relative overflow-hidden bg-slate-950/60 px-4 sm:px-6 md:px-8 py-16 text-center">
-					<div className="max-w-4xl mx-auto">
-						<h2 className="text-3xl md:text-4xl font-bold mb-6 text-slate-100">
-							Pronto para começar?
-						</h2>
-						<p className="text-lg leading-relaxed mb-8 text-slate-400">
-							Descubra seu potencial, identifique suas lacunas e escolha a faculdade que vai te levar mais longe.
-							<br />O primeiro passo para sua evolução profissional começa agora.
-						</p>
-						<div className="flex flex-wrap justify-center gap-4">
+				<section className="relative overflow-hidden bg-slate-950/60 px-4 sm:px-6 md:px-8 py-16">
+					<div className="max-w-6xl mx-auto">
+						<div className="grid md:grid-cols-2 items-center md:items-start gap-10">
+							{/* Logo grande à esquerda */}
+							<div className="flex justify-center md:justify-start">
+								<img
+									src={logoCta}
+									alt="Logotipo"
+									className="w-full max-w-[16rem] sm:max-w-[20rem] md:max-w-[24rem] lg:max-w-[28rem] h-auto"
+								/>
+							</div>
+							{/* Conteúdo à direita */}
+							<div className="text-center md:text-left">
+								<h2 className="text-3xl md:text-4xl font-bold mb-10 text-slate-100">
+									Pronto para começar?
+								</h2>
+								<p className="text-lg leading-relaxed text-slate-400">
+									Descubra seu potencial, identifique suas lacunas e escolha a faculdade que vai te levar mais longe.
+									<br />O primeiro passo para sua evolução profissional começa agora.
+								</p>
+							</div>
+						</div>
+						{/* Botões centralizados abaixo do conteúdo e da logo */}
+						<div className="mt-8 flex flex-wrap justify-center gap-4">
 							<Link
 								to="/cadastro"
 								className="px-5 py-2.5 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
