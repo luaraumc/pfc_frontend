@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"; // useEffect: executar funções | useMemo: armazenamento em cache | useState: gerenciar estado de componentes
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
+import { getAccessToken, VerificarTokenExpirado, refreshAccessToken, authFetch, transformarJwt } from "../utils/auth"; // checar token e redirecionar se já autenticado
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -8,6 +9,43 @@ export default function CadastroUsuario() {
 	
 	// Estados dos campos
 	const navigate = useNavigate(); // navegação de páginas (voltar)
+
+	// Se o usuário já está autenticado, redireciona para a home apropriada
+	useEffect(() => {
+		let cancelled = false;
+		async function checar() {
+			const token = getAccessToken();
+			if (!token) return;
+			try {
+				let usable = token;
+				if (VerificarTokenExpirado(token)) {
+					await refreshAccessToken();
+					usable = getAccessToken();
+					if (!usable) return;
+				}
+				const stored = localStorage.getItem('is_admin');
+				if (stored === 'true' || stored === 'false') {
+					if (!cancelled) navigate(stored === 'true' ? '/homeAdmin' : '/homeUsuario', { replace: true });
+					return;
+				}
+				const decoded = transformarJwt(usable);
+				const userId = decoded?.sub ? Number(decoded.sub) : null;
+				if (!userId) return;
+				const res = await authFetch(`${API_URL}/usuario/${userId}`);
+				if (!res.ok) return;
+				const user = await res.json().catch(() => ({}));
+				const isAdmin = !!user?.admin;
+				localStorage.setItem('is_admin', String(isAdmin));
+				if (user?.nome) localStorage.setItem('usuario_nome', String(user.nome));
+				if (!cancelled) navigate(isAdmin ? '/homeAdmin' : '/homeUsuario', { replace: true });
+			} catch (e) {
+				try { localStorage.removeItem('access_token'); localStorage.removeItem('refresh_token'); } catch {}
+			}
+		}
+		checar();
+		return () => { cancelled = true; };
+	}, [navigate]);
+	
 	const [nome, setNome] = useState("");
 	const [email, setEmail] = useState("");
 	const [senha, setSenha] = useState("");
