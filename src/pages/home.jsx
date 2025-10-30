@@ -9,6 +9,7 @@ import compareIcon from '../../images/compare.png';
 import recomendationIcon from '../../images/recomendation.png';
 // Nova ilustração do header
 import headerIllustration from '../../images/ilustracao-header.svg';
+import logoRumoTechno from "../../images/rumotechno-logo.svg"; // logo RumoTechno
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -63,7 +64,7 @@ export default function Home() {
 			<header className="w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
 				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
 					<Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-						PFC
+						<img src={logoRumoTechno} alt="RumoTechno" className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103" />
 					</Link>
 					<div className="flex items-center gap-3">
 						<Link
