@@ -1,8 +1,13 @@
 import { Link } from "react-router-dom"; // criar links de navegação para redirecionar o usuário
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; // useEffect: executar funções | useState: gerenciar estado de componentes
+import { useNavigate } from "react-router-dom"; // navegação programática
+import { getAccessToken, VerificarTokenExpirado, refreshAccessToken, authFetch, transformarJwt } from '../utils/auth'; // funções de autenticação
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página inicial pública
 export default function Home() {
+	const navigate = useNavigate(); // navegação programática
 	const [cursos, setCursos] = useState([]);
 	const [carreiras, setCarreiras] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -10,7 +15,44 @@ export default function Home() {
 	const [cursoToCarreiras, setCursoToCarreiras] = useState({}); // {cursoId: [{id,nome,score}]}
 	const [carreiraToCursos, setCarreiraToCursos] = useState({}); // {carreiraId: [{id,nome,score}]}
 
-	const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+	// Se o usuário já está autenticado, redireciona para a home apropriada
+	useEffect(() => {
+		let cancel = false;
+		async function checarTokenERedirecionar() {
+			const token = getAccessToken();
+			if (!token) return; // não autenticado
+			try {
+				let usableToken = token;
+				if (VerificarTokenExpirado(token)) {
+					await refreshAccessToken();
+					usableToken = getAccessToken();
+					if (!usableToken) return;
+				}
+				// tenta inferir perfil a partir do localStorage ou buscando o usuário
+				const storedIsAdmin = localStorage.getItem('is_admin');
+				if (storedIsAdmin === 'true' || storedIsAdmin === 'false') {
+					if (!cancel) navigate(storedIsAdmin === 'true' ? '/homeAdmin' : '/homeUsuario', { replace: true });
+					return;
+				}
+				// se não houver a flag, decodifica token e busca dados do usuário
+				const decoded = transformarJwt(usableToken);
+				const userId = decoded?.sub ? Number(decoded.sub) : null;
+				if (!userId) return;
+				const res = await authFetch(`${API_URL}/usuario/${userId}`);
+				if (!res.ok) return;
+				const user = await res.json().catch(() => ({}));
+				const isAdmin = !!user?.admin;
+				localStorage.setItem('is_admin', String(isAdmin));
+				if (user?.nome) localStorage.setItem('usuario_nome', String(user.nome));
+				if (!cancel) navigate(isAdmin ? '/homeAdmin' : '/homeUsuario', { replace: true });
+			} catch (e) {
+				// se houver falha na renovação, não redireciona e deixa a página pública
+				try { localStorage.removeItem('access_token'); localStorage.removeItem('refresh_token'); } catch {}
+			}
+		}
+		checarTokenERedirecionar();
+		return () => { cancel = true; };
+	}, [API_URL, navigate]);
 
 	function formatScore(v) {
 		if (v == null || Number.isNaN(v)) return '0.00';
