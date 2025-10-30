@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"; // useEffect: executar fun
 import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
 import { getAccessToken, VerificarTokenExpirado, refreshAccessToken, authFetch, transformarJwt } from "../utils/auth"; // checar token e redirecionar se já autenticado
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-test.up.railway.app";
 
 // Página de cadastro de usuário comum
 export default function CadastroUsuario() {
