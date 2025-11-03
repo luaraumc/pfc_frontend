@@ -59,8 +59,12 @@ export default function CadastroUsuario() {
 	const [mensagem, setMensagem] = useState("");
 	const [erro, setErro] = useState("");
 
-	// Definindo e-mail válido (com @ e domínio .com ou .com.br)
-	const emailValido = useMemo(() => /^[^\s@]+@[^\s@]+\.com(\.[^\s@]+)?$/i.test(email), [email]);
+	// Definindo e-mail válido (contém '@' e o domínio contém '.com')
+	const emailValido = useMemo(() => {
+		const v = String(email || '').trim();
+		if (!/.+@.+\..+/.test(v)) return false; // exige '@' e '.'
+		return /@.*\.com/i.test(v); // aceita .com, .com.br, etc
+	}, [email]);
 
 	// Requisitos de senha: mínimo 6 caracteres, 1 maiúscula, 1 caractere especial
 	const senhaRequisitos = useMemo(() => {
@@ -105,7 +109,7 @@ export default function CadastroUsuario() {
 	// Validação dos campos do formulário
 	function validarCampos() {
 		if (!nome.trim()) return "Informe o nome";
-	if (!email.trim() || !emailValido) return "Informe um e-mail válido com domínio .com (.com ou .com.br)";
+	if (!email.trim() || !emailValido) return "Informe um e-mail válido";
 		if (!senha) return "Informe a senha";
 		if (!(senhaRequisitos.len && senhaRequisitos.maiuscula && senhaRequisitos.especial)) {
 			return "A senha deve ter no mínimo 6 caracteres, pelo menos 1 letra maiúscula e 1 caractere especial";
@@ -231,7 +235,7 @@ export default function CadastroUsuario() {
 								autoComplete="email"
 							/>
 							<div className="mt-1 text-xs text-slate-400">
-								Use um e-mail com domínio .com (ex.: usuario@dominio.com ou usuario@dominio.com.br).
+								Use um e-mail cujo domínio contenha ".com" (ex.: usuario@dominio.com, usuario@dominio.com.br).
 							</div>
 						</div>
 
