@@ -59,8 +59,17 @@ export default function CadastroUsuario() {
 	const [mensagem, setMensagem] = useState("");
 	const [erro, setErro] = useState("");
 
-	// Definindo e-mail válido (com @ e .)
-	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]);
+	// Definindo e-mail válido (com @ e domínio .com ou .com.br)
+	const emailValido = useMemo(() => /^[^\s@]+@[^\s@]+\.com(\.[^\s@]+)?$/i.test(email), [email]);
+
+	// Requisitos de senha: mínimo 6 caracteres, 1 maiúscula, 1 caractere especial
+	const senhaRequisitos = useMemo(() => {
+		return {
+			len: senha.length >= 6,
+			maiuscula: /[A-Z]/.test(senha),
+			especial: /[^A-Za-z0-9]/.test(senha)
+		};
+	}, [senha]);
 
 	// Carrega carreiras e cursos em paralelo
 	useEffect(() => {
@@ -96,9 +105,11 @@ export default function CadastroUsuario() {
 	// Validação dos campos do formulário
 	function validarCampos() {
 		if (!nome.trim()) return "Informe o nome";
-		if (!email.trim() || !emailValido) return "Informe um e-mail válido";
+	if (!email.trim() || !emailValido) return "Informe um e-mail válido com domínio .com (.com ou .com.br)";
 		if (!senha) return "Informe a senha";
-		if (senha.length < 6) return "A senha deve ter pelo menos 6 caracteres";
+		if (!(senhaRequisitos.len && senhaRequisitos.maiuscula && senhaRequisitos.especial)) {
+			return "A senha deve ter no mínimo 6 caracteres, pelo menos 1 letra maiúscula e 1 caractere especial";
+		}
 		if (!carreiraId) return "Selecione a carreira";
 		if (!cursoId) return "Selecione o curso";
 		return null;
@@ -219,6 +230,9 @@ export default function CadastroUsuario() {
 								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 								autoComplete="email"
 							/>
+							<div className="mt-1 text-xs text-slate-400">
+								Use um e-mail com domínio .com (ex.: usuario@dominio.com ou usuario@dominio.com.br).
+							</div>
 						</div>
 
 						{/* senha */}
