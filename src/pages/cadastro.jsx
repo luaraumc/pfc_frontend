@@ -233,6 +233,14 @@ export default function CadastroUsuario() {
 								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 								autoComplete="new-password"
 							/>
+							<div className="mt-1 text-xs text-slate-400">
+								<p>Mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial.</p>
+								<ul className="mt-1 space-y-0.5">
+									<li className={senhaRequisitos.len ? "text-emerald-400" : undefined}>• Mínimo 6 caracteres</li>
+									<li className={senhaRequisitos.maiuscula ? "text-emerald-400" : undefined}>• Pelo menos 1 letra maiúscula</li>
+									<li className={senhaRequisitos.especial ? "text-emerald-400" : undefined}>• Pelo menos 1 caractere especial</li>
+								</ul>
+							</div>
 						</div>
 
 						{/* carreira e curso */}
