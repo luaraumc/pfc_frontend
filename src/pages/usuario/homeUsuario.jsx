@@ -649,14 +649,6 @@ export default function HomeUsuario() {
 													</button>
 													<div className={`${salvando ? 'opacity-60' : ''}`}>
 														<div className="text-slate-200 font-medium">{h.nome}</div>
-														{possui && (
-															<span
-																className="mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-emerald-900/60 border border-emerald-600 text-emerald-200"
-																aria-label="Habilidade já cadastrada"
-															>
-																já possuída
-															</span>
-														)}
 													</div>
 												</div>
 											);
