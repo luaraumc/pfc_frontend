@@ -238,30 +238,42 @@ export default function EditarPerfil() {
 		}
 	}
 
+	// Função para scroll suave para o topo
+	const scrollToTop = (e) => {
+		e.preventDefault();
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+
 	if(loading){
     	return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-slate-300">Carregando...</div>
   	}
 
 	// HTML
   	return (
-		<div className="min-h-screen bg-slate-900 text-slate-200">
+		<div className="min-h-screen bg-slate-900 text-slate-200 pt-16">
 
 			{/* HEADER */}
-			<header className="w-full border-b border-slate-800 bg-slate-950/80">
+			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
 				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
-					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
+					<a
+						href="#topo"
+						onClick={scrollToTop}
+						className="text-xl font-semibold text-indigo-300 hover:text-indigo-200"
+						aria-label="Voltar ao topo"
+					>
 						<img
 							src={logoRumoTechno}
 							alt="RumoTechno"
-							className="h-10 w-auto transition-transform duration-200 ease-out hover:scale-103"
+							className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
 						/>
-					</Link>
+					</a>
+					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
+					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
 					<div className="flex items-center gap-3">
 						<Link
 							to="/usuario/editar-perfil"
 							className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
 						>
-	
 							<span>Editar Perfil</span>
 						</Link>
 						<button
