@@ -165,34 +165,69 @@ export default function Home() {
 							contribuem para o seu crescimento profissional.
 						</p>
 
-						{/* Cards com alternância de cores */}
-						<div className="grid md:grid-cols-3 gap-6 mt-12">
-							<div className="rounded-md border border-slate-800 odd:bg-slate-900/40 even:bg-slate-950/40 hover:bg-slate-800/40 transition p-6">
-								<h3 className="text-lg font-semibold text-slate-100 mb-2">Coleta de Vagas</h3>
-								<img src={coletaIcon} alt="Ícone de coleta de vagas" className="mx-auto mb-3 h-12 w-12 object-contain" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-								<p className="text-slate-400">
-									Buscamos dados em plataformas reais como LinkedIn, Indeed e Catho.
-								</p>
+						{/* Cards com padrão visual dos cursos */}
+						<div className="grid md:grid-cols-3 gap-8 mt-12">
+							<div className="group">
+								<div className="bg-gradient-to-br from-slate-950/60 to-slate-900/40 border border-slate-700 hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10 rounded-lg transition-all duration-300 p-6 h-full flex flex-col">
+									{/* Header com ícone */}
+									<div className="flex items-center justify-center mb-4">
+										<div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
+											<img src={coletaIcon} alt="Ícone de coleta de vagas" className="w-6 h-6 object-contain brightness-0 invert" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+										</div>
+									</div>
+									
+									{/* Conteúdo */}
+									<div className="flex-1 text-center">
+										<h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors mb-3">
+											Coleta de Vagas
+										</h3>
+										<p className="text-slate-300 text-sm leading-relaxed">
+											Buscamos dados em plataformas reais como LinkedIn, Indeed e Catho.
+										</p>
+									</div>
+								</div>
 							</div>
-							<div className="rounded-md border border-slate-800 odd:bg-slate-900/40 even:bg-slate-950/40 hover:bg-slate-800/40 transition p-6">
-								<h3 className="text-lg font-semibold text-slate-100 mb-2">Comparação Inteligente</h3>
-								<img src={compareIcon} alt="Ícone de comparação inteligente" className="mx-auto mb-3 h-12 w-12 object-contain" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-								<p className="text-slate-400">
-									Comparamos as habilidades do mercado com as suas, em tempo real.
-								</p>
+
+							<div className="group">
+								<div className="bg-gradient-to-br from-slate-950/60 to-slate-900/40 border border-slate-700 hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10 rounded-lg transition-all duration-300 p-6 h-full flex flex-col">
+									
+									{/* Conteúdo */}
+									{/* Header com ícone */}
+									<div className="flex items-center justify-center mb-4">
+										<div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
+											<img src={compareIcon} alt="Ícone de comparação inteligente" className="w-6 h-6 object-contain brightness-0 invert" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+										</div>
+									</div>
+									<div className="flex-1 text-center">
+										<h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors mb-3">
+											Comparação Inteligente
+										</h3>
+										<p className="text-slate-300 text-sm leading-relaxed">
+											Comparamos as habilidades do mercado com as suas, em tempo real.
+										</p>
+									</div>
+								</div>
 							</div>
-							<div className="rounded-md border border-slate-800 odd:bg-slate-900/40 even:bg-slate-950/40 hover:bg-slate-800/40 transition p-6">
-								<h3 className="text-lg font-semibold text-slate-100 mb-2 ">Recomendação de Faculdades</h3>
-								<img
-									src={recomendationIcon}
-									alt="Ícone de recomendação de faculdades"
-									className="mx-auto mb-3 h-12 w-12 object-contain"
-									loading="lazy"
-									onError={(e) => { e.currentTarget.style.display = 'none'; }}
-								/>
-								<p className="text-slate-400">
-									Recomendamos cursos e instituições alinhados às competências que faltam para seu objetivo.
-								</p>
+
+							<div className="group">
+								<div className="bg-gradient-to-br from-slate-950/60 to-slate-900/40 border border-slate-700 hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10 rounded-lg transition-all duration-300 p-6 h-full flex flex-col">
+									{/* Header com ícone */}
+									<div className="flex items-center justify-center mb-4">
+										<div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
+											<img src={recomendationIcon} alt="Ícone de recomendação de faculdades" className="w-6 h-6 object-contain brightness-0 invert" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+										</div>
+									</div>
+									
+									{/* Conteúdo */}
+									<div className="flex-1 text-center">
+										<h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors mb-3">
+											Recomendação de Faculdades
+										</h3>
+										<p className="text-slate-300 text-sm leading-relaxed">
+											Recomendamos cursos e instituições alinhados às competências que faltam para seu objetivo.
+										</p>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
