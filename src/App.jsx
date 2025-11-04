@@ -8,6 +8,7 @@ import RecuperarSenha from './pages/recuperar-senha.jsx'
 import Home from './pages/home.jsx'
 import HomeUsuario from './pages/usuario/homeUsuario.jsx'
 import EditarPerfil from './pages/usuario/editarPerfil.jsx'
+import Cursos from './pages/usuario/Cursos.jsx'
 import HomeAdmin from './pages/admin/homeAdmin.jsx'
 import AdminCurso from './pages/admin/curso.jsx'
 import AdminConhecimento from './pages/admin/conhecimento.jsx'
@@ -27,6 +28,7 @@ function App() {
         <Route element={<RequireAuth />}>
           <Route path="/homeUsuario" element={<HomeUsuario />} />
           <Route path="/usuario/editar-perfil" element={<EditarPerfil />} />
+          <Route path="/usuario/cursos" element={<Cursos />} />
         </Route>
         <Route element={<RequireAdmin />}>
           <Route path="/homeAdmin" element={<HomeAdmin />} />
