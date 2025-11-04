@@ -404,9 +404,11 @@ export default function HomeUsuario() {
 						<img
 							src={logoRumoTechno}
 							alt="RumoTechno"
-							className="h-10 w-auto transition-transform duration-200 ease-out hover:scale-103"
+							className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
 						/>
 					</a>
+					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
+					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
 					<div className="flex items-center gap-3">
 						<Link
 							to="/usuario/editar-perfil"
@@ -427,10 +429,10 @@ export default function HomeUsuario() {
 			<main className="max-w-6xl mx-auto px-4 py-10">
 
 				{/* título */}
-				<h1 className="text-2xl font-semibold text-center">Olá{nome ? `, ${nome}` : ''}!</h1>
+				<h1 className="text-3xl font-bold text-white mb-2">Olá{nome ? `, ${nome}` : ''}!</h1>
 
 				{/* descrição */}
-				<p className="mt-2 text-slate-300 text-center">Cadastre suas habilidades e veja quais carreiras de TI mais combinam com você!
+				<p className="text-slate-400">Cadastre suas habilidades e veja quais carreiras de TI mais combinam com você!
 					Nosso sistema compara suas habilidades com as mais procuradas no mercado e mostra o quanto você está preparado para cada área.
 				</p>
 
