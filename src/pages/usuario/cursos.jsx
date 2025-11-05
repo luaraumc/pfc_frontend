@@ -165,7 +165,7 @@ export default function Cursos() {
 				<div className="mb-8">
 					<h1 className="text-3xl font-bold text-white mb-2">Explore os Cursos</h1>
 					<p className="text-slate-400">
-						Descubra os conhecimentos que cada curso oferece e as carreiras mais compatíveis
+						Informações sobre cada curso e as carreiras mais compatíveis
 					</p>
 				</div>
 
