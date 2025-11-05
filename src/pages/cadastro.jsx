@@ -68,12 +68,13 @@ export default function CadastroUsuario() {
 
 	// Requisitos de senha: mínimo 6 caracteres, 1 maiúscula, 1 caractere especial
 	const senhaRequisitos = useMemo(() => {
-		return {
-			len: senha.length >= 6,
-			maiuscula: /[A-Z]/.test(senha),
-			especial: /[^A-Za-z0-9]/.test(senha)
-		};
-	}, [senha]);
+        return {
+            len: senha.length >= 6,
+            maiuscula: /[A-Z]/.test(senha),
+            especial: /[^A-Za-z0-9]/.test(senha),
+            semEspacos: !/\s/.test(senha),
+        };
+    }, [senha]);
 
 	// Carrega carreiras e cursos em paralelo
 	useEffect(() => {
@@ -109,14 +110,15 @@ export default function CadastroUsuario() {
 	// Validação dos campos do formulário
 	function validarCampos() {
 		if (!nome.trim()) return "Informe o nome";
-	if (!email.trim() || !emailValido) return "Informe um e-mail válido.";
-		if (!senha) return "Informe a senha";
-		if (!(senhaRequisitos.len && senhaRequisitos.maiuscula && senhaRequisitos.especial)) {
-			return "A senha deve conter no mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial";
-		}
-		if (!carreiraId) return "Selecione a carreira";
-		if (!cursoId) return "Selecione o curso";
-		return null;
+        if (!email.trim() || !emailValido) return "Informe um e-mail válido.";
+        if (!senha) return "Informe a senha";
+        if (!senhaRequisitos.semEspacos) return "A senha não pode conter espaços";
+        if (!(senhaRequisitos.len && senhaRequisitos.maiuscula && senhaRequisitos.especial)) {
+            return "A senha deve conter no mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial";
+        }
+        if (!carreiraId) return "Selecione a carreira";
+        if (!cursoId) return "Selecione o curso";
+        return null;
 	}
 
 	// Envio do formulário
@@ -245,6 +247,12 @@ export default function CadastroUsuario() {
 								type="password"
 								value={senha}
 								onChange={(e) => setSenha(e.target.value)}
+								onKeyDown={(e) => { if (e.key === " ") e.preventDefault(); }}
+								onPaste={(e) => {
+									const pasted = (e.clipboardData.getData("text") || "").replace(/\s/g, "");
+									e.preventDefault();
+									setSenha((prev) => (prev ? (prev + pasted) : pasted));
+								}}
 								placeholder="Mínimo 6 caracteres"
 								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 								autoComplete="new-password"
@@ -254,6 +262,7 @@ export default function CadastroUsuario() {
 									<li className={senhaRequisitos.len ? "text-emerald-400" : undefined}>• Mínimo 6 caracteres</li>
 									<li className={senhaRequisitos.maiuscula ? "text-emerald-400" : undefined}>• Pelo menos 1 letra maiúscula</li>
 									<li className={senhaRequisitos.especial ? "text-emerald-400" : undefined}>• Pelo menos 1 caractere especial</li>
+									<li className={senhaRequisitos.semEspacos ? "text-emerald-400" : undefined}>• Sem espaços</li>
 								</ul>
 							</div>
 						</div>
