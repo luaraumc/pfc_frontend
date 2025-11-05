@@ -432,7 +432,8 @@ export default function HomeUsuario() {
 				<h1 className="text-3xl font-bold text-white mb-2">Olá{nome ? `, ${nome}` : ''}!</h1>
 
 				{/* descrição */}
-				<p className="text-slate-400">Cadastre suas habilidades e veja quais carreiras de TI mais combinam com você!
+				<p className="mt-2 text-slate-300 text-center">Cadastre suas habilidades e veja quais carreiras de TI mais combinam com você</p>
+				<p className="text-slate-300 text-center">
 					Nosso sistema compara suas habilidades com as mais procuradas no mercado e mostra o quanto você está preparado para cada área.
 				</p>
 
@@ -592,13 +593,13 @@ export default function HomeUsuario() {
 				</section>
 
 				{/* Cadastro rápido por busca global de habilidades */}
-				<section className="mt-12">
-					<h2 className="text-xl font-semibold text-slate-200">Adicionar habilidade por busca</h2>
-					<p className="text-slate-400 text-sm mt-1">Encontre e cadastre uma habilidade sem precisar abrir cada carreira.</p>
+				<section className="mt-12 mb-20">
+					<h2 className="text-xl font-semibold text-slate-200 text-center">Adicionar habilidade por busca</h2>
+					<p className="text-slate-400 text-sm mt-1 text-center">Encontre e cadastre uma habilidade.</p>
 					<div className="mt-3">
 						<input
 							type="text"
-							placeholder="Digite parte do nome da habilidade (ex.: Python, React, SQL)"
+							placeholder="Digite o nome da habilidade (ex.: Python, React, SQL)"
 							value={buscaGlobal}
 							onChange={(e) => setBuscaGlobal(e.target.value)}
 							className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
