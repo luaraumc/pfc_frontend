@@ -109,10 +109,10 @@ export default function CadastroUsuario() {
 	// Validação dos campos do formulário
 	function validarCampos() {
 		if (!nome.trim()) return "Informe o nome";
-	if (!email.trim() || !emailValido) return "Informe um e-mail válido";
+	if (!email.trim() || !emailValido) return "Informe um e-mail válido.";
 		if (!senha) return "Informe a senha";
 		if (!(senhaRequisitos.len && senhaRequisitos.maiuscula && senhaRequisitos.especial)) {
-			return "A senha deve ter no mínimo 6 caracteres, pelo menos 1 letra maiúscula e 1 caractere especial";
+			return "A senha deve conter no mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial";
 		}
 		if (!carreiraId) return "Selecione a carreira";
 		if (!cursoId) return "Selecione o curso";
@@ -151,12 +151,13 @@ export default function CadastroUsuario() {
 				const msg = data?.detail || data?.message || `Erro ao cadastrar (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
-			setMensagem(data?.message || "Usuário cadastrado com sucesso");
-			setNome("");
-			setEmail("");
-			setSenha("");
-			setCarreiraId("");
-			setCursoId("");
+				setMensagem(data?.message || "Usuário cadastrado com sucesso! Redirecionando para login...");
+				setNome("");
+				setEmail("");
+				setSenha("");
+				setCarreiraId("");
+				setCursoId("");
+				navigate("/login", { replace: true });	// redireciona para página de login após sucesso
 		} catch (e) {
 			setErro(e.message ?? "Falha ao cadastrar");
 		} finally {
@@ -234,9 +235,6 @@ export default function CadastroUsuario() {
 								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 								autoComplete="email"
 							/>
-							<div className="mt-1 text-xs text-slate-400">
-								Use um e-mail cujo domínio contenha ".com" (ex.: usuario@dominio.com, usuario@dominio.com.br).
-							</div>
 						</div>
 
 						{/* senha */}
@@ -252,7 +250,6 @@ export default function CadastroUsuario() {
 								autoComplete="new-password"
 							/>
 							<div className="mt-1 text-xs text-slate-400">
-								<p>Mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial.</p>
 								<ul className="mt-1 space-y-0.5">
 									<li className={senhaRequisitos.len ? "text-emerald-400" : undefined}>• Mínimo 6 caracteres</li>
 									<li className={senhaRequisitos.maiuscula ? "text-emerald-400" : undefined}>• Pelo menos 1 letra maiúscula</li>
