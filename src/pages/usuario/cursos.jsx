@@ -143,7 +143,7 @@ export default function Cursos() {
                         />
                     </a>
                     <a className="text-lg font-medium text-white hover:text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
-                    <a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
+                    <a className="text-lg font-medium text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
                     <div className="flex items-center gap-3">
                         <Link
                             to="/usuario/editar-perfil"
@@ -163,9 +163,9 @@ export default function Cursos() {
 			{/* CONTENT */}
 			<main className="container mx-auto px-6 py-8 max-w-6xl">
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-white mb-2">Explore os Cursos</h1>
-					<p className="text-slate-400">
-						Descubra os conhecimentos que cada curso oferece e as carreiras mais compatíveis
+					<h1 className="text-3xl font-bold text-white mb-2 text-center">Explore os Cursos</h1>
+					<p className="text-slate-400 text-center">
+						Descubra os conhecimentos que cada curso oferece e as carreiras mais compatíveis.
 					</p>
 				</div>
 
@@ -272,7 +272,7 @@ export default function Cursos() {
 																		key={carreira.id}
 																		className="flex items-center justify-between p-2 bg-slate-950/50 rounded border border-slate-700 hover:border-slate-600 transition-colors"
 																	>
-																		<div className="flex items-center">
+																		<div className="flex items-start min-w-0">
 																			<div className={`
 																				w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3
 																				${index === 0 ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white' :
@@ -282,14 +282,9 @@ export default function Cursos() {
 																			`}>
 																				{index + 1}
 																			</div>
-																			<span className="text-slate-200 font-medium text-sm">
-																				{carreira.nome.length > 20 ? carreira.nome.substring(0, 20) + '...' : carreira.nome}
+																			<span className="text-slate-200 font-medium text-sm break-words whitespace-normal leading-snug pr-1">
+																				{carreira.nome}
 																			</span>
-																		</div>
-																		<div className="text-right">
-																			<div className="text-indigo-400 font-semibold text-sm">
-																				{(carreira.score || 0).toFixed(2)}
-																			</div>
 																		</div>
 																	</div>
 																))}
