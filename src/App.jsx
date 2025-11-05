@@ -6,9 +6,10 @@ import CadastroUsuario from './pages/cadastro.jsx'
 import Login from './pages/login.jsx'
 import RecuperarSenha from './pages/recuperar-senha.jsx'
 import Home from './pages/home.jsx'
+import Privacidade from './pages/privacidade.jsx'
 import HomeUsuario from './pages/usuario/homeUsuario.jsx'
 import EditarPerfil from './pages/usuario/editarPerfil.jsx'
-import Cursos from './pages/usuario/Cursos.jsx'
+import Cursos from './pages/usuario/cursos.jsx'
 import HomeAdmin from './pages/admin/homeAdmin.jsx'
 import AdminCurso from './pages/admin/curso.jsx'
 import AdminConhecimento from './pages/admin/conhecimento.jsx'
@@ -25,6 +26,7 @@ function App() {
         <Route path="/cadastro" element={<CadastroUsuario />} />
         <Route path="/login" element={<Login />} />
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+        <Route path="/privacidade" element={<Privacidade />} />
         <Route element={<RequireAuth />}>
           <Route path="/homeUsuario" element={<HomeUsuario />} />
           <Route path="/usuario/editar-perfil" element={<EditarPerfil />} />
