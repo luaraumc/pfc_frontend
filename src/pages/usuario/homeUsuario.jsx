@@ -407,7 +407,7 @@ export default function HomeUsuario() {
 							className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
 						/>
 					</a>
-					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
+					<a className="text-lg font-medium text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
 					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
 					<div className="flex items-center gap-3">
 						<Link
@@ -426,10 +426,10 @@ export default function HomeUsuario() {
 			</header>
 
 			{/* CONTEÚDO PRINCIPAL */}
-			<main className="max-w-6xl mx-auto px-4 py-10">
+			<main className="max-w-6xl mx-auto px-4 py-8">
 
 				{/* título */}
-				<h1 className="text-3xl font-bold text-white mb-2">Olá{nome ? `, ${nome}` : ''}!</h1>
+				<h1 className="text-3xl font-bold text-white mb-4 text-center">Olá{nome ? `, ${nome}` : ''}!</h1>
 
 				{/* descrição */}
 				<p className="mt-2 text-slate-300 text-center">Cadastre suas habilidades e veja quais carreiras de TI mais combinam com você</p>
