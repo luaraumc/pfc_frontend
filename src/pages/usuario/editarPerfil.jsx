@@ -323,7 +323,7 @@ export default function EditarPerfil() {
 
 				{/* Seção de Dados */}
 				{secao === 'dados' && (
-					<form onSubmit={handleSubmit} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário atualizar dados">
+					<form onSubmit={handleSubmit} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-xl mx-auto" role="tabpanel" aria-label="Formulário atualizar dados">
 						{error && <div className="text-sm text-red-400 bg-red-950/40 border border-red-700 px-3 py-2 rounded">{error}</div>}
 						{message && <div className="text-sm text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-3 py-2 rounded">{message}</div>}
 						{/* Nome */}
@@ -359,11 +359,11 @@ export default function EditarPerfil() {
 
 				{/* Seção de Senha */}
 				{secao === 'senha' && (
-					<form onSubmit={confirmarNovaSenha} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário atualizar senha">
+					<form onSubmit={confirmarNovaSenha} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-xl mx-auto" role="tabpanel" aria-label="Formulário atualizar senha">
 						{senhaErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{senhaErr}</div>}
 						{senhaMsg && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{senhaMsg}</div>}
 						{/* Email */}
-						<div className="text-sm text-slate-300">O código será enviado para o email cadastrado na sua conta.</div>
+						<div className="text-sm text-slate-300 text-center">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
 						<div className="flex gap-2">
 							<button type="button" onClick={solicitarCodigoSenha} disabled={!usuarioEmail || senhaLoading} className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm">Enviar Código</button>
@@ -381,19 +381,19 @@ export default function EditarPerfil() {
 
 				{/* Seção de Exclusão */}
 				{secao === 'excluir' && (
-					<form onSubmit={excluirConta} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário excluir conta">
+					<form onSubmit={excluirConta} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-xl mx-auto" role="tabpanel" aria-label="Formulário excluir conta">
 						{excluirErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{excluirErr}</div>}
 						{excluirMsg && <div className="text-xs text-amber-300 bg-amber-900/30 border border-amber-600 px-2 py-1 rounded">{excluirMsg}</div>}
 						<p className="text-sm text-slate-300 leading-snug text-center">ATENÇÃO! Esta ação é definitiva e não poderá ser desfeita.</p>
 						{/* Email */}
-						<div className="text-sm text-slate-300">O código será enviado para o email cadastrado na sua conta.</div>
+						<div className="text-sm text-slate-300 text-center">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
 						<div className="flex gap-2">
 							<button type="button" onClick={solicitarCodigoExclusao} disabled={!usuarioEmail || excluirLoading} className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm">Enviar Código</button>
 							<input placeholder="Código" value={codigoExclusao} onChange={e=>setCodigoExclusao(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
 						{/* Botão Excluir */}
-						<button type="submit" disabled={excluirLoading} className="w-full items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40">{excluirLoading ? 'Excluindo...' : 'Excluir Conta'}</button>
+						<button type="submit" disabled={excluirLoading} className="w-full items-center gap-2 px-3 py-2 rounded-md bg-red-700 text-red-200 hover:bg-red-900">{excluirLoading ? 'Excluindo...' : 'Excluir Conta'}</button>
 					</form>
 				)}
 			</main>
