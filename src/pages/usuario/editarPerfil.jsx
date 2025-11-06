@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom"; // criar links de navegação para redirecionar o usuário e voltar
-import { useEffect, useState } from "react"; // estados e efeitos
+import { useEffect, useMemo, useState } from "react"; // estados e efeitos
 import { authFetch } from "../../utils/auth"; // fetch autenticado com renovação automática de token
 import { logoutRedirecionar } from "../../utils/auth"; // logout e redirecionamento
 import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
@@ -26,6 +26,7 @@ export default function EditarPerfil() {
     const [secao, setSecao] = useState('dados') // 'dados' | 'senha' | 'excluir'
 
 	// Alterar senha
+	const [senha, setSenha] = useState("");
 	const [codigoSenha, setCodigoSenha] = useState('')
 	const [novaSenha, setNovaSenha] = useState('')
 	const [senhaMsg, setSenhaMsg] = useState(null)
@@ -37,6 +38,41 @@ export default function EditarPerfil() {
 	const [excluirMsg, setExcluirMsg] = useState(null)
 	const [excluirErr, setExcluirErr] = useState(null)
 	const [excluirLoading, setExcluirLoading] = useState(false)
+	const [excluirCodigoLoading, setExcluirCodigoLoading] = useState(false)
+
+	// Requisitos de senha: mínimo 6 caracteres, 1 maiúscula, 1 caractere especial
+		const senhaRequisitos = useMemo(() => {
+			return {
+				len: senha.length >= 6,
+				maiuscula: /[A-Z]/.test(senha),
+				especial: /[^A-Za-z0-9]/.test(senha),
+				semEspacos: !/\s/.test(senha),
+			};
+		}, [senha]);
+
+		// Requisitos aplicados à nova senha (campo de atualização de senha)
+		const novaSenhaRequisitos = useMemo(() => {
+			return {
+				len: (novaSenha || '').length >= 6,
+				maiuscula: /[A-Z]/.test(novaSenha || ''),
+				especial: /[^A-Za-z0-9]/.test(novaSenha || ''),
+				semEspacos: !/\s/.test(novaSenha || ''),
+			};
+		}, [novaSenha]);
+
+	// Validação dos campos do formulário
+	function validarCampos() {
+		if (!nome.trim()) return "Informe o nome";
+        if (!email.trim() || !emailValido) return "Informe um e-mail válido.";
+        if (!senha) return "Informe a senha";
+        if (!senhaRequisitos.semEspacos) return "A senha não pode conter espaços";
+        if (!(senhaRequisitos.len && senhaRequisitos.maiuscula && senhaRequisitos.especial)) {
+            return "A senha deve conter no mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial";
+        }
+        if (!carreiraId) return "Selecione a carreira";
+        if (!cursoId) return "Selecione o curso";
+        return null;
+	}
 
 	// Carrega dados do usuário
 	useEffect(() => {
@@ -172,9 +208,39 @@ export default function EditarPerfil() {
 			const resp = await authFetch(`${API_URL}/usuario/atualizar-senha/${usuarioId}`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: usuarioEmail, codigo: codigoSenha, nova_senha: novaSenha }) // converte para JSON
+				body: JSON.stringify({ email: usuarioEmail, codigo: codigoSenha, nova_senha: (novaSenha||'').replace(/\s/g,'') }) // converte para JSON e remove espaços
 			})
-			if (!resp.ok) throw new Error(await resp.text() || 'Erro ao atualizar senha')
+			if (!resp.ok) {
+				const text = await resp.text();
+				let msg = '';
+				try {
+					const json = JSON.parse(text);
+					const detail = json?.detail;
+					if (typeof detail === 'string') {
+						msg = detail;
+					} else if (Array.isArray(detail)) {
+						// coletar mensagens referentes à nova_senha ou gerais
+						const msgs = detail
+							.filter(d => d?.msg)
+							.map(d => {
+								let m = String(d.msg);
+								// remover prefixo do campo se presente
+								m = m.replace(/^\s*nova_senha\s*:?\s*/i, '');
+								return m;
+							})
+							.filter(Boolean);
+						if (msgs.length) msg = msgs.join(' ');
+					}
+				} catch {}
+				if (!msg) msg = text || `Erro ${resp.status}`;
+				// normalizações e mensagens mais amigáveis
+				if (/c[oó]digo inválido/i.test(msg)) msg = 'Código inválido. Verifique o código enviado ao seu e-mail e tente novamente.';
+				if (/c[oó]digo expirado/i.test(msg)) msg = 'Código expirado. Solicite um novo código e tente novamente.';
+				if (/mínimo\s*6/i.test(msg)) msg = 'A nova senha deve ter no mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial.';
+				// garante remoção de qualquer prefixo residual
+				msg = msg.replace(/^\s*nova_senha\s*:?\s*/i, '');
+				throw new Error(msg);
+			}
 			const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
 			setSenhaMsg(data.message || 'Senha atualizada')
 			setCodigoSenha('')
@@ -191,7 +257,7 @@ export default function EditarPerfil() {
 		e.preventDefault() // evita reload da página
 		setExcluirErr(null); setExcluirMsg(null)
 		try {
-			setExcluirLoading(true)
+			setExcluirCodigoLoading(true)
 			if (!usuarioEmail) throw new Error('Email do usuário não disponível')
 			// chama backend
 			const resp = await fetch(`${API_URL}/usuario/solicitar-codigo/exclusao-conta`, {
@@ -205,7 +271,7 @@ export default function EditarPerfil() {
 		} catch (err) {
 			setExcluirErr(err.message)
 		} finally {
-			setExcluirLoading(false)
+			setExcluirCodigoLoading(false)
 		}
 	}
 
@@ -223,7 +289,21 @@ export default function EditarPerfil() {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ email: usuarioEmail, codigo: codigoExclusao, motivo: 'exclusao_conta' })
 		})
-		if (!resp.ok) throw new Error(await resp.text() || 'Erro ao excluir conta')
+		if (!resp.ok) {
+			const text = await resp.text();
+			let msg = '';
+			try {
+				const json = JSON.parse(text);
+				const detail = json?.detail;
+				if (typeof detail === 'string') msg = detail;
+				if (Array.isArray(detail) && detail[0]?.msg) msg = String(detail[0].msg);
+			} catch {}
+			if (!msg) msg = text || `Erro ${resp.status}`;
+			// mensagens mais amigáveis
+			if (/c[oó]digo inválido/i.test(msg)) msg = 'Código inválido. Verifique o código enviado ao seu e-mail e tente novamente.';
+			if (/c[oó]digo expirado/i.test(msg)) msg = 'Código expirado. Solicite um novo código e tente novamente.';
+			throw new Error(msg);
+		}
 		const data = await resp.json().catch(() => ({})) // converte resposta em JSON, se falhar retorna objeto vazio
 		setExcluirMsg(data.message || 'Conta excluída')
 		// limpa localStorage e redireciona para home após delay de 1.5s
@@ -372,8 +452,16 @@ export default function EditarPerfil() {
 						{/* Nova Senha */}
 						<div>
 							<label className="block text-xs mb-1">Nova Senha</label>
-							<input type="password" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
+							<input type="password" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} onKeyDown={(e)=>{ if(e.key===' ') e.preventDefault(); }} 
+							onPaste={(e)=>{ const pasted=(e.clipboardData.getData('text')||'').replace(/\s/g,''); e.preventDefault(); setNovaSenha(prev=>prev? prev + pasted : pasted); }} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
+						<div className="mt-1 text-xs text-slate-400">
+									<ul className="mt-1 space-y-0.5">
+										<li className={novaSenhaRequisitos.len ? "text-emerald-400" : undefined}>• Mínimo 6 caracteres</li>
+										<li className={novaSenhaRequisitos.maiuscula ? "text-emerald-400" : undefined}>• Pelo menos 1 letra maiúscula</li>
+										<li className={novaSenhaRequisitos.especial ? "text-emerald-400" : undefined}>• Pelo menos 1 caractere especial</li>
+									</ul>
+							</div>
 						{/* Botão Confirmar */}
 						<button type="submit" disabled={senhaLoading} className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded py-2 text-sm">{senhaLoading ? 'Processando...' : 'Atualizar Senha'}</button>
 					</form>
@@ -383,13 +471,13 @@ export default function EditarPerfil() {
 				{secao === 'excluir' && (
 					<form onSubmit={excluirConta} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-xl mx-auto" role="tabpanel" aria-label="Formulário excluir conta">
 						{excluirErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{excluirErr}</div>}
-						{excluirMsg && <div className="text-xs text-amber-300 bg-amber-900/30 border border-amber-600 px-2 py-1 rounded">{excluirMsg}</div>}
+						{excluirMsg && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{excluirMsg}</div>}
 						<p className="text-sm text-slate-300 leading-snug text-center">ATENÇÃO! Esta ação é definitiva e não poderá ser desfeita.</p>
 						{/* Email */}
 						<div className="text-sm text-slate-300 text-center">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
 						<div className="flex gap-2">
-							<button type="button" onClick={solicitarCodigoExclusao} disabled={!usuarioEmail || excluirLoading} className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm">Enviar Código</button>
+							<button type="button" onClick={solicitarCodigoExclusao} disabled={!usuarioEmail || excluirCodigoLoading} className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm">{excluirCodigoLoading ? 'Enviando…' : 'Enviar Código'}</button>
 							<input placeholder="Código" value={codigoExclusao} onChange={e=>setCodigoExclusao(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
 						{/* Botão Excluir */}

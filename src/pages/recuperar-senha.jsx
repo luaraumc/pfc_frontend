@@ -59,6 +59,16 @@ export default function RecuperarSenha() {
 	// Definindo e-mail válido (com @ e .)
 	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]);
 
+	// Requisitos aplicados à nova senha (campo de redefinição)
+	const novaSenhaRequisitos = useMemo(() => {
+		return {
+			len: (novaSenha || '').length >= 6,
+			maiuscula: /[A-Z]/.test(novaSenha || ''),
+			especial: /[^A-Za-z0-9]/.test(novaSenha || ''),
+			semEspacos: !/\s/.test(novaSenha || ''),
+		};
+	}, [novaSenha]);
+
 	// Validando e-mail
 	function validarEmail() {
 		if (!email.trim() || !emailValido) return "Informe um e-mail válido"; // trim() remove espaços em branco no início e fim
@@ -71,6 +81,7 @@ export default function RecuperarSenha() {
 		if (!codigo.trim() || codigo.trim().length !== 6) return "Informe o código de 6 dígitos";
 		if (!novaSenha) return "Informe a nova senha";
 		if (novaSenha.length < 6) return "A senha deve ter pelo menos 6 caracteres";
+			if (/\s/.test(novaSenha) || /\s/.test(confirmarSenha)) return "A senha não pode conter espaços";
 		if (novaSenha !== confirmarSenha) return "As senhas não coincidem";
 		return null;
 	}
@@ -122,14 +133,38 @@ export default function RecuperarSenha() {
 			const res = await fetch(`${API_URL}/auth/recuperar-senha/`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email: email.trim(), codigo: codigo.trim(), nova_senha: novaSenha }), // converte para JSON
+				body: JSON.stringify({ email: email.trim(), codigo: codigo.trim(), nova_senha: (novaSenha||'').replace(/\s/g,'') }), // converte para JSON e remove espaços
 			});
-			const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
+			const raw = await res.text();
+			let data = {};
+			try { data = JSON.parse(raw); } catch {}
 			if (!res.ok) {
-				const msg = data?.detail || data?.message || `Falha ao atualizar senha (HTTP ${res.status})`;
-				throw new Error(msg);
+				let msg = '';
+				const detail = data?.detail;
+				if (typeof detail === 'string') {
+					msg = detail;
+				} else if (Array.isArray(detail)) {
+					const msgs = detail
+						.filter(d => d?.msg)
+						.map(d => {
+							let m = String(d.msg);
+							m = m.replace(/^\s*nova_senha\s*:?\s*/i, '');
+							return m;
+						})
+						.filter(Boolean);
+					if (msgs.length) msg = msgs.join(' ');
+				}
+				if (!msg) msg = data?.message || raw || `Falha ao atualizar senha (HTTP ${res.status})`;
+				// normalizações
+				if (/c[oó]digo inválido/i.test(msg)) msg = 'Código inválido. Verifique o código enviado ao seu e-mail e tente novamente.';
+				if (/c[oó]digo expirado/i.test(msg)) msg = 'Código expirado. Solicite um novo código e tente novamente.';
+				if (/mínimo\s*6/i.test(msg)) msg = 'A nova senha deve ter no mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial.';
+				msg = msg.replace(/^\s*nova_senha\s*:?\s*/i, '');
+				setErro(msg);
+				return;
 			}
-			setMensagem(data?.detail || data?.message || "Senha atualizada com sucesso");
+			const sucesso = data?.detail || data?.message || 'Senha atualizada com sucesso';
+			setMensagem(String(sucesso).replace(/^\s*nova_senha\s*:?\s*/i, ''));
 		} catch (e) {
 			setErro(e.message ?? "Erro ao atualizar senha");
 		} finally {
@@ -252,10 +287,19 @@ export default function RecuperarSenha() {
 									type="password"
 									value={novaSenha}
 									onChange={(e) => setNovaSenha(e.target.value)}
+									onKeyDown={(e) => { if (e.key === ' ') e.preventDefault(); }}
+									onPaste={(e) => { const pasted=(e.clipboardData.getData('text')||'').replace(/\s/g,''); e.preventDefault(); setNovaSenha(prev=>prev? prev + pasted : pasted); }}
 									placeholder="Mínimo 6 caracteres"
 									autoComplete="new-password"
 									className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 								/>
+								<div className="mt-1 text-xs text-slate-400">
+									<ul className="mt-1 space-y-0.5">
+										<li className={novaSenhaRequisitos.len ? "text-emerald-400" : undefined}>• Mínimo 6 caracteres</li>
+										<li className={novaSenhaRequisitos.maiuscula ? "text-emerald-400" : undefined}>• Pelo menos 1 letra maiúscula</li>
+										<li className={novaSenhaRequisitos.especial ? "text-emerald-400" : undefined}>• Pelo menos 1 caractere especial</li>
+									</ul>
+								</div>
 							</div>
 
 							{/* confirmar nova senha */}
@@ -266,6 +310,8 @@ export default function RecuperarSenha() {
 									type="password"
 									value={confirmarSenha}
 									onChange={(e) => setConfirmarSenha(e.target.value)}
+									onKeyDown={(e) => { if (e.key === ' ') e.preventDefault(); }}
+									onPaste={(e) => { const pasted=(e.clipboardData.getData('text')||'').replace(/\s/g,''); e.preventDefault(); setConfirmarSenha(prev=>prev? prev + pasted : pasted); }}
 									placeholder="Repita a nova senha"
 									autoComplete="new-password"
 									className="mb-2 w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
