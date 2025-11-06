@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react"; // useMemo: armazenamento em cache | useState: gerenciar estado de componentes
+import { useMemo, useState, useEffect } from "react"; // + useEffect
 import { useNavigate, Link } from "react-router-dom"; // navegação programática (voltar)
-import { authFetch, transformarJwt } from "../utils/auth"; // fetch autenticado com renovação automática de token
+import { authFetch, transformarJwt, getAccessToken, VerificarTokenExpirado, refreshAccessToken } from "../utils/auth"; // importa utilitários faltantes
 import logoRumoTechno from "../../images/rumotechno-logo.svg";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
