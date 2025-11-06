@@ -43,6 +43,19 @@ export default function AdminConhecimento() {
   const [erroAtualizar, setErroAtualizar] = useState("");
   const [mensagemAtualizar, setMensagemAtualizar] = useState("");
 
+  // Vincular/Editar categorias do conhecimento
+  const [categorias, setCategorias] = useState([]);
+  const [kcConhecimentoId, setKcConhecimentoId] = useState("");
+  const [kcRelacoes, setKcRelacoes] = useState([]);
+  const [kcCarregando, setKcCarregando] = useState(false);
+  const [kcErro, setKcErro] = useState("");
+  const [kcMsg, setKcMsg] = useState("");
+  const [kcCategoriaId, setKcCategoriaId] = useState("");
+  const [kcPeso, setKcPeso] = useState("");
+  const [kcEditId, setKcEditId] = useState("");
+  const [kcEditCategoriaId, setKcEditCategoriaId] = useState("");
+  const [kcEditPeso, setKcEditPeso] = useState("");
+
   // Carrega lista de conhecimentos
   async function carregarConhecimentos() {
     try {
@@ -61,6 +74,36 @@ export default function AdminConhecimento() {
 
   // Carrega conhecimentos ao montar a tela
   useEffect(() => { carregarConhecimentos(); }, []);
+
+  // Carrega lista de categorias (para o painel de categorias)
+  async function carregarCategorias() {
+    try {
+      const res = await authFetch(`${API_URL}/habilidade/categorias`);
+      if (!res.ok) throw new Error(`Falha ao listar categorias (HTTP ${res.status})`);
+      const data = await res.json();
+      setCategorias(Array.isArray(data) ? data : []);
+    } catch (e) {
+      // Mostra erro apenas dentro do painel
+      setCategorias([]);
+    }
+  }
+
+  // Carrega relações de um conhecimento
+  async function carregarRelacoesConhecimento(conhecimentoId) {
+    if (!conhecimentoId) return;
+    try {
+      setKcCarregando(true); setKcErro("");
+      const res = await authFetch(`${API_URL}/conhecimento-categoria/${conhecimentoId}`);
+      if (!res.ok) throw new Error(`Falha ao listar relações (HTTP ${res.status})`);
+      const data = await res.json();
+      setKcRelacoes(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setKcErro(e.message || "Erro ao listar relações");
+      setKcRelacoes([]);
+    } finally {
+      setKcCarregando(false);
+    }
+  }
 
   // Lista filtrada
   const listaFiltrada = useMemo(() => {
@@ -86,6 +129,106 @@ export default function AdminConhecimento() {
       .sort((a, b) => (a?.nome ?? '').localeCompare(b?.nome ?? '', 'pt-BR', { sensitivity: 'base', numeric: true }))
       .slice(inicio, fim);
   }, [listaFiltrada, inicio, fim]);
+
+  // Quando abrir o painel de categorias, buscar categorias (uma vez)
+  useEffect(() => {
+    if (modoPainel === "categorias" && categorias.length === 0) {
+      carregarCategorias();
+    }
+  }, [modoPainel]);
+
+  // Quando selecionar um conhecimento no painel de categorias, carrega relações
+  useEffect(() => {
+    if (modoPainel === "categorias" && kcConhecimentoId) {
+      carregarRelacoesConhecimento(kcConhecimentoId);
+    } else if (modoPainel !== "categorias") {
+      // limpamos estados específicos quando sai do painel
+      setKcConhecimentoId("");
+      setKcRelacoes([]);
+      setKcCategoriaId("");
+      setKcPeso("");
+      setKcMsg("");
+      setKcErro("");
+      setKcEditId("");
+    }
+  }, [modoPainel, kcConhecimentoId]);
+
+  const categoriasPorId = useMemo(() => {
+    const map = new Map();
+    (categorias || []).forEach(c => map.set(String(c.id), c.nome));
+    return map;
+  }, [categorias]);
+
+  const categoriasDisponiveisParaAdicionar = useMemo(() => {
+    const jaVinc = new Set((kcRelacoes || []).map(r => String(r.categoria_id)));
+    return (categorias || []).filter(c => !jaVinc.has(String(c.id)));
+  }, [categorias, kcRelacoes]);
+
+  // Adicionar relação conhecimento-categoria
+  async function kcAdicionarRelacao(e) {
+    e.preventDefault();
+    if (!kcConhecimentoId || !kcCategoriaId) return;
+    try {
+      setKcErro(""); setKcMsg("");
+      const body = { conhecimento_id: Number(kcConhecimentoId), categoria_id: Number(kcCategoriaId) };
+      if (kcPeso !== "" && kcPeso !== null) body.peso = Number(kcPeso);
+      const res = await authFetch(`${API_URL}/conhecimento-categoria/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.detail || data?.message || `Falha ao vincular (HTTP ${res.status})`);
+      setKcMsg("Vinculado com sucesso");
+      setKcCategoriaId(""); setKcPeso("");
+      await carregarRelacoesConhecimento(kcConhecimentoId);
+    } catch (e) {
+      setKcErro(e.message || "Erro ao vincular");
+    }
+  }
+
+  function kcIniciarEdicao(rel) {
+    setKcEditId(String(rel.id));
+    setKcEditCategoriaId(String(rel.categoria_id));
+    setKcEditPeso(rel.peso ?? "");
+    setKcMsg(""); setKcErro("");
+  }
+
+  async function kcSalvarEdicao(rel) {
+    if (!kcEditId) return;
+    try {
+      setKcErro(""); setKcMsg("");
+      const payload = {};
+      if (kcEditCategoriaId !== "") payload.categoria_id = Number(kcEditCategoriaId);
+      // permitir limpar peso
+      if (kcEditPeso === "" || kcEditPeso === null) payload.peso = null; else payload.peso = Number(kcEditPeso);
+      const res = await authFetch(`${API_URL}/conhecimento-categoria/${kcEditId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.detail || data?.message || `Falha ao editar (HTTP ${res.status})`);
+      setKcMsg("Relação atualizada");
+      setKcEditId("");
+      await carregarRelacoesConhecimento(kcConhecimentoId);
+    } catch (e) {
+      setKcErro(e.message || "Erro ao salvar edição");
+    }
+  }
+
+  async function kcRemover(rel) {
+    try {
+      setKcErro(""); setKcMsg("");
+      const res = await authFetch(`${API_URL}/conhecimento-categoria/${kcConhecimentoId}/${rel.categoria_id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.detail || data?.message || `Falha ao remover (HTTP ${res.status})`);
+      setKcMsg("Relação removida");
+      await carregarRelacoesConhecimento(kcConhecimentoId);
+    } catch (e) {
+      setKcErro(e.message || "Erro ao remover");
+    }
+  }
 
   function limparFiltros() {
     setBusca("");
@@ -202,8 +345,6 @@ export default function AdminConhecimento() {
           <button onClick={logoutRedirecionar} className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">Sair</button>
         </div>
       </header>
-
-      {/* CONTEÚDO PRINCIPAL */}
       <main className="ml-8 mr-8 mx-auto px-4 py-5">
 
         {/* BOTÃO VOLTAR */}
@@ -212,7 +353,20 @@ export default function AdminConhecimento() {
         </button>
 
         {/* título */}
-        <h1 className="text-2xl font-semibold text-center mb-8">Gerenciar Conhecimentos</h1>
+        <h1 className="text-2xl font-semibold text-center mb-4">Gerenciar Conhecimentos</h1>
+
+        <h2 className="text-xl text-center mb-8">
+          Caro administrador, para gerenciar os cursos e os conhecimentos, utilize as{' '}
+          <a
+            href="https://portal.mec.gov.br/escola-de-gestores-da-educacao-basica/323-secretarias-112877938/orgaos-vinculados-82187207/18689-computacao"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-indigo-300 hover:text-indigo-200"
+          >
+            Diretrizes Curriculares Nacionais
+          </a>{' '}
+            dos cursos de graduação em Computação.
+        </h2>
 
         {/* lista e painel lateral */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -243,21 +397,23 @@ export default function AdminConhecimento() {
                 </div>
                 <div>
                   <label className="block text-sm text-slate-300 mb-1">Itens por página</label>
-                  <select
-                    value={tamanhoPagina}
-                    onChange={(e) => setTamanhoPagina(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
-                  >
-                    {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={tamanhoPagina}
+                      onChange={(e) => setTamanhoPagina(Number(e.target.value))}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
+                    >
+                      {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                    <button onClick={limparFiltros} className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 whitespace-nowrap">Limpar filtros</button>
+                  </div>
                 </div>
-                <div className="md:col-span-4 flex items-center justify-between text-sm text-slate-400">
+                <div className="md:col-span-4 flex items-center justify-start text-sm text-slate-400">
                   <span>
                     {totalItens > 0
                       ? `Exibindo ${inicio + 1}–${fim} de ${totalItens} resultados`
                       : 'Nenhum resultado'}
                   </span>
-                  <button onClick={limparFiltros} className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">Limpar filtros</button>
                 </div>
               </div>
             )}
@@ -325,6 +481,9 @@ export default function AdminConhecimento() {
                 <button onClick={() => { setModoPainel(modoPainel === "atualizar" ? "nenhum" : "atualizar"); setErroAtualizar(""); setMensagemAtualizar(""); }} className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === "atualizar" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}>
                   Editar Conhecimento
                 </button>
+                <button onClick={() => { setModoPainel(modoPainel === "categorias" ? "nenhum" : "categorias"); }} className={`px-3 py-2 rounded-md text-base font-medium border transition ${modoPainel === "categorias" ? "bg-indigo-600 border-indigo-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}>
+                  Vincular Categorias
+                </button>
               </div>
 
               {modoPainel === "criar" && (
@@ -362,6 +521,116 @@ export default function AdminConhecimento() {
                     {atualizando ? "Atualizando..." : "Salvar Alterações"}
                   </button>
                 </form>
+              )}
+
+              {modoPainel === "categorias" && (
+                <div className="space-y-4">
+                  <h2 className="text-base font-semibold text-indigo-300 tracking-wide mt-4 text-center">Categoria do Conhecimento</h2>
+                  {kcErro && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{kcErro}</div>}
+                  {kcMsg && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{kcMsg}</div>}
+
+                  <div>
+                    <label className="block text-base mb-1">Selecionar conhecimento</label>
+                    <select value={kcConhecimentoId} onChange={e => { setKcConhecimentoId(e.target.value); }} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
+                      <option value="">Selecione…</option>
+                      {conhecimentosOrdenados.map(k => (<option key={k.id} value={k.id}>{k.nome}</option>))}
+                    </select>
+                  </div>
+
+                  {kcConhecimentoId && (
+                    <>
+                      <form onSubmit={kcAdicionarRelacao} className="space-y-2">
+                        <div>
+                          <label className="block text-base mb-1">Categoria</label>
+                          <select value={kcCategoriaId} onChange={e => setKcCategoriaId(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required>
+                            <option value="">Selecione…</option>
+                            {categoriasDisponiveisParaAdicionar.map(c => (<option key={c.id} value={c.id}>{c.nome}</option>))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-base mb-1">Peso (0 a 3)</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={3}
+                            value={kcPeso}
+                            onChange={e => {
+                              const val = e.target.value;
+                              if (val === "") { setKcPeso(""); return; }
+                              const num = Number(val);
+                              if (Number.isNaN(num)) return;
+                              const clamped = Math.min(3, Math.max(0, num));
+                              setKcPeso(String(clamped));
+                            }}
+                            className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                          />
+                        </div>
+                        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 rounded py-2 text-base font-medium">Vincular</button>
+                      </form>
+
+                      <div className="mt-4">
+                        <h3 className="block text-base mb-1">Relações</h3>
+                        {kcCarregando ? (
+                          <p className="text-slate-400">Carregando…</p>
+                        ) : (
+                          (kcRelacoes || []).length === 0 ? (
+                            <p className="text-slate-400">Nenhuma categoria vinculada.</p>
+                          ) : (
+                            <ul className="divide-y divide-slate-800 rounded border border-slate-800">
+                              {kcRelacoes.map(rel => (
+                                <li key={rel.id} className="p-3 flex flex-col gap-2">
+                                  {String(kcEditId) === String(rel.id) ? (
+                                    <div className="flex flex-col gap-2">
+                                      <div>
+                                        <label className="block text-xs text-slate-400">Categoria</label>
+                                        <select value={kcEditCategoriaId} onChange={e => setKcEditCategoriaId(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
+                                          {(categorias || []).map(c => (<option key={c.id} value={c.id}>{c.nome}</option>))}
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs text-slate-400">Peso (0 a 3)</label>
+                                        <input
+                                          type="number"
+                                          min={0}
+                                          max={3}
+                                          value={kcEditPeso}
+                                          onChange={e => {
+                                            const val = e.target.value;
+                                            if (val === "") { setKcEditPeso(""); return; }
+                                            const num = Number(val);
+                                            if (Number.isNaN(num)) return;
+                                            const clamped = Math.min(3, Math.max(0, num));
+                                            setKcEditPeso(String(clamped));
+                                          }}
+                                          className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm"
+                                        />
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <button type="button" onClick={() => kcSalvarEdicao(rel)} className="px-3 py-2 rounded-md border border-emerald-700 text-emerald-200 hover:bg-emerald-900/40">Salvar</button>
+                                        <button type="button" onClick={() => setKcEditId("")} className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">Cancelar</button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="text-sm">
+                                        <div className="font-medium">{categoriasPorId.get(String(rel.categoria_id)) || `Categoria #${rel.categoria_id}`}</div>
+                                        <div className="text-slate-400">Peso: {rel.peso ?? '—'}</div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <button type="button" onClick={() => kcIniciarEdicao(rel)} className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">Editar</button>
+                                        <button type="button" onClick={() => kcRemover(rel)} className="px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40">Remover</button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           </div>

@@ -63,7 +63,7 @@ export default function HomeAdmin() {
                     {/* habilidades */}
                     <Link to="/admin/habilidade" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
                         <h2 className="text-xl font-medium">Gerenciar Habilidades</h2>
-                        <p className="mt-1 text-slate-300 text-sm">Edite e exclua habilidades existentes.</p>
+                        <p className="mt-1 text-slate-300 text-sm">Edite e exclua habilidades.</p>
                     </Link>
 
                     {/* cursos */}
@@ -75,7 +75,7 @@ export default function HomeAdmin() {
                     {/* conhecimentos */}
                     <Link to="/admin/conhecimento" className="block rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-900 p-6 text-slate-200 shadow-sm">
                         <h2 className="text-xl font-medium">Gerenciar Conhecimentos</h2>
-                        <p className="mt-1 text-slate-300 text-sm">Cadastre, edite e exclua conhecimentos.</p>
+                        <p className="mt-1 text-slate-300 text-sm">Cadastre, edite e exclua conhecimentos. Vincule conhecimentos a categorias.</p>
                     </Link>
                     {/* vagas */}
                     <Link
