@@ -159,11 +159,13 @@ export default function HomeUsuario() {
 			const r = await fetch(`${API_URL}/carreira/${id}/habilidades`);
 			if (!r.ok) throw new Error('Falha ao carregar habilidades da carreira');
 			const lista = await r.json(); // [{carreira_id, habilidade_id, frequencia}]
-			const itens = (lista || []).map(rel => ({
-				id: rel.habilidade_id,
-				nome: nomePorHabilidadeId.get(rel.habilidade_id) ?? `Habilidade #${rel.habilidade_id}`,
-				frequencia: rel.frequencia ?? 0,
-			})).sort((a,b) => (b.frequencia||0) - (a.frequencia||0));
+			const itens = (lista || [])
+				.filter(rel => (rel.frequencia ?? 0) >= 3) // filtra habilidades com frequência >= 3
+				.map(rel => ({
+					id: rel.habilidade_id,
+					nome: nomePorHabilidadeId.get(rel.habilidade_id) ?? `Habilidade #${rel.habilidade_id}`,
+					frequencia: rel.frequencia ?? 0,
+				})).sort((a,b) => (b.frequencia||0) - (a.frequencia||0));
 			setHabPorCarreira(prev => ({ ...prev, [id]: { loading: false, error: '', itens } }));
 		} catch (e) {
 			setHabPorCarreira(prev => ({ ...prev, [id]: { loading: false, error: e?.message || 'Erro ao carregar', itens: [] } }));
