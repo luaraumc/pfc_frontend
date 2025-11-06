@@ -377,7 +377,20 @@ export default function AdminCurso() {
                 </button>
 
                 {/* título */}
-                <h1 className="text-2xl font-semibold text-center mb-8">Gerenciar Cursos</h1>
+                <h1 className="text-2xl font-semibold text-center mb-4">Gerenciar Cursos</h1>
+
+                <h2 className="text-xl text-center mb-8">
+                    Caro administrador, para gerenciar os cursos e os conhecimentos, utilize as{' '}
+                    <a
+                        href="https://portal.mec.gov.br/escola-de-gestores-da-educacao-basica/323-secretarias-112877938/orgaos-vinculados-82187207/18689-computacao"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-indigo-300 hover:text-indigo-200"
+                    >
+                        Diretrizes Curriculares Nacionais
+                    </a>{' '}
+                    dos cursos de graduação em Computação.
+                </h2>
 
                 {/* listagem à esquerda | painel à direita */}
                 <div className="flex flex-col lg:flex-row gap-8 items-start mb-10">
