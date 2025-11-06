@@ -16,6 +16,31 @@ export default function LoginUsuario() {
 	const [erro, setErro] = useState("");
 	const [mensagem, setMensagem] = useState("");
 
+	// Se o usuário já possui token válido (ou renovável), redireciona automaticamente
+	useEffect(() => {
+		let cancelled = false;
+		async function checkAndRedirect() {
+			const token = getAccessToken();
+			if (!token) return; // não está logado
+			try {
+				if (VerificarTokenExpirado(token)) {
+					// tenta renovar
+					await refreshAccessToken();
+					const newToken = getAccessToken();
+					if (!newToken) return;
+					if (!cancelled) await descobrirPerfilERedirecionar(newToken);
+				} else {
+					if (!cancelled) await descobrirPerfilERedirecionar(token);
+				}
+			} catch (e) {
+				// falha ao renovar/validar -> limpa dados e permite que o usuário veja a tela de login
+				try { localStorage.removeItem("access_token"); localStorage.removeItem("refresh_token"); } catch {}
+			}
+		}
+		checkAndRedirect();
+		return () => { cancelled = true; };
+	}, [navigate]);
+
 	// Limpa dados de autenticação
 	function clearAuth() {
 		try {

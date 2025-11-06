@@ -1,16 +1,13 @@
 import { Link } from "react-router-dom"; // criar links de navegação para redirecionar o usuário
-import { useEffect } from "react"; // useEffect: executar funções
-import { useNavigate } from "react-router-dom"; // navegação programática
-import { getAccessToken, VerificarTokenExpirado, refreshAccessToken, authFetch, transformarJwt } from '../utils/auth'; // funções de autenticação
-
-// Imagens locais dentro de src/imagens (ajuste para ../images se sua pasta for "images")
 import coletaIcon from '../../images/icon-coleta-vagas.png';
 import compareIcon from '../../images/compare.png';
 import recomendationIcon from '../../images/recomendation.png';
-// Nova ilustração do header
 import headerIllustration from '../../images/ilustracao-header.svg';
 import logoRumoTechno from "../../images/rumotechno-logo.svg"; // logo RumoTechno
 import logoCta from "../../images/LOGOTIPO.svg"; // logo CTA
+import { useEffect, useState } from "react"; // useEffect: executar funções | useState: gerenciar estado de componentes
+import { useNavigate } from "react-router-dom"; // navegação programática
+import { getAccessToken, VerificarTokenExpirado, refreshAccessToken, authFetch, transformarJwt } from '../utils/auth'; // funções de autenticação
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
