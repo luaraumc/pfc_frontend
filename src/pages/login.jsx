@@ -1,33 +1,9 @@
 import { useMemo, useState } from "react"; // useMemo: armazenamento em cache | useState: gerenciar estado de componentes
-import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
-import { authFetch } from "../utils/auth"; // fetch autenticado com renovação automática de token
+import { useNavigate, Link } from "react-router-dom"; // navegação programática (voltar)
+import { authFetch, transformarJwt } from "../utils/auth"; // fetch autenticado com renovação automática de token
+import logoRumoTechno from "../../images/rumotechno-logo.svg";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
-
-// Pega os dados do token e transforma em JSON
-export function transformarJwt(token) {
-
-	/**
-    Entrada: uma string JWT no formato header.payload.signature (dois .)
-    Saída: objeto JSON com os dados do payload ou null se falhar
-	*/
-
-    try {
-        const base64Url = token.split('.')[1]; // pega o payload (parte do meio) do JWT
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // converte para base64 padrão
-        const padded = base64 + '==='.slice(0, (4 - (base64.length % 4)) % 4); // adiciona padding se necessário
-        // Decodifica base64 para string
-        const jsonPayload = decodeURIComponent(
-        atob(padded) // retorna uma string onde cada caractere representa um byte
-            .split('') // divide em caracteres
-            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)) // converte para percent-encoding (apenas caracteres permitidos em URLs)
-            .join('') // junta de volta em string
-        );
-        return JSON.parse(jsonPayload); // estrutura em JSON
-    } catch {
-        return null;
-    }
-}
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de login
 export default function LoginUsuario() {
@@ -40,11 +16,35 @@ export default function LoginUsuario() {
 	const [erro, setErro] = useState("");
 	const [mensagem, setMensagem] = useState("");
 
+	// Se o usuário já possui token válido (ou renovável), redireciona automaticamente
+	useEffect(() => {
+		let cancelled = false;
+		async function checkAndRedirect() {
+			const token = getAccessToken();
+			if (!token) return; // não está logado
+			try {
+				if (VerificarTokenExpirado(token)) {
+					// tenta renovar
+					await refreshAccessToken();
+					const newToken = getAccessToken();
+					if (!newToken) return;
+					if (!cancelled) await descobrirPerfilERedirecionar(newToken);
+				} else {
+					if (!cancelled) await descobrirPerfilERedirecionar(token);
+				}
+			} catch (e) {
+				// falha ao renovar/validar -> limpa dados e permite que o usuário veja a tela de login
+				try { localStorage.removeItem("access_token"); localStorage.removeItem("refresh_token"); } catch {}
+			}
+		}
+		checkAndRedirect();
+		return () => { cancelled = true; };
+	}, [navigate]);
+
 	// Limpa dados de autenticação
 	function clearAuth() {
 		try {
 			localStorage.removeItem("access_token");
-			localStorage.removeItem("refresh_token");
 			localStorage.removeItem("token_type");
 			localStorage.removeItem("usuario_id");
 			localStorage.removeItem("is_admin");
@@ -107,17 +107,17 @@ export default function LoginUsuario() {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: email.trim(), senha }), // converte para JSON
+				credentials: 'include', // permite que o browser receba e envie cookies HttpOnly
 			});
 			const data = await res.json().catch(() => ({})); // converte resposta em JSON, se falhar retorna objeto vazio
 			if (!res.ok) {
 				const msg = data?.detail || data?.message || `Falha no login (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
-			const { access_token, refresh_token, token_type } = data; // pega os tokens retornados
+			const { access_token, token_type } = data; // pega os tokens retornados (refresh token é armazenado em cookie HttpOnly)
 			if (!access_token) throw new Error("Token de acesso não retornado");
-			// Persistência dos tokens no localStorage
+			// Persistência do access token no localStorage
 			localStorage.setItem("access_token", access_token);
-			if (refresh_token) localStorage.setItem("refresh_token", refresh_token);
 			if (token_type) localStorage.setItem("token_type", token_type);
 			setMensagem("Login realizado com sucesso. Redirecionando…");
 			await descobrirPerfilERedirecionar(access_token); // descobre o perfil e redireciona
@@ -130,18 +130,30 @@ export default function LoginUsuario() {
 
 	// HTML
 	return (
-			<div className="min-h-screen relative bg-slate-900">
+			<div className="min-h-screen relative bg-slate-900 pt-16">
 
-				{/* BOTÃO VOLTAR */}
-				<div className="ml-8 mx-auto px-4 pt-8">
-					<button
-						onClick={() => navigate(-1)}
-						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-					>
-						<span aria-hidden>←</span> Voltar
-					</button>
+			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
+				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+					{/* Logo redireciona para a Home */}
+					<Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200" aria-label="Ir para a Home">
+						<img src={logoRumoTechno} alt="RumoTechno" className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103" />
+					</Link>
+					<div className="flex items-center gap-3">
+						<Link
+							to="/login"
+							className="px-4 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-600"
+						>
+							Entrar
+						</Link>
+						<Link
+							to="/cadastro"
+							className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
+						>
+							Cadastre-se
+						</Link>
+					</div>
 				</div>
-
+			</header>
 				{/* CONTEÚDO PRINCIPAL */}
 				<div className="flex flex-col items-center pt-5 pb-8 px-4">
 

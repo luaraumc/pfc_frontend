@@ -3,8 +3,9 @@ import { useEffect, useState } from "react"; // estados e efeitos
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento | fetch autenticado com renovação automática de token
 import lixeiraIcon from "../../../images/lixeira.png"; // ícone de lixeira para deletar
 import setaIcon from "../../../images/seta.png"; // ícone de seta para expandir
+import logoRumoTechno from "../../../images/rumotechno-logo.svg"; // logo RumoTechno
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de administração de carreiras
 export default function AdminCarreira() {
@@ -285,7 +286,11 @@ export default function AdminCarreira() {
             <header className="w-full border-b border-slate-800 bg-slate-950/80">
                 <div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
                 <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-                    Home
+                    <img
+                        src={logoRumoTechno}
+                        alt="RumoTechno"
+                        className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
+                    />
                 </Link>
                 <Link to="/admin/carreira" className="text-lg font-medium underline decoration-slate-500 decoration-3 underline-offset-8 text-indigo-300 hover:text-indigo-200">
                     Carreiras

@@ -1,13 +1,52 @@
 import { useEffect, useMemo, useState } from "react"; // useEffect: executar funções | useMemo: armazenamento em cache | useState: gerenciar estado de componentes
-import { useNavigate } from "react-router-dom"; // navegação programática (voltar)
+import { useNavigate, Link } from "react-router-dom"; // navegação programática (voltar)
+import { getAccessToken, VerificarTokenExpirado, refreshAccessToken, authFetch, transformarJwt } from "../utils/auth"; // checar token e redirecionar se já autenticado
+import logoRumoTechno from "../../images/rumotechno-logo.svg";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-production-668a.up.railway.app";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de cadastro de usuário comum
 export default function CadastroUsuario() {
 	
 	// Estados dos campos
 	const navigate = useNavigate(); // navegação de páginas (voltar)
+
+	// Se o usuário já está autenticado, redireciona para a home apropriada
+	useEffect(() => {
+		let cancelled = false;
+		async function checar() {
+			const token = getAccessToken();
+			if (!token) return;
+			try {
+				let usable = token;
+				if (VerificarTokenExpirado(token)) {
+					await refreshAccessToken();
+					usable = getAccessToken();
+					if (!usable) return;
+				}
+				const stored = localStorage.getItem('is_admin');
+				if (stored === 'true' || stored === 'false') {
+					if (!cancelled) navigate(stored === 'true' ? '/homeAdmin' : '/homeUsuario', { replace: true });
+					return;
+				}
+				const decoded = transformarJwt(usable);
+				const userId = decoded?.sub ? Number(decoded.sub) : null;
+				if (!userId) return;
+				const res = await authFetch(`${API_URL}/usuario/${userId}`);
+				if (!res.ok) return;
+				const user = await res.json().catch(() => ({}));
+				const isAdmin = !!user?.admin;
+				localStorage.setItem('is_admin', String(isAdmin));
+				if (user?.nome) localStorage.setItem('usuario_nome', String(user.nome));
+				if (!cancelled) navigate(isAdmin ? '/homeAdmin' : '/homeUsuario', { replace: true });
+			} catch (e) {
+				try { localStorage.removeItem('access_token'); localStorage.removeItem('refresh_token'); } catch {}
+			}
+		}
+		checar();
+		return () => { cancelled = true; };
+	}, [navigate]);
+	
 	const [nome, setNome] = useState("");
 	const [email, setEmail] = useState("");
 	const [senha, setSenha] = useState("");
@@ -20,8 +59,22 @@ export default function CadastroUsuario() {
 	const [mensagem, setMensagem] = useState("");
 	const [erro, setErro] = useState("");
 
-	// Definindo e-mail válido (com @ e .)
-	const emailValido = useMemo(() => /.+@.+\..+/.test(email), [email]);
+	// Definindo e-mail válido (contém '@' e o domínio contém '.com')
+	const emailValido = useMemo(() => {
+		const v = String(email || '').trim();
+		if (!/.+@.+\..+/.test(v)) return false; // exige '@' e '.'
+		return /@.*\.com/i.test(v); // aceita .com, .com.br, etc
+	}, [email]);
+
+	// Requisitos de senha: mínimo 6 caracteres, 1 maiúscula, 1 caractere especial
+	const senhaRequisitos = useMemo(() => {
+        return {
+            len: senha.length >= 6,
+            maiuscula: /[A-Z]/.test(senha),
+            especial: /[^A-Za-z0-9]/.test(senha),
+            semEspacos: !/\s/.test(senha),
+        };
+    }, [senha]);
 
 	// Carrega carreiras e cursos em paralelo
 	useEffect(() => {
@@ -57,12 +110,15 @@ export default function CadastroUsuario() {
 	// Validação dos campos do formulário
 	function validarCampos() {
 		if (!nome.trim()) return "Informe o nome";
-		if (!email.trim() || !emailValido) return "Informe um e-mail válido";
-		if (!senha) return "Informe a senha";
-		if (senha.length < 6) return "A senha deve ter pelo menos 6 caracteres";
-		if (!carreiraId) return "Selecione a carreira";
-		if (!cursoId) return "Selecione o curso";
-		return null;
+        if (!email.trim() || !emailValido) return "Informe um e-mail válido.";
+        if (!senha) return "Informe a senha";
+        if (!senhaRequisitos.semEspacos) return "A senha não pode conter espaços";
+        if (!(senhaRequisitos.len && senhaRequisitos.maiuscula && senhaRequisitos.especial)) {
+            return "A senha deve conter no mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial";
+        }
+        if (!carreiraId) return "Selecione a carreira";
+        if (!cursoId) return "Selecione o curso";
+        return null;
 	}
 
 	// Envio do formulário
@@ -97,12 +153,13 @@ export default function CadastroUsuario() {
 				const msg = data?.detail || data?.message || `Erro ao cadastrar (HTTP ${res.status})`;
 				throw new Error(msg);
 			}
-			setMensagem(data?.message || "Usuário cadastrado com sucesso");
-			setNome("");
-			setEmail("");
-			setSenha("");
-			setCarreiraId("");
-			setCursoId("");
+				setMensagem(data?.message || "Usuário cadastrado com sucesso! Redirecionando para login...");
+				setNome("");
+				setEmail("");
+				setSenha("");
+				setCarreiraId("");
+				setCursoId("");
+				navigate("/login", { replace: true });	// redireciona para página de login após sucesso
 		} catch (e) {
 			setErro(e.message ?? "Falha ao cadastrar");
 		} finally {
@@ -112,23 +169,35 @@ export default function CadastroUsuario() {
 
 	// HTML
 	return (
-		<div className="min-h-screen relative bg-slate-900">
+			<div className="min-h-screen relative bg-slate-900 pt-16">
 
-			{/* BOTÃO VOLTAR */}
-			<div className="ml-8 mx-auto px-4 pt-8">
-				<button
-					onClick={() => navigate(-1)}
-					className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-				>
-					<span aria-hidden>←</span> Voltar
-				</button>
-			</div>
-
+			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
+				<div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+					{/* Logo redireciona para a Home */}
+					<Link to="/" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200" aria-label="Ir para a Home">
+						<img src={logoRumoTechno} alt="RumoTechno" className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103" />
+					</Link>
+					<div className="flex items-center gap-3">
+						<Link
+							to="/login"
+							className="px-4 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-slate-600"
+						>
+							Entrar
+						</Link>
+						<Link
+							to="/cadastro"
+							className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
+						>
+							Cadastre-se
+						</Link>
+					</div>
+				</div>
+			</header>
 			{/* CONTEÚDO PRINCIPAL */}
 			<div className="min-h-screen flex flex-col items-center pb-15 px-4">
 
 				{/* título */}
-				<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center">Cadastro de Usuário</h1>
+				<h1 className="text-3xl text-slate-200 font-semibold mb-4 text-center pt-5">Cadastro de Usuário</h1>
 
 				<div className="w-full max-w-md bg-slate-950 border border-slate-700 rounded-xl p-6 text-slate-200 shadow-lg">
 
@@ -178,10 +247,24 @@ export default function CadastroUsuario() {
 								type="password"
 								value={senha}
 								onChange={(e) => setSenha(e.target.value)}
+								onKeyDown={(e) => { if (e.key === " ") e.preventDefault(); }}
+								onPaste={(e) => {
+									const pasted = (e.clipboardData.getData("text") || "").replace(/\s/g, "");
+									e.preventDefault();
+									setSenha((prev) => (prev ? (prev + pasted) : pasted));
+								}}
 								placeholder="Mínimo 6 caracteres"
 								className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 								autoComplete="new-password"
 							/>
+							<div className="mt-1 text-xs text-slate-400">
+								<ul className="mt-1 space-y-0.5">
+									<li className={senhaRequisitos.len ? "text-emerald-400" : undefined}>• Mínimo 6 caracteres</li>
+									<li className={senhaRequisitos.maiuscula ? "text-emerald-400" : undefined}>• Pelo menos 1 letra maiúscula</li>
+									<li className={senhaRequisitos.especial ? "text-emerald-400" : undefined}>• Pelo menos 1 caractere especial</li>
+									<li className={senhaRequisitos.semEspacos ? "text-emerald-400" : undefined}>• Sem espaços</li>
+								</ul>
+							</div>
 						</div>
 
 						{/* carreira e curso */}
