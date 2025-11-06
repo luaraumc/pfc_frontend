@@ -117,7 +117,6 @@ export default function CadastroUsuario() {
             return "A senha deve conter no mínimo 6 caracteres, 1 letra maiúscula e 1 caractere especial";
         }
         if (!carreiraId) return "Selecione a carreira";
-        if (!cursoId) return "Selecione o curso";
         return null;
 	}
 
@@ -262,7 +261,6 @@ export default function CadastroUsuario() {
 									<li className={senhaRequisitos.len ? "text-emerald-400" : undefined}>• Mínimo 6 caracteres</li>
 									<li className={senhaRequisitos.maiuscula ? "text-emerald-400" : undefined}>• Pelo menos 1 letra maiúscula</li>
 									<li className={senhaRequisitos.especial ? "text-emerald-400" : undefined}>• Pelo menos 1 caractere especial</li>
-									<li className={senhaRequisitos.semEspacos ? "text-emerald-400" : undefined}>• Sem espaços</li>
 								</ul>
 							</div>
 						</div>
