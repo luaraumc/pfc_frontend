@@ -3,8 +3,9 @@ import { useEffect, useState } from "react"; // estados e efeitos
 import { authFetch } from "../../utils/auth"; // fetch autenticado com renovação automática de token
 import { logoutRedirecionar } from "../../utils/auth"; // logout e redirecionamento
 import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
+import logoRumoTechno from "../../../images/rumotechno-logo.svg"; // logotipo do site
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-test.up.railway.app'
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de edição de perfil
 export default function EditarPerfil() {
@@ -237,39 +238,49 @@ export default function EditarPerfil() {
 		}
 	}
 
+	// Função para scroll suave para o topo
+	const scrollToTop = (e) => {
+		e.preventDefault();
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+
 	if(loading){
     	return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-slate-300">Carregando...</div>
   	}
 
 	// HTML
   	return (
-		<div className="min-h-screen bg-slate-900 text-slate-200">
+		<div className="min-h-screen bg-slate-900 text-slate-200 pt-16">
 
 			{/* HEADER */}
-			<header className="w-full border-b border-slate-800 bg-slate-950/80">
+			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
 				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
-					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-						Home
-					</Link>
+					<a
+						href="#topo"
+						onClick={scrollToTop}
+						className="text-xl font-semibold text-indigo-300 hover:text-indigo-200"
+						aria-label="Voltar ao topo"
+					>
+						<img
+							src={logoRumoTechno}
+							alt="RumoTechno"
+							className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
+						/>
+					</a>
+					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
+					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
 					<div className="flex items-center gap-3">
-					<Link
-						to="/usuario/cadastro-habilidade"
-						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-					>
-						Cadastrar Habilidade
-					</Link>
-					<Link
-						to="/usuario/editar-perfil"
-						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-					>
-						<img src={perfilIcon} alt="Perfil" className="w-5 h-5" />
-						<span>Editar Perfil</span>
-					</Link>
-					<button
-						onClick={logoutRedirecionar}
-						className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
-						Sair
-					</button>
+						<Link
+							to="/usuario/editar-perfil"
+							className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
+						>
+							<span>Editar Perfil</span>
+						</Link>
+						<button
+							onClick={logoutRedirecionar}
+							className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
+							Sair
+						</button>
 					</div>
 				</div>
 			</header>
@@ -302,7 +313,7 @@ export default function EditarPerfil() {
 								role="tab"
 								aria-selected={ativo}
 								onClick={()=> { setSecao(t.id); setMessage(null); setError(null); setSenhaMsg(null); setSenhaErr(null); setExcluirMsg(null); setExcluirErr(null); }}
-								className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${ativo ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700'}`}
+								className={`px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm'}`}
 							>
 								{t.label}
 							</button>
@@ -312,7 +323,7 @@ export default function EditarPerfil() {
 
 				{/* Seção de Dados */}
 				{secao === 'dados' && (
-					<form onSubmit={handleSubmit} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário atualizar dados">
+					<form onSubmit={handleSubmit} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-xl mx-auto" role="tabpanel" aria-label="Formulário atualizar dados">
 						{error && <div className="text-sm text-red-400 bg-red-950/40 border border-red-700 px-3 py-2 rounded">{error}</div>}
 						{message && <div className="text-sm text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-3 py-2 rounded">{message}</div>}
 						{/* Nome */}
@@ -348,14 +359,14 @@ export default function EditarPerfil() {
 
 				{/* Seção de Senha */}
 				{secao === 'senha' && (
-					<form onSubmit={confirmarNovaSenha} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário atualizar senha">
+					<form onSubmit={confirmarNovaSenha} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-xl mx-auto" role="tabpanel" aria-label="Formulário atualizar senha">
 						{senhaErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{senhaErr}</div>}
 						{senhaMsg && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-600 px-2 py-1 rounded">{senhaMsg}</div>}
 						{/* Email */}
-						<div className="text-sm text-slate-300">O código será enviado para o email cadastrado na sua conta.</div>
+						<div className="text-sm text-slate-300 text-center">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
 						<div className="flex gap-2">
-							<button type="button" onClick={solicitarCodigoSenha} disabled={!usuarioEmail || senhaLoading} className="px-3 py-2 bg-indigo-600 disabled:opacity-40 rounded text-xs hover:bg-indigo-500">Enviar Código</button>
+							<button type="button" onClick={solicitarCodigoSenha} disabled={!usuarioEmail || senhaLoading} className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm">Enviar Código</button>
 							<input placeholder="Código" value={codigoSenha} onChange={e=>setCodigoSenha(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
 						{/* Nova Senha */}
@@ -370,25 +381,26 @@ export default function EditarPerfil() {
 
 				{/* Seção de Exclusão */}
 				{secao === 'excluir' && (
-					<form onSubmit={excluirConta} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-md mx-auto" role="tabpanel" aria-label="Formulário excluir conta">
+					<form onSubmit={excluirConta} className="space-y-4 bg-slate-800/40 p-6 rounded border border-slate-700 max-w-xl mx-auto" role="tabpanel" aria-label="Formulário excluir conta">
 						{excluirErr && <div className="text-xs text-red-400 bg-red-950/40 border border-red-700 px-2 py-1 rounded">{excluirErr}</div>}
 						{excluirMsg && <div className="text-xs text-amber-300 bg-amber-900/30 border border-amber-600 px-2 py-1 rounded">{excluirMsg}</div>}
 						<p className="text-sm text-slate-300 leading-snug text-center">ATENÇÃO! Esta ação é definitiva e não poderá ser desfeita.</p>
 						{/* Email */}
-						<div className="text-sm text-slate-300">O código será enviado para o email cadastrado na sua conta.</div>
+						<div className="text-sm text-slate-300 text-center">O código será enviado para o email cadastrado na sua conta.</div>
 						{/* Código */}
 						<div className="flex gap-2">
-							<button type="button" onClick={solicitarCodigoExclusao} disabled={!usuarioEmail || excluirLoading} className="px-3 py-2 bg-red-600 disabled:opacity-40 rounded text-xs hover:bg-red-500">Enviar Código</button>
+							<button type="button" onClick={solicitarCodigoExclusao} disabled={!usuarioEmail || excluirLoading} className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm">Enviar Código</button>
 							<input placeholder="Código" value={codigoExclusao} onChange={e=>setCodigoExclusao(e.target.value)} className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
 						</div>
 						{/* Botão Excluir */}
-						<button type="submit" disabled={excluirLoading} className="w-full bg-red-700 hover:bg-red-600 disabled:opacity-50 rounded py-2 text-sm">{excluirLoading ? 'Excluindo...' : 'Excluir Conta'}</button>
+						<button type="submit" disabled={excluirLoading} className="w-full items-center gap-2 px-3 py-2 rounded-md bg-red-700 text-red-200 hover:bg-red-900">{excluirLoading ? 'Excluindo...' : 'Excluir Conta'}</button>
 					</form>
 				)}
 			</main>
 		</div>
 	)
 }
+
 
 
 

@@ -1,5 +1,5 @@
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-test.up.railway.app'; // URL da API backend
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'; // URL da API backend
 
 // Pega os dados de um JWT e transforma em JSON
 export function transformarJwt(token) {
@@ -40,12 +40,7 @@ export function getAccessToken() {
     return localStorage.getItem('access_token');
 }
 
-// Pega o refresh token do localStorage
-export function getRefreshToken() {
-    return localStorage.getItem('refresh_token');
-}
-
-// Armazena tokens no localStorage
+// Armazena o access token no localStorage
 export function setAccessToken(token, tokenType) {
     if (token) localStorage.setItem('access_token', token);
     if (tokenType) localStorage.setItem('token_type', tokenType);
@@ -53,12 +48,12 @@ export function setAccessToken(token, tokenType) {
 
 // Tenta renovar o access token usando o refresh token
 export async function refreshAccessToken() {
-    const refresh = getRefreshToken();
-    if (!refresh) throw new Error('No refresh token'); 
-    // faz a requisição para o backend para renovar o token
+    // Faz a requisição para o backend para renovar o token.
+    // O refresh token é enviado automaticamente pelo browser via cookie HttpOnly.
     const res = await fetch(`${API_URL}/auth/refresh`, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${refresh}` }, // envia o refresh token no cabeçalho Authorization
+        method: 'POST',
+        credentials: 'include', // necessário para enviar cookies HttpOnly
+        headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) {
         throw new Error(`Refresh failed with status ${res.status}`);
@@ -84,12 +79,13 @@ export async function authFetch(input, init = {}) {
     if (!headers.has('Authorization')) {
         headers.set('Authorization', `Bearer ${access}`); // adiciona o cabeçalho Authorization se não existir
     }
-    const response = await fetch(input, { ...init, headers }); // faz a requisição com os headers atualizados
+    // As chamadas autenticadas precisam enviar cookies para que o backend receba o refresh cookie quando necessário
+    const response = await fetch(input, { ...init, headers, credentials: 'include' }); // faz a requisição com os headers atualizados
     if (response.status === 401 || response.status === 403) {
         try {
         access = await refreshAccessToken(); // tenta renovar o token
         headers.set('Authorization', `Bearer ${access}`); // atualiza o cabeçalho com o novo token
-        return await fetch(input, { ...init, headers }); // repete a requisição original
+        return await fetch(input, { ...init, headers, credentials: 'include' }); // repete a requisição original
         } catch (e) {
         throw Object.assign(new Error('Unauthorized'), { code: 'UNAUTHORIZED' });
         }
@@ -97,29 +93,19 @@ export async function authFetch(input, init = {}) {
     return response;
 }
 
-// Navigation helper: permite injetar a função `navigate` do react-router
-let _navigate = null;
-export function setNavigate(navigateFunc) {
-    _navigate = navigateFunc;
-}
-
 // Limpa tokens e dados do usuário e redireciona para login
 export function logoutRedirecionar() {
+    // solicita ao backend remoção do cookie de refresh (caso exista)
+    try {
+        fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+    } catch (e) {}
+
     localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
     localStorage.removeItem('token_type');
     localStorage.removeItem('usuario_id');
     localStorage.removeItem('is_admin');
     localStorage.removeItem('usuario_nome');
-    // se a função navigate foi injetada (via setNavigate), use-a para navegação SPA
-    try {
-        if (typeof _navigate === 'function') {
-            _navigate('/login', { replace: true });
-            return;
-        }
-    } catch (e) {
-        // fallback para redirecionamento por full reload
-    }
-    // fallback: redirecionamento completo (garante compatibilidade)
+    localStorage.removeItem('usuario_email');
+
     window.location.href = '/login';
 }

@@ -2,8 +2,9 @@ import { Link, useNavigate } from "react-router-dom"; // criar links de navegaç
 import { useEffect, useMemo, useState } from "react"; // estados, memos e efeitos
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento | fetch autenticado com renovação automática de token
 import lapisIcon from "../../../images/lapis.png"; // ícone de edição
+import logoRumoTechno from "../../../images/rumotechno-logo.svg"; // logo RumoTechno
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://pfcbackend-test.up.railway.app";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página de administração de habilidades
 export default function AdminHabilidade() {
@@ -183,7 +184,7 @@ export default function AdminHabilidade() {
       <header className="w-full border-b border-slate-800 bg-slate-950/80">
         <div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
           <Link to="/homeAdmin" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-            Home
+            <img src={logoRumoTechno} alt="RumoTechno" className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103" /> 
           </Link>
           <Link to="/admin/carreira" className="text-lg font-medium text-white hover:text-indigo-200">
             Carreiras

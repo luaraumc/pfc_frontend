@@ -2,6 +2,9 @@ import { Link } from "react-router-dom"; // criar links de navegação para redi
 import { useEffect, useState } from "react"; // useEffect: executar funções | useState: gerenciar estado de componentes
 import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento + fetch autenticado
 import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
+import logoRumoTechno from "../../../images/rumotechno-logo.svg"; // logotipo do site (SVG)
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página inicial do usuário comum
 export default function HomeUsuario() {
@@ -17,8 +20,10 @@ export default function HomeUsuario() {
 	const [expandedCarreiras, setExpandedCarreiras] = useState(new Set());
 	const [habPorCarreira, setHabPorCarreira] = useState({}); // { [carreiraId]: { loading, error, itens: [{id, nome, frequencia}] } }
 	const [topCarreiras, setTopCarreiras] = useState([]);
-	const [loadingCompat, setLoadingCompat] = useState(true);
+	const [loadingCompat, setLoadingCompat] = useState(true);	
 	const [erroCompat, setErroCompat] = useState("");
+	// ordem estável das demais carreiras (exclui a carreira escolhida pelo usuário)
+	const [ordemCongeladaIds, setOrdemCongeladaIds] = useState(null);
 	// ESTADOS NOVOS: controle de salvamento por habilidade e erro do checklist
 	const [savingHabIds, setSavingHabIds] = useState(new Set());
 	const [erroChecklist, setErroChecklist] = useState("");
@@ -26,11 +31,11 @@ export default function HomeUsuario() {
 	const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
 	// novo: mapa carreira_id -> melhor curso
 	const [melhorCursoPorCarreira, setMelhorCursoPorCarreira] = useState(new Map());
+	// Busca global de habilidades (cadastro rápido)
+	const [buscaGlobal, setBuscaGlobal] = useState("");
 
 	// Busca de habilidades por carreira (texto -> por carreira_id)
 	// const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
-
-	const API_URL = import.meta.env.VITE_API_URL ?? 'https://pfcbackend-test.up.railway.app';
 
 	function formatScore(v) {
 		if (v == null || Number.isNaN(v)) return '0.00';
@@ -154,11 +159,13 @@ export default function HomeUsuario() {
 			const r = await fetch(`${API_URL}/carreira/${id}/habilidades`);
 			if (!r.ok) throw new Error('Falha ao carregar habilidades da carreira');
 			const lista = await r.json(); // [{carreira_id, habilidade_id, frequencia}]
-			const itens = (lista || []).map(rel => ({
-				id: rel.habilidade_id,
-				nome: nomePorHabilidadeId.get(rel.habilidade_id) ?? `Habilidade #${rel.habilidade_id}`,
-				frequencia: rel.frequencia ?? 0,
-			})).sort((a,b) => (b.frequencia||0) - (a.frequencia||0));
+			const itens = (lista || [])
+				.filter(rel => (rel.frequencia ?? 0) >= 3) // filtra habilidades com frequência >= 3
+				.map(rel => ({
+					id: rel.habilidade_id,
+					nome: nomePorHabilidadeId.get(rel.habilidade_id) ?? `Habilidade #${rel.habilidade_id}`,
+					frequencia: rel.frequencia ?? 0,
+				})).sort((a,b) => (b.frequencia||0) - (a.frequencia||0));
 			setHabPorCarreira(prev => ({ ...prev, [id]: { loading: false, error: '', itens } }));
 		} catch (e) {
 			setHabPorCarreira(prev => ({ ...prev, [id]: { loading: false, error: e?.message || 'Erro ao carregar', itens: [] } }));
@@ -181,7 +188,31 @@ export default function HomeUsuario() {
 		});
 	}
 
-	// Recarrega compatibilidade do backend (atualiza percentuais e cobertas)
+	// Helper: reordena mantendo carreira do usuário no topo e demais na ordem congelada
+	function ordenarCarreiras(lista) {
+		if (!Array.isArray(lista) || lista.length === 0) return [];
+		const mapa = new Map(lista.map((it) => [it.carreira_id, it]));
+		const temCarreiraUsuario = carreiraId != null && mapa.has(carreiraId);
+		const fixo = temCarreiraUsuario ? [mapa.get(carreiraId)] : [];
+		// Se ainda não congelamos a ordem, congele agora com base na lista inicial
+		if (!ordemCongeladaIds) {
+			const idsBase = lista
+				.map((it) => it.carreira_id)
+				.filter((id) => id !== carreiraId);
+			setOrdemCongeladaIds(idsBase);
+			const restos = idsBase.map((id) => mapa.get(id)).filter(Boolean);
+			return [...fixo, ...restos];
+		}
+		// Use a ordem congelada e, se surgir id novo, coloque ao final
+		const restosCongelados = ordemCongeladaIds
+			.map((id) => mapa.get(id))
+			.filter(Boolean);
+		const extras = lista
+			.filter((it) => it.carreira_id !== carreiraId && !ordemCongeladaIds.includes(it.carreira_id));
+		return [...fixo, ...restosCongelados, ...extras];
+	}
+
+	// Recarrega compatibilidade do backend (atualiza percentuais e mantém ordem das demais)
 	async function recarregarCompatibilidade() {
 		try {
 			const usuarioId = localStorage.getItem('usuario_id');
@@ -192,13 +223,14 @@ export default function HomeUsuario() {
 			const res = await authFetch(`${API_URL}/usuario/${usuarioId}/compatibilidade/top`);
 			if (!res.ok) throw new Error(`Erro ${res.status}`);
 			const data = await res.json();
-			setTopCarreiras(Array.isArray(data) ? data : []);
+			const ordenada = ordenarCarreiras(Array.isArray(data) ? data : []);
+			setTopCarreiras(ordenada);
 		} catch (e) {
 			setErroCompat("Não foi possível carregar sua compatibilidade agora.");
 		} finally {
 			setLoadingCompat(false);
 		}
-	}
+	}		
 
 	// Atualização silenciosa (sem alterar loading/placeholder) para evitar flicker
 	async function recarregarCompatibilidadeSilenciosa() {
@@ -208,7 +240,8 @@ export default function HomeUsuario() {
 			const res = await authFetch(`${API_URL}/usuario/${usuarioId}/compatibilidade/top`);
 			if (!res.ok) return;
 			const data = await res.json();
-			setTopCarreiras(Array.isArray(data) ? data : []);
+			const ordenada = ordenarCarreiras(Array.isArray(data) ? data : []);
+			setTopCarreiras(ordenada);
 		} catch {}
 	}
 
@@ -222,6 +255,31 @@ export default function HomeUsuario() {
 		return authFetch(`${API_URL}/usuario/${usuarioId}/remover-habilidade/${habilidadeId}`, {
 			method: 'DELETE'
 		});
+	}
+
+	// Toggle global (fora do contexto de uma carreira específica)
+	async function handleToggleHabilidadeGlobal(habilidade) {
+		setErroChecklist("");
+		const usuarioId = localStorage.getItem('usuario_id');
+		if (!usuarioId) {
+			setErroChecklist("Usuário não identificado.");
+			return;
+		}
+		if (savingHabIds.has(habilidade.id)) return;
+		const possui = habilidadesUsuarioIds.has(habilidade.id);
+		setSavingHabIds(prev => { const s = new Set(prev); s.add(habilidade.id); return s; });
+		try {
+			const res = possui
+				? await removerHabilidadeUsuario(usuarioId, habilidade.id)
+				: await adicionarHabilidadeUsuario(usuarioId, habilidade.id);
+			if (!res.ok) throw new Error('Falha ao atualizar habilidade');
+			setHabilidadesUsuarioIds(prev => { const s = new Set(prev); if (possui) s.delete(habilidade.id); else s.add(habilidade.id); return s; });
+			await recarregarCompatibilidadeSilenciosa();
+		} catch (e) {
+			setErroChecklist(e?.message || "Erro ao atualizar habilidade");
+		} finally {
+			setSavingHabIds(prev => { const s = new Set(prev); s.delete(habilidade.id); return s; });
+		}
 	}
 
 	// Toggle do checklist
@@ -291,7 +349,10 @@ export default function HomeUsuario() {
 					throw new Error(`Erro ${res.status}`);
 				}
 				const data = await res.json();
-				if (!cancel) setTopCarreiras(Array.isArray(data) ? data : []);
+				if (!cancel) {
+					const ordenada = ordenarCarreiras(Array.isArray(data) ? data : []);
+					setTopCarreiras(ordenada);
+				}
 			} catch (e) {
 				if (!cancel) setErroCompat("Não foi possível carregar sua compatibilidade agora.");
 			} finally {
@@ -299,7 +360,7 @@ export default function HomeUsuario() {
 			}
 		})();
 		return () => { cancel = true };
-	}, [API_URL]);
+	}, [API_URL, carreiraId]);
 
 	// novo: carregar mapa de cursos e montar carreira_id -> melhor curso
 	useEffect(() => {
@@ -323,47 +384,60 @@ export default function HomeUsuario() {
 		return () => { cancel = true };
 	}, [API_URL]);
 
-    // HTML
+	// Rolagem suave para o topo ao clicar na logo
+	const scrollToTop = (e) => {
+		e.preventDefault();
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+
+	// HTML
 	return (
-		<div className="min-h-screen bg-slate-900 text-slate-200">
+		<div className="min-h-screen bg-slate-900 text-slate-200 pt-16">
 
 			{/* HEADER */}
-			<header className="w-full border-b border-slate-800 bg-slate-950/80">
+			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
 				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
-					<Link to="/homeUsuario" className="text-xl font-semibold text-indigo-300 hover:text-indigo-200">
-						Home
-					</Link>
-					<div className="flex items-center gap-3">
-					<Link
-	                    to="/usuario/cadastro-habilidade"
-	                    className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
-	                >
-	                    Cadastrar Habilidade
-	                </Link>
-					<Link
-						to="/usuario/editar-perfil"
-						className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+					<a
+						href="#topo"
+						onClick={scrollToTop}
+						className="text-xl font-semibold text-indigo-300 hover:text-indigo-200"
+						aria-label="Voltar ao topo"
 					>
-						<img src={perfilIcon} alt="Perfil" className="w-5 h-5" />
-						<span>Editar Perfil</span>
-					</Link>
-					<button
-						onClick={logoutRedirecionar}
-						className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
-						Sair
-					</button>
+						<img
+							src={logoRumoTechno}
+							alt="RumoTechno"
+							className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
+						/>
+					</a>
+					<a className="text-lg font-medium text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
+					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
+					<div className="flex items-center gap-3">
+						<Link
+							to="/usuario/editar-perfil"
+							className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
+						>
+							<span>Editar Perfil</span>
+						</Link>
+						<button
+							onClick={logoutRedirecionar}
+							className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
+							Sair
+						</button>
 					</div>
 				</div>
 			</header>
 
 			{/* CONTEÚDO PRINCIPAL */}
-			<main className="max-w-6xl mx-auto px-4 py-10">
+			<main className="max-w-6xl mx-auto px-4 py-8">
 
 				{/* título */}
-				<h1 className="text-2xl font-semibold text-center">Olá{nome ? `, ${nome}` : ''}!</h1>
+				<h1 className="text-3xl font-bold text-white mb-4 text-center">Olá{nome ? `, ${nome}` : ''}!</h1>
 
 				{/* descrição */}
-				<p className="mt-2 text-slate-300 text-center">Veja as carreiras de TI que mais combinam com você.</p>
+				<p className="mt-2 text-slate-300 text-center">Cadastre suas habilidades e veja quais carreiras de TI mais combinam com você</p>
+				<p className="text-slate-300 text-center">
+					Nosso sistema compara suas habilidades com as mais procuradas no mercado e mostra o quanto você está preparado para cada área.
+				</p>
 
 				{/* Compatibilidade com Carreiras */}
 				<section className="mt-10">
@@ -378,9 +452,6 @@ export default function HomeUsuario() {
 							<div className="text-slate-300">
 								<p>Nenhuma carreira encontrada ainda.</p>
 								<p className="mt-1">Dica: cadastre suas habilidades para ver sua compatibilidade!</p>
-								<div className="mt-3">
-									<Link to="/usuario/cadastro-habilidade" className="text-indigo-300 underline">Cadastrar habilidades</Link>
-								</div>
 							</div>
 						)}
 						{!loadingCompat && !erroCompat && topCarreiras.map((item, idx) => {
@@ -521,6 +592,77 @@ export default function HomeUsuario() {
 							);
 						})}
 					</div>
+				</section>
+
+				{/* Cadastro rápido por busca global de habilidades */}
+				<section className="mt-12 mb-20">
+					<h2 className="text-xl font-semibold text-slate-200 text-center">Adicionar habilidade por busca</h2>
+					<p className="text-slate-400 text-sm mt-1 text-center">Encontre e cadastre uma habilidade.</p>
+					<div className="mt-3">
+						<input
+							type="text"
+							placeholder="Digite o nome da habilidade (ex.: Python, React, SQL)"
+							value={buscaGlobal}
+							onChange={(e) => setBuscaGlobal(e.target.value)}
+							className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
+						/>
+					</div>
+
+					{buscaGlobal.trim() && (
+						<div className="mt-3">
+							{(() => {
+								const termo = buscaGlobal.trim().toLowerCase();
+								const todas = Array.from(nomePorHabilidadeId.entries()).map(([id, nome]) => ({ id, nome }));
+								const filtradas = todas
+									.filter(h => (h.nome || '').toLowerCase().includes(termo))
+									.slice(0, 12);
+								if (filtradas.length === 0) {
+									return <div className="text-slate-400 text-sm">Nenhuma habilidade corresponde à busca.</div>;
+								}
+								return (
+									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+										{filtradas.map(h => {
+											const possui = habilidadesUsuarioIds.has(h.id);
+											const salvando = savingHabIds.has(h.id);
+											return (
+												<div key={`g-${h.id}`} className="flex items-center gap-3 p-3 rounded bg-transparent">
+													<button
+														type="button"
+														onClick={() => handleToggleHabilidadeGlobal(h)}
+														disabled={salvando}
+														className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-transparent ${salvando ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/30'} transition-colors group`}
+														aria-pressed={possui}
+														aria-label={`${possui ? 'Remover' : 'Adicionar'} habilidade ${h.nome}`}
+														title={salvando ? 'Salvando...' : (possui ? 'Clique para remover' : 'Clique para adicionar')}
+													>
+														{possui ? (
+															<span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400" />
+														) : (
+															<svg
+																className="w-4 h-4 text-slate-500 transition-colors group-hover:text-slate-300"
+																viewBox="0 0 24 24"
+																fill="none"
+																stroke="currentColor"
+																strokeWidth="2"
+																strokeLinecap="round"
+																strokeLinejoin="round"
+																aria-hidden="true"
+															>
+																<circle cx="12" cy="12" r="8" />
+															</svg>
+														)}
+													</button>
+													<div className={`${salvando ? 'opacity-60' : ''}`}>
+														<div className="text-slate-200 font-medium">{h.nome}</div>
+													</div>
+												</div>
+											);
+										})}
+									</div>
+								);
+							})()}
+						</div>
+					)}
 				</section>
 			</main>
 		</div>
