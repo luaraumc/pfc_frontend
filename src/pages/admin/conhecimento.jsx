@@ -16,6 +16,10 @@ export default function AdminConhecimento() {
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
 
+  // Pop-up Exclusão de Conhecimento
+  const [conhecimentoExcluir, setConhecimentoExcluir] = useState(null);
+  const [excluindo, setExcluindo] = useState(false);
+
   // Lista ordenada alfabeticamente (para selects, etc.)
   const conhecimentosOrdenados = useMemo(() => {
     const arr = Array.isArray(conhecimentos) ? [...conhecimentos] : [];
@@ -318,6 +322,28 @@ export default function AdminConhecimento() {
     }
   }
 
+  // Fluxo de confirmação de exclusão
+  function solicitarExclusao(k) {
+    setConhecimentoExcluir(k || null);
+    setErro("");
+    setMensagem("");
+  }
+
+  async function confirmarExclusao() {
+    if (!conhecimentoExcluir?.id) return;
+    try {
+      setExcluindo(true);
+      await deletarConhecimento(conhecimentoExcluir.id);
+      setConhecimentoExcluir(null);
+    } finally {
+      setExcluindo(false);
+    }
+  }
+
+  function cancelarExclusao() {
+    setConhecimentoExcluir(null);
+  }
+
   // HTML
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200">
@@ -444,7 +470,7 @@ export default function AdminConhecimento() {
                           </div>
                         </div>
                         {k.id && (
-                          <button onClick={() => deletarConhecimento(k.id)} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40" title="Excluir">
+                          <button onClick={() => solicitarExclusao(k)} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40" title="Excluir">
                             Excluir
                           </button>
                         )}
@@ -636,6 +662,39 @@ export default function AdminConhecimento() {
           </div>
         </div>
       </main>
+      {/* Modal de confirmação de exclusão */}
+      {!!conhecimentoExcluir && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={cancelarExclusao} />
+          <div className="relative z-10 w-[90%] max-w-md bg-slate-950 border border-slate-800 rounded-lg p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-100 mb-2">Confirmar exclusão</h3>
+            <p className="text-slate-300 text-sm mb-4">
+              Tem certeza que deseja excluir o conhecimento
+              {" "}
+              <span className="text-slate-100 font-medium">{conhecimentoExcluir?.nome ?? `#${conhecimentoExcluir?.id}`}</span>?
+            </p>
+            <p className="text-xs text-slate-400 mb-5">Essa ação é irreversível.</p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={cancelarExclusao}
+                disabled={excluindo}
+                className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmarExclusao}
+                disabled={excluindo}
+                className="px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40 disabled:opacity-60"
+              >
+                {excluindo ? "Excluindo…" : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
