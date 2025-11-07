@@ -16,6 +16,10 @@ export default function AdminHabilidade() {
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
 
+  // Pop-up Exclusão de Habilidade
+  const [habilidadeExcluir, setHabilidadeExcluir] = useState(null);
+  const [excluindo, setExcluindo] = useState(false);
+
   // Filtros e paginação
   const [busca, setBusca] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -71,6 +75,28 @@ export default function AdminHabilidade() {
     } catch (e) {
       setErro(e.message || "Erro ao deletar habilidade");
     }
+  }
+
+  // Fluxo de confirmação de exclusão
+  function solicitarExclusao(habilidade) {
+    setHabilidadeExcluir(habilidade || null);
+    setErro("");
+    setMensagem("");
+  }
+
+  async function confirmarExclusao() {
+    if (!habilidadeExcluir?.id) return;
+    try {
+      setExcluindo(true);
+      await deletar(habilidadeExcluir.id);
+      setHabilidadeExcluir(null);
+    } finally {
+      setExcluindo(false);
+    }
+  }
+
+  function cancelarExclusao() {
+    setHabilidadeExcluir(null);
   }
 
   // Seleciona uma habilidade no painel de atualização
@@ -301,7 +327,7 @@ export default function AdminHabilidade() {
                         </div>
                         {h.id && (
                           <div className="flex items-center gap-2">
-                            <button onClick={() => deletar(h.id)} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40" title="Excluir">
+                            <button onClick={() => solicitarExclusao(h)} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-red-700 text-red-200 hover:bg-red-900/40" title="Excluir">
                               Excluir
                             </button>
                           </div>
@@ -397,8 +423,46 @@ export default function AdminHabilidade() {
           </div>
         </div>
       </main>
+      {/* Modal de confirmação de exclusão */}
+      {!!habilidadeExcluir && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-black opacity-50" onClick={cancelarExclusao}></div>
+          <div className="bg-slate-800 rounded-lg overflow-hidden shadow-lg max-w-sm w-full z-10">
+            <div className="p-5">
+              {/* título */}
+              <h2 className="text-lg font-semibold text-slate-200 mb-4">Confirmar Exclusão</h2>
+              {/* mensagem */}
+              <p className="text-sm text-slate-400 mb-6">
+                Tem certeza que deseja excluir a habilidade "
+                <span className="font-medium text-slate-200">{habilidadeExcluir?.nome ?? `#${habilidadeExcluir?.id}`}</span>"?
+              </p>
+              <div className="flex justify-end gap-3">
+                {/* botão cancelar */}
+                <button
+                  onClick={cancelarExclusao}
+                  className="px-4 py-2 rounded-md bg-slate-700 text-slate-200 hover:bg-slate-600 transition"
+                >
+                  Cancelar
+                </button>
+                {/* botão confirmar */}
+                <button
+                  onClick={confirmarExclusao}
+                  disabled={excluindo}
+                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-500 transition flex items-center gap-2 disabled:opacity-80"
+                >
+                  {excluindo && (
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path fill="currentColor" d="M4 12h16M12 4v16" />
+                    </svg>
+                  )}
+                  {excluindo ? "Excluindo..." : "Excluir Habilidade"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-
