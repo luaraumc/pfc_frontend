@@ -633,39 +633,36 @@ export default function AdminCarreira() {
 
                 {/* confirmação de exclusão */}
                 {carreiraExcluir && (
-                    <div
-                        className="fixed inset-0 z-50 flex items-center justify-center"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="modal-excluir-carreira-titulo"
-                    >
-                        {/* fundo escuro/blur */}
-                        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={cancelarExclusao} />
-                        
-                        <div className="relative w-full max-w-md mx-auto bg-slate-900 border border-slate-700 rounded-lg shadow-lg p-6">
-                            {/* título */}
-                            <h2 id="modal-excluir-carreira-titulo" className="text-lg font-semibold text-red-300 mb-3">Confirmar Exclusão</h2>
-                            {/* mensagem de confirmação */}
-                            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
-                                Tem certeza que deseja excluir a carreira <strong className="text-slate-100">{carreiraExcluir.nome}</strong>? Esta ação não pode ser desfeita.
-                            </p>
-                            <div className="flex justify-end gap-3">
-                                {/* botão cancelar */}
-                                <button
-                                    onClick={cancelarExclusao}
-                                    disabled={excluindo}
-                                    className="px-4 py-2 rounded-md border border-slate-600 bg-slate-800 text-slate-200 text-sm hover:bg-slate-700 disabled:opacity-50"
-                                >
-                                    Cancelar
-                                </button>
-                                {/* botão confirmar */}
-                                <button
-                                    onClick={confirmarExclusao}
-                                    disabled={excluindo}
-                                    className="px-4 py-2 rounded-md border border-red-700 bg-red-600/90 hover:bg-red-600 text-white text-sm font-medium disabled:opacity-50"
-                                >
-                                    {excluindo ? 'Excluindo...' : 'Excluir'}
-                                </button>
+                    <div className="fixed inset-0 flex items-center justify-center z-50">
+                        <div className="absolute inset-0 bg-black opacity-50" onClick={cancelarExclusao}></div>
+                        <div className="bg-slate-800 rounded-lg overflow-hidden shadow-lg max-w-sm w-full z-10">
+                            <div className="p-5">
+                                <h2 className="text-lg font-semibold text-slate-200 mb-4">Confirmar Exclusão</h2>
+                                <p className="text-sm text-slate-400 mb-6">
+                                    Tem certeza que deseja excluir a carreira "<span className="font-medium text-slate-200">{carreiraExcluir.nome}</span>"?
+                                </p>
+                                <div className="flex justify-end gap-3">
+                                    <button
+                                        onClick={cancelarExclusao}
+                                        disabled={excluindo}
+                                        className="px-4 py-2 rounded-md bg-slate-700 text-slate-200 hover:bg-slate-600 transition disabled:opacity-50"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={confirmarExclusao}
+                                        disabled={excluindo}
+                                        className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-500 transition flex items-center gap-2 disabled:opacity-80"
+                                    >
+                                        {excluindo && (
+                                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path fill="currentColor" d="M4 12h16M12 4v16" />
+                                            </svg>
+                                        )}
+                                        {excluindo ? 'Excluindo...' : 'Excluir Carreira'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
