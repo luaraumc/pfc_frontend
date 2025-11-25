@@ -365,7 +365,7 @@ export default function Vaga() {
 			</header>
 
 			{/* CONTEÚDO PRINCIPAL */}
-			<main className="max-w-full mx-auto px-4 py-5 ml-50 mr-50">
+			<main className="max-w-full mx-auto px-4 py-5 ml-40 mr-40">
 
 				{/* BOTÃO VOLTAR */}
 				<button
@@ -444,7 +444,7 @@ export default function Vaga() {
 						</form>
 					</div>
 
-					<div className="bg-slate-950 border border-slate-800 rounded-lg p-5">
+					<div className="bg-slate-950 border border-slate-800 rounded-lg p-8">
 						<h2 className="text-lg font-semibold text-indigo-300 mb-4 text-center">Pré-visualização e Confirmação</h2>
 						{confirmMsg && (
 							<div className="mb-3 p-2 rounded border border-emerald-700 bg-emerald-900 text-emerald-100 text-sm">{confirmMsg}</div>
@@ -455,17 +455,23 @@ export default function Vaga() {
 							<div className="space-y-4">
 								{/* Info da vaga */}
 								<div>
-									<p className="text-sm text-slate-300"><span className="text-slate-400">Vaga ID:</span> {vagaId}</p>
+									<p className="text-sm text-slate-300 text-center"><span className="text-slate-400">Vaga ID:</span> {vagaId}</p>
 								</div>
 
 								{/* Lista editável - visível apenas enquanto não confirmado */}
 								{!jaConfirmado && (
 									<div>
-										<h3 className="text-sm font-semibold text-slate-200 mb-2">Habilidades extraídas (edite/remova):</h3>
+										<h3 className="text-sm font-semibold text-center text-slate-200 mb-2">Confirme, edite ou remova habilidades extraídas:</h3>
 										{previewLoading ? (
 											<p className="text-xs text-slate-400">Extraindo…</p>
 										) : (
 											<>
+												{(habilidadesPreview?.length ?? 0) > 0 && (
+													<div className="hidden md:grid grid-cols-12 items-center gap-2 pb-1 text-xs text-slate-400">
+														<div className="md:col-span-6">Habilidade</div>
+														<div className="md:col-span-2">Categoria</div>
+													</div>
+												)}
 												{habilidadesPreview?.length ? (
 													<ul className="space-y-2">
 														{habilidadesPreview.map((h, i) => {
@@ -481,7 +487,7 @@ export default function Vaga() {
 																			className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm"
 																		/>
 																	</div>
-																	<div className="md:col-span-4">
+																	<div className="md:col-span-5">
 																		<select
 																			value={String(categoriaId)}
 																			onChange={e => alterarCategoriaPreview(i, e.target.value)}
@@ -496,7 +502,7 @@ export default function Vaga() {
 																			<p className="text-[11px] text-slate-400 mt-1">Sugestão da IA: <span className="text-slate-300">{sugestao}</span></p>
 																		)}
 																	</div>
-																	<div className="md:col-span-2 flex justify-end">
+																	<div className="md:col-span-1 flex justify-end md:justify-start">
 																		<button
 																			onClick={() => removerHabilidadePreview(i)}
 																			className="px-2 py-1 text-xs rounded border border-red-700 text-red-200 hover:bg-red-900/40"
