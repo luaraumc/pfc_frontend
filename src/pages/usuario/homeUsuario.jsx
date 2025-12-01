@@ -1,46 +1,28 @@
-import { Link } from "react-router-dom"; // criar links de navegação para redirecionar o usuário
-import { useEffect, useState } from "react"; // useEffect: executar funções | useState: gerenciar estado de componentes
-import { logoutRedirecionar, authFetch } from "../../utils/auth"; // logout e redirecionamento + fetch autenticado
-import perfilIcon from "../../../images/perfil.png"; // ícone de perfil
-import logoRumoTechno from "../../../images/rumotechno-logo.svg"; // logotipo do site (SVG)
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { logoutRedirecionar, authFetch } from "../../utils/auth";
+import logoRumoTechno from "../../../images/rumotechno-logo.svg";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Página inicial do usuário comum
 export default function HomeUsuario() {
 
-	const [nome, setNome] = useState(""); // armazena o nome do usuário
-	const [carreiraId, setCarreiraId] = useState(null); // carreira escolhida pelo usuário
-	const [carreiraNome, setCarreiraNome] = useState(''); // nome da carreira do usuário
-	const [melhorCurso, setMelhorCurso] = useState(null); // { id, nome, score }
-	const [loading, setLoading] = useState(true);
-	const [erro, setErro] = useState(null);
+	const [nome, setNome] = useState("");
+	const [carreiraId, setCarreiraId] = useState(null);
 	const [habilidadesUsuarioIds, setHabilidadesUsuarioIds] = useState(new Set());
 	const [nomePorHabilidadeId, setNomePorHabilidadeId] = useState(new Map());
 	const [expandedCarreiras, setExpandedCarreiras] = useState(new Set());
-	const [habPorCarreira, setHabPorCarreira] = useState({}); // { [carreiraId]: { loading, error, itens: [{id, nome, frequencia}] } }
+	const [habPorCarreira, setHabPorCarreira] = useState({});
 	const [topCarreiras, setTopCarreiras] = useState([]);
 	const [loadingCompat, setLoadingCompat] = useState(true);	
 	const [erroCompat, setErroCompat] = useState("");
-	// ordem estável das demais carreiras (exclui a carreira escolhida pelo usuário)
 	const [ordemCongeladaIds, setOrdemCongeladaIds] = useState(null);
-	// ESTADOS NOVOS: controle de salvamento por habilidade e erro do checklist
 	const [savingHabIds, setSavingHabIds] = useState(new Set());
 	const [erroChecklist, setErroChecklist] = useState("");
-	// NOVO: estado de busca por nome por carreira
 	const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
-	// novo: mapa carreira_id -> melhor curso
 	const [melhorCursoPorCarreira, setMelhorCursoPorCarreira] = useState(new Map());
-	// Busca global de habilidades (cadastro rápido)
 	const [buscaGlobal, setBuscaGlobal] = useState("");
-
-	// Busca de habilidades por carreira (texto -> por carreira_id)
-	// const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
-
-	function formatScore(v) {
-		if (v == null || Number.isNaN(v)) return '0.00';
-		return Number(v).toFixed(2);
-	}
 
 	function ProgressBar({ value }) {
 		const pct = Math.max(0, Math.min(100, Number(value) || 0));
@@ -56,64 +38,19 @@ export default function HomeUsuario() {
 
 	useEffect(() => {
 		let cancel = false;
-		async function carregarRecomendacao() {
+		(async () => {
 			try {
-				const n = localStorage.getItem("usuario_nome") || ""; // obtém o nome do localStorage ou string vazia
+				const n = localStorage.getItem("usuario_nome") || "";
 				const usuarioId = localStorage.getItem('usuario_id');
 				setNome(n);
-
-				if (!usuarioId) {
-					setErro('Não foi possível identificar o usuário. Faça login novamente.');
-					return;
-				}
-
-				// 1) Busca o usuário para obter carreira_id
+				if (!usuarioId) return;
 				const rUser = await fetch(`${API_URL}/usuario/${usuarioId}`);
-				if (!rUser.ok) throw new Error('Falha ao carregar dados do usuário');
+				if (!rUser.ok) return;
 				const user = await rUser.json();
 				if (cancel) return;
-				const cid = user?.carreira_id ?? null;
-				setCarreiraId(cid);
-
-				// Se não houver carreira, limpa estados relacionados
-				if (!cid) {
-					setCarreiraNome('');
-					setMelhorCurso(null);
-					return; // usuário sem carreira definida
-				}
-
-				// Carrega o nome da carreira para exibição
-				try {
-					const rCar = await fetch(`${API_URL}/carreira/${cid}`);
-					if (rCar.ok) {
-						const car = await rCar.json();
-						if (!cancel) setCarreiraNome(car?.nome ?? '');
-					} else {
-						if (!cancel) setCarreiraNome('');
-					}
-				} catch (err) {
-					if (!cancel) setCarreiraNome('');
-				}
-
-				// 2) Carrega o mapa e pega o melhor curso para a carreira
-				const rMapa = await fetch(`${API_URL}/mapa/`);
-				if (!rMapa.ok) throw new Error('Falha ao carregar mapa');
-				const mapa = await rMapa.json();
-				if (cancel) return;
-
-				const lista = (mapa?.carreiraToCursos ?? {})[cid];
-				if (Array.isArray(lista) && lista.length > 0) {
-					setMelhorCurso(lista[0]);
-				} else {
-					setMelhorCurso(null);
-				}
-			} catch (e) {
-				if (!cancel) setErro(e?.message || 'Erro ao carregar recomendação');
-			} finally {
-				if (!cancel) setLoading(false);
-			}
-		}
-		carregarRecomendacao();
+				setCarreiraId(user?.carreira_id ?? null);
+			} catch {}
+		})();
 		return () => { cancel = true };
 	}, [API_URL]);
 
@@ -210,27 +147,7 @@ export default function HomeUsuario() {
 		const extras = lista
 			.filter((it) => it.carreira_id !== carreiraId && !ordemCongeladaIds.includes(it.carreira_id));
 		return [...fixo, ...restosCongelados, ...extras];
-	}
-
-	// Recarrega compatibilidade do backend (atualiza percentuais e mantém ordem das demais)
-	async function recarregarCompatibilidade() {
-		try {
-			const usuarioId = localStorage.getItem('usuario_id');
-			if (!usuarioId) {
-				setErroCompat("Usuário não identificado. Faça login novamente.");
-				return;
-			}
-			const res = await authFetch(`${API_URL}/usuario/${usuarioId}/compatibilidade/top`);
-			if (!res.ok) throw new Error(`Erro ${res.status}`);
-			const data = await res.json();
-			const ordenada = ordenarCarreiras(Array.isArray(data) ? data : []);
-			setTopCarreiras(ordenada);
-		} catch (e) {
-			setErroCompat("Não foi possível carregar sua compatibilidade agora.");
-		} finally {
-			setLoadingCompat(false);
-		}
-	}		
+	}	
 
 	// Atualização silenciosa (sem alterar loading/placeholder) para evitar flicker
 	async function recarregarCompatibilidadeSilenciosa() {
@@ -283,7 +200,7 @@ export default function HomeUsuario() {
 	}
 
 	// Toggle do checklist
-	async function handleToggleHabilidade(carreiraId, habilidade) {
+	async function handleToggleHabilidade(habilidade) {
 		setErroChecklist("");
 		const usuarioId = localStorage.getItem('usuario_id');
 		if (!usuarioId) {
@@ -549,7 +466,7 @@ export default function HomeUsuario() {
 																	<div key={h.id} className="flex items-center gap-3 p-3 rounded bg-transparent">
 																		<button
 																			type="button"
-																			onClick={() => handleToggleHabilidade(carreiraIdCard, h)}
+																			onClick={() => handleToggleHabilidade(h)}
 																			disabled={salvando}
 																			className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-transparent ${salvando ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/30'} transition-colors group`}
 																			aria-pressed={possui}
