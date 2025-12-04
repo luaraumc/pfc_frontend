@@ -61,6 +61,7 @@ export default function CadastroUsuario() {
 	const [submitting, setSubmitting] = useState(false);
 	const [mensagem, setMensagem] = useState("");
 	const [erro, setErro] = useState("");
+	const [acceptedPolicies, setAcceptedPolicies] = useState(false);
 
 	// Definindo e-mail válido (contém '@' e o domínio contém '.com')
 	const emailValido = useMemo(() => {
@@ -122,6 +123,7 @@ export default function CadastroUsuario() {
 		if (!confirmPassword) return "Confirme a senha";
 		if (senha !== confirmPassword) return "As senhas não coincidem";
         if (!carreiraId) return "Selecione a carreira";
+		if (!acceptedPolicies) return "Você deve aceitar as Políticas de Privacidade e os Termos de Uso";
         return null;
 	}
 
@@ -165,6 +167,7 @@ export default function CadastroUsuario() {
 				setConfirmPassword("");
 				setCarreiraId("");
 				setCursoId("");
+				setAcceptedPolicies(false);
 				navigate("/login", { replace: true });	// redireciona para página de login após sucesso
 		} catch (e) {
 			setErro(e.message ?? "Falha ao cadastrar");
@@ -367,8 +370,25 @@ export default function CadastroUsuario() {
 							</div>
 						</div>
 
+						{/* confirmação de políticas */}
+						<div className="flex items-start gap-2 rounded-md">
+							<input
+								id="acceptedPolicies"
+								type="checkbox"
+								checked={acceptedPolicies}
+								onChange={(e) => setAcceptedPolicies(e.target.checked)}
+								className="mt-0.5 h-4 w-4 rounded border-2 border-slate-600 bg-transparent text-indigo-500 focus:ring-2 focus:ring-indigo-500 appearance-none checked:bg-indigo-500 checked:border-indigo-600 hover:border-slate-500 cursor-pointer"
+							/>
+							<label className="text-sm text-slate-300">
+								Eu li e aceito as{' '}
+								<Link to="/privacidade" className="underline underline-offset-2 text-indigo-300 hover:text-indigo-200">Políticas de Privacidade</Link>
+								{' '}e os{' '}
+								<Link to="/termos" className="underline underline-offset-2 text-indigo-300 hover:text-indigo-200">Termos de Uso</Link>.
+							</label>
+						</div>
+
 						{/* botão enviar */}
-						<button type="submit" className="mt-2 w-full py-3 rounded-md border border-indigo-600 bg-indigo-500 text-white font-semibold hover:bg-indigo-600 disabled:opacity-60" disabled={submitting || loadingListas}>
+						<button type="submit" className="mt-2 w-full py-3 rounded-md border border-indigo-600 bg-indigo-500 text-white font-semibold hover:bg-indigo-600 disabled:opacity-60" disabled={submitting || loadingListas || !acceptedPolicies}>
 							{submitting ? "Enviando…" : "Cadastrar"}
 						</button>
 					</form>
