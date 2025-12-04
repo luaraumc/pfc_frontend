@@ -29,6 +29,9 @@ export default function EditarPerfil() {
 	const [senha, setSenha] = useState("");
 	const [codigoSenha, setCodigoSenha] = useState('')
 	const [novaSenha, setNovaSenha] = useState('')
+	const [confirmPassword, setConfirmPassword] = useState('')
+	const [showNova, setShowNova] = useState(false)
+	const [showConfirm, setShowConfirm] = useState(false)
 	const [senhaMsg, setSenhaMsg] = useState(null)
 	const [senhaErr, setSenhaErr] = useState(null)
 	const [senhaLoading, setSenhaLoading] = useState(false)
@@ -201,6 +204,9 @@ export default function EditarPerfil() {
 		setSenhaErr(null); setSenhaMsg(null)
 		const usuarioId = localStorage.getItem('usuario_id') // pega id do usuário do localStorage
 		if (!usuarioId) { navigate('/login'); return } // se não tiver id, redireciona para login
+		if (!codigoSenha || String(codigoSenha).trim().length === 0) { setSenhaErr('Informe o código enviado ao seu e-mail.'); return; }
+		if (!novaSenha || !confirmPassword) { setSenhaErr('Informe e confirme a nova senha.'); return; }
+		if (novaSenha !== confirmPassword) { setSenhaErr('As senhas não coincidem'); return; }
 		try {
 			setSenhaLoading(true)
 			if (!usuarioEmail) throw new Error('Email do usuário não disponível')
@@ -245,6 +251,7 @@ export default function EditarPerfil() {
 			setSenhaMsg(data.message || 'Senha atualizada')
 			setCodigoSenha('')
 			setNovaSenha('')
+			setConfirmPassword('')
 		} catch (err) {
 			setSenhaErr(err.message)
 		} finally {
@@ -452,8 +459,23 @@ export default function EditarPerfil() {
 						{/* Nova Senha */}
 						<div>
 							<label className="block text-xs mb-1">Nova Senha</label>
-							<input type="password" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} onKeyDown={(e)=>{ if(e.key===' ') e.preventDefault(); }} 
-							onPaste={(e)=>{ const pasted=(e.clipboardData.getData('text')||'').replace(/\s/g,''); e.preventDefault(); setNovaSenha(prev=>prev? prev + pasted : pasted); }} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
+							<div className="relative">
+								<input type={showNova ? 'text' : 'password'} value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} placeholder="Digite a nova senha" onKeyDown={(e)=>{ if(e.key===' ') e.preventDefault(); }} 
+								onPaste={(e)=>{ const pasted=(e.clipboardData.getData('text')||'').replace(/\s/g,''); e.preventDefault(); setNovaSenha(prev=>prev? prev + pasted : pasted); }} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
+								<button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-100" onClick={()=> setShowNova(v=>!v)} aria-label={showNova ? 'Ocultar senha' : 'Mostrar senha'}>
+									{showNova ? (
+										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+											<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.74-1.64 1.79-3.17 3.1-4.47M9.9 4.24A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8-1.02 2.27-2.64 4.29-4.67 5.71M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+											<line x1="1" y1="1" x2="23" y2="23"/>
+										</svg>
+									) : (
+										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+											<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+											<circle cx="12" cy="12" r="3"/>
+										</svg>
+									)}
+								</button>
+							</div>
 						</div>
 						<div className="mt-1 text-xs text-slate-400">
 									<ul className="mt-1 space-y-0.5">
@@ -462,6 +484,39 @@ export default function EditarPerfil() {
 										<li className={novaSenhaRequisitos.especial ? "text-emerald-400" : undefined}>• Pelo menos 1 caractere especial</li>
 									</ul>
 							</div>
+						{/* Confirmar Nova Senha */}
+						<div>
+							<label className="block text-xs mb-1" htmlFor="confirmPassword">Confirmar Nova Senha</label>
+							<div className="relative">
+								<input
+									id="confirmPassword"
+									type={showConfirm ? 'text' : 'password'}
+									value={confirmPassword}
+									onChange={e=>setConfirmPassword(e.target.value)}
+									placeholder="Digite a senha novamente"
+									className={`w-full bg-slate-900 rounded px-2 py-2 text-sm border ${confirmPassword && novaSenha !== confirmPassword ? 'border-red-600 focus:ring-red-500' : 'border-slate-700 focus:ring-indigo-500'}`}
+									autoComplete="new-password"
+								/>
+								<button
+									type="button"
+									className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-100"
+									onClick={()=> setShowConfirm(v=>!v)}
+									aria-label={showConfirm ? 'Ocultar confirmação' : 'Mostrar confirmação'}
+								>
+									{showConfirm ? (
+										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+											<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.74-1.64 1.79-3.17 3.1-4.47M9.9 4.24A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8-1.02 2.27-2.64 4.29-4.67 5.71M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+											<line x1="1" y1="1" x2="23" y2="23"/>
+										</svg>
+									) : (
+										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+											<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+											<circle cx="12" cy="12" r="3"/>
+										</svg>
+									)}
+								</button>
+							</div>
+						</div>
 						{/* Botão Confirmar */}
 						<button type="submit" disabled={senhaLoading} className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded py-2 text-sm">{senhaLoading ? 'Processando...' : 'Atualizar Senha'}</button>
 					</form>
