@@ -140,6 +140,7 @@ export default function Privacidade() {
         <p>© 2025 RumoTechno. Todos os direitos reservados.</p>
         <div className="mt-4 flex justify-center gap-6 text-sm">
           <Link to="/privacidade" className="hover:text-slate-200 transition">Política de Privacidade</Link>
+          <Link to="/termos" className="hover:text-slate-200 transition">Termos de Uso</Link>
         </div>
       </footer>
     </div>
