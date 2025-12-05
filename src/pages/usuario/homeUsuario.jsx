@@ -33,6 +33,8 @@ export default function HomeUsuario() {
 	const [melhorCursoPorCarreira, setMelhorCursoPorCarreira] = useState(new Map());
 	// Busca global de habilidades (cadastro rápido)
 	const [buscaGlobal, setBuscaGlobal] = useState("");
+	// Controle do menu hambúrguer para tablet/mobile
+	const [menuAberto, setMenuAberto] = useState(false);
 
 	// Busca de habilidades por carreira (texto -> por carreira_id)
 	// const [buscaHabPorCarreira, setBuscaHabPorCarreira] = useState({});
@@ -392,11 +394,11 @@ export default function HomeUsuario() {
 
 	// HTML
 	return (
-		<div className="min-h-screen bg-slate-900 text-slate-200 pt-16">
+		<div className="min-h-screen bg-slate-900 text-slate-200 pt-14 sm:pt-16">
 
 			{/* HEADER */}
 			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
-				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
+				<div className="w-90% mx-2 sm:mx-4 md:mx-10 px-2 sm:px-4 h-14 sm:h-16 flex items-center justify-between relative">
 					<a
 						href="#topo"
 						onClick={scrollToTop}
@@ -406,12 +408,17 @@ export default function HomeUsuario() {
 						<img
 							src={logoRumoTechno}
 							alt="RumoTechno"
-							className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
+							className="h-7 sm:h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
 						/>
 					</a>
-					<a className="text-lg font-medium text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
-					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
-					<div className="flex items-center gap-3">
+					{/* Navegação central (desktop) */}
+					<nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-40">
+						<a className="text-lg font-medium text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
+						<a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
+					</nav>
+
+					{/* Ações à direita (desktop) */}
+					<div className="hidden lg:flex items-center gap-3">
 						<Link
 							to="/usuario/editar-perfil"
 							className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
@@ -424,7 +431,48 @@ export default function HomeUsuario() {
 							Sair
 						</button>
 					</div>
+
+					{/* Botão hambúrguer em mobile e tablet */}
+					<button
+						type="button"
+						className="lg:hidden inline-flex items-center justify-center p-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+						aria-controls="menu-mobile"
+						aria-expanded={menuAberto}
+						onClick={() => setMenuAberto((v) => !v)}
+						aria-label={menuAberto ? 'Fechar menu' : 'Abrir menu'}
+					>
+						{menuAberto ? (
+							/* Ícone X */
+							<svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+						) : (
+							/* Ícone hambúrguer */
+							<svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+						)}
+					</button>
 				</div>
+
+				{/* Menu colapsável para mobile/tablet */}
+				{menuAberto && (
+					<div id="menu-mobile" className="lg:hidden border-t border-slate-800 bg-slate-950/95">
+						<nav className="px-3 py-3 flex flex-col gap-2">
+							<a className="px-2 py-2 rounded text-slate-200 hover:bg-slate-800/50" href="/homeUsuario" data-discover="true" onClick={() => setMenuAberto(false)}>Meu Progresso</a>
+							<a className="px-2 py-2 rounded text-slate-200 hover:bg-slate-800/50" href="/usuario/cursos" data-discover="true" onClick={() => setMenuAberto(false)}>Cursos</a>
+							<Link
+								to="/usuario/editar-perfil"
+								className="px-3 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
+								onClick={() => setMenuAberto(false)}
+							>
+								<span>Editar Perfil</span>
+							</Link>
+							<button
+								onClick={() => { setMenuAberto(false); logoutRedirecionar(); }}
+								className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 text-left"
+							>
+								Sair
+							</button>
+						</nav>
+					</div>
+				)}
 			</header>
 
 			{/* CONTEÚDO PRINCIPAL */}
