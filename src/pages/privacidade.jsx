@@ -28,7 +28,8 @@ export default function Privacidade() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-10 leading-relaxed">
-        <h1 className="text-3xl font-bold text-slate-100 mb-4 text-center">Política de Privacidade</h1>
+        <h1 className="text-3xl font-bold text-slate-100 mb-2 text-center">Política de Privacidade</h1>
+        <p className="text-sm text-slate-400 mb-2 text-center">v1.0</p>
         <p className="text-sm text-slate-400 mb-6 text-center">Última atualização: 5 de novembro de 2025</p>
 
         <section className="mb-8">
@@ -51,7 +52,8 @@ export default function Privacidade() {
           <p className="mt-2 text-slate-300">Podemos coletar, conforme seu uso da plataforma:</p>
           <ul className="list-disc pl-6 mt-2 space-y-1 text-slate-300">
             <li>Dados de cadastro: nome, e-mail e senha (armazenada de forma segura).</li>
-            <li>Perfil profissional: habilidades.</li>
+            <li>Perfil profissional: habilidades técnicas e carreira de interesse.</li>
+            <li>Formação acadêmica: curso de bacharelado.</li>
             <li>Dados de navegação: cookies.</li>
           </ul>
           <p className="mt-3 text-slate-300">
@@ -112,8 +114,10 @@ export default function Privacidade() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-slate-100">9. Seus direitos</h2>
           <p className="mt-2 text-slate-300">
-            Você pode solicitar: confirmação e acesso; correção; anonimização; portabilidade; eliminação de
-            dados tratados com consentimento; informações sobre compartilhamento; e revogar consentimento.
+            Você pode solicitar: confirmação e acesso; correção; anonimização; eliminação de dados 
+            tratados com consentimento; informações sobre compartilhamento; e revogar consentimento. 
+            Para exercer qualquer um desses direitos, entre em contato pelo e-mail{" "}
+            <a href="mailto:adm.rumotechno@gmail.com" className="text-indigo-400 hover:text-indigo-300 underline">adm.rumotechno@gmail.com</a>.
           </p>
         </section>
 
@@ -135,11 +139,12 @@ export default function Privacidade() {
 
       </main>
 
-      {/* FOOTER (mesmo padrão da Home) */}
+      {/* FOOTER */}
       <footer className="w-full px-4 sm:px-6 md:px-8 py-10 bg-slate-950 border-t border-slate-800 text-slate-400 text-center">
         <p>© 2025 RumoTechno. Todos os direitos reservados.</p>
         <div className="mt-4 flex justify-center gap-6 text-sm">
           <Link to="/privacidade" className="hover:text-slate-200 transition">Política de Privacidade</Link>
+          <Link to="/termos" className="hover:text-slate-200 transition">Termos de Uso</Link>
         </div>
       </footer>
     </div>

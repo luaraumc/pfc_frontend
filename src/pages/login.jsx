@@ -12,6 +12,7 @@ export default function LoginUsuario() {
 	const navigate = useNavigate(); // navegação de páginas (voltar)
 	const [email, setEmail] = useState("");
 	const [senha, setSenha] = useState("");
+	const [showSenha, setShowSenha] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
 	const [erro, setErro] = useState("");
 	const [mensagem, setMensagem] = useState("");
@@ -194,15 +195,37 @@ export default function LoginUsuario() {
 							{/* senha */}
 							<div className="flex flex-col">
 								<label className="mb-2 text-indigo-300 text-1xl" htmlFor="senha">Senha</label>
-								<input
-									id="senha"
-									type="password"
-									value={senha}
-									onChange={(e) => setSenha(e.target.value)}
-									placeholder="Sua senha"
-									autoComplete="current-password"
-									className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-								/>
+								<div className="relative">
+									<input
+										id="senha"
+										type={showSenha ? "text" : "password"}
+										value={senha}
+										onChange={(e) => setSenha(e.target.value)}
+										placeholder="Sua senha"
+										autoComplete="current-password"
+										className="w-full px-3 py-2 rounded-md border border-slate-600 bg-slate-900 text-slate-100 outline-none placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+									/>
+									<button
+										type="button"
+										className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-100"
+										onClick={() => setShowSenha((v) => !v)}
+										aria-label={showSenha ? "Ocultar senha" : "Mostrar senha"}
+									>
+										{showSenha ? (
+											/* eye-off icon */
+											<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+												<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.74-1.64 1.79-3.17 3.1-4.47M9.9 4.24A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8-1.02 2.27-2.64 4.29-4.67 5.71M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+												<line x1="1" y1="1" x2="23" y2="23"/>
+											</svg>
+										) : (
+											/* eye icon */
+											<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+												<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+												<circle cx="12" cy="12" r="3"/>
+											</svg>
+										)}
+									</button>
+								</div>
 							</div>
 
 							{/* link para recuperar senha */}

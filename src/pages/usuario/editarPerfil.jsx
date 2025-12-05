@@ -29,6 +29,9 @@ export default function EditarPerfil() {
 	const [senha, setSenha] = useState("");
 	const [codigoSenha, setCodigoSenha] = useState('')
 	const [novaSenha, setNovaSenha] = useState('')
+	const [confirmPassword, setConfirmPassword] = useState('')
+	const [showNova, setShowNova] = useState(false)
+	const [showConfirm, setShowConfirm] = useState(false)
 	const [senhaMsg, setSenhaMsg] = useState(null)
 	const [senhaErr, setSenhaErr] = useState(null)
 	const [senhaLoading, setSenhaLoading] = useState(false)
@@ -39,6 +42,9 @@ export default function EditarPerfil() {
 	const [excluirErr, setExcluirErr] = useState(null)
 	const [excluirLoading, setExcluirLoading] = useState(false)
 	const [excluirCodigoLoading, setExcluirCodigoLoading] = useState(false)
+
+	// Menu hambúrguer (header responsivo)
+	const [menuAberto, setMenuAberto] = useState(false)
 
 	// Requisitos de senha: mínimo 6 caracteres, 1 maiúscula, 1 caractere especial
 		const senhaRequisitos = useMemo(() => {
@@ -201,6 +207,9 @@ export default function EditarPerfil() {
 		setSenhaErr(null); setSenhaMsg(null)
 		const usuarioId = localStorage.getItem('usuario_id') // pega id do usuário do localStorage
 		if (!usuarioId) { navigate('/login'); return } // se não tiver id, redireciona para login
+		if (!codigoSenha || String(codigoSenha).trim().length === 0) { setSenhaErr('Informe o código enviado ao seu e-mail.'); return; }
+		if (!novaSenha || !confirmPassword) { setSenhaErr('Informe e confirme a nova senha.'); return; }
+		if (novaSenha !== confirmPassword) { setSenhaErr('As senhas não coincidem'); return; }
 		try {
 			setSenhaLoading(true)
 			if (!usuarioEmail) throw new Error('Email do usuário não disponível')
@@ -245,6 +254,7 @@ export default function EditarPerfil() {
 			setSenhaMsg(data.message || 'Senha atualizada')
 			setCodigoSenha('')
 			setNovaSenha('')
+			setConfirmPassword('')
 		} catch (err) {
 			setSenhaErr(err.message)
 		} finally {
@@ -334,7 +344,7 @@ export default function EditarPerfil() {
 
 			{/* HEADER */}
 			<header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur supports-[backdrop-filter]:bg-slate-950/70">
-				<div className="w-90% ml-10 mr-10 px-4 h-16 flex items-center justify-between">
+				<div className="w-90% mx-2 sm:mx-4 md:mx-10 px-2 sm:px-4 h-14 sm:h-16 flex items-center justify-between relative">
 					<a
 						href="#topo"
 						onClick={scrollToTop}
@@ -344,12 +354,17 @@ export default function EditarPerfil() {
 						<img
 							src={logoRumoTechno}
 							alt="RumoTechno"
-							className="h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
+							className="h-7 sm:h-8 w-auto transition-transform duration-200 ease-out hover:scale-103"
 						/>
 					</a>
-					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
-					<a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
-					<div className="flex items-center gap-3">
+					{/* Navegação central (desktop) */}
+					<nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-40">
+						<a className="text-lg font-medium text-indigo-200" href="/homeUsuario" data-discover="true">Meu Progresso</a>
+						<a className="text-lg font-medium text-white hover:text-indigo-200" href="/usuario/cursos" data-discover="true">Cursos</a>
+					</nav>
+
+					{/* Ações à direita (desktop) */}
+					<div className="hidden lg:flex items-center gap-3">
 						<Link
 							to="/usuario/editar-perfil"
 							className="px-4 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
@@ -358,12 +373,55 @@ export default function EditarPerfil() {
 						</Link>
 						<button
 							onClick={logoutRedirecionar}
-							className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800">
+							className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+						>
 							Sair
 						</button>
 					</div>
+
+					{/* Botão hambúrguer em mobile e tablet */}
+					<button
+						type="button"
+						className="lg:hidden inline-flex items-center justify-center p-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800"
+						aria-controls="menu-mobile"
+						aria-expanded={menuAberto}
+						onClick={() => setMenuAberto((v) => !v)}
+						aria-label={menuAberto ? 'Fechar menu' : 'Abrir menu'}
+					>
+						{menuAberto ? (
+							/* Ícone X */
+							<svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+						) : (
+							/* Ícone hambúrguer */
+							<svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+						)}
+					</button>
 				</div>
+
+				{/* Menu colapsável para mobile/tablet */}
+				{menuAberto && (
+					<div id="menu-mobile" className="lg:hidden border-t border-slate-800 bg-slate-950/95">
+						<nav className="px-3 py-3 flex flex-col gap-2">
+							<a className="px-2 py-2 rounded text-slate-200 hover:bg-slate-800/50" href="/homeUsuario" data-discover="true" onClick={() => setMenuAberto(false)}>Meu Progresso</a>
+							<a className="px-2 py-2 rounded text-slate-200 hover:bg-slate-800/50" href="/usuario/cursos" data-discover="true" onClick={() => setMenuAberto(false)}>Cursos</a>
+							<Link
+								to="/usuario/editar-perfil"
+								className="px-3 py-2 rounded-md border border-indigo-600 bg-indigo-500 text-white font-medium hover:bg-indigo-600 shadow-sm"
+								onClick={() => setMenuAberto(false)}
+							>
+								<span>Editar Perfil</span>
+							</Link>
+							<button
+								onClick={() => { setMenuAberto(false); logoutRedirecionar(); }}
+								className="px-3 py-2 rounded-md border border-slate-700 text-slate-200 hover:bg-slate-800 text-left"
+							>
+								Sair
+							</button>
+						</nav>
+					</div>
+				)}
 			</header>
+			
 
 			{/* CONTEÚDO PRINCIPAL */}
 			<main className="ml-8 mr-8 mx-auto px-4 py-5">
@@ -452,8 +510,23 @@ export default function EditarPerfil() {
 						{/* Nova Senha */}
 						<div>
 							<label className="block text-xs mb-1">Nova Senha</label>
-							<input type="password" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} onKeyDown={(e)=>{ if(e.key===' ') e.preventDefault(); }} 
-							onPaste={(e)=>{ const pasted=(e.clipboardData.getData('text')||'').replace(/\s/g,''); e.preventDefault(); setNovaSenha(prev=>prev? prev + pasted : pasted); }} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
+							<div className="relative">
+								<input type={showNova ? 'text' : 'password'} value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} placeholder="Digite a nova senha" onKeyDown={(e)=>{ if(e.key===' ') e.preventDefault(); }} 
+								onPaste={(e)=>{ const pasted=(e.clipboardData.getData('text')||'').replace(/\s/g,''); e.preventDefault(); setNovaSenha(prev=>prev? prev + pasted : pasted); }} className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm" required />
+								<button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-100" onClick={()=> setShowNova(v=>!v)} aria-label={showNova ? 'Ocultar senha' : 'Mostrar senha'}>
+									{showNova ? (
+										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+											<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.74-1.64 1.79-3.17 3.1-4.47M9.9 4.24A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8-1.02 2.27-2.64 4.29-4.67 5.71M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+											<line x1="1" y1="1" x2="23" y2="23"/>
+										</svg>
+									) : (
+										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+											<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+											<circle cx="12" cy="12" r="3"/>
+										</svg>
+									)}
+								</button>
+							</div>
 						</div>
 						<div className="mt-1 text-xs text-slate-400">
 									<ul className="mt-1 space-y-0.5">
@@ -462,6 +535,39 @@ export default function EditarPerfil() {
 										<li className={novaSenhaRequisitos.especial ? "text-emerald-400" : undefined}>• Pelo menos 1 caractere especial</li>
 									</ul>
 							</div>
+						{/* Confirmar Nova Senha */}
+						<div>
+							<label className="block text-xs mb-1" htmlFor="confirmPassword">Confirmar Nova Senha</label>
+							<div className="relative">
+								<input
+									id="confirmPassword"
+									type={showConfirm ? 'text' : 'password'}
+									value={confirmPassword}
+									onChange={e=>setConfirmPassword(e.target.value)}
+									placeholder="Digite a senha novamente"
+									className={`w-full bg-slate-900 rounded px-2 py-2 text-sm border ${confirmPassword && novaSenha !== confirmPassword ? 'border-red-600 focus:ring-red-500' : 'border-slate-700 focus:ring-indigo-500'}`}
+									autoComplete="new-password"
+								/>
+								<button
+									type="button"
+									className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-100"
+									onClick={()=> setShowConfirm(v=>!v)}
+									aria-label={showConfirm ? 'Ocultar confirmação' : 'Mostrar confirmação'}
+								>
+									{showConfirm ? (
+										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+											<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.74-1.64 1.79-3.17 3.1-4.47M9.9 4.24A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8-1.02 2.27-2.64 4.29-4.67 5.71M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+											<line x1="1" y1="1" x2="23" y2="23"/>
+										</svg>
+									) : (
+										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+											<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+											<circle cx="12" cy="12" r="3"/>
+										</svg>
+									)}
+								</button>
+							</div>
+						</div>
 						{/* Botão Confirmar */}
 						<button type="submit" disabled={senhaLoading} className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded py-2 text-sm">{senhaLoading ? 'Processando...' : 'Atualizar Senha'}</button>
 					</form>
