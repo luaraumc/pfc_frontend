@@ -269,11 +269,13 @@ export default function Home() {
 						</div>
 					</div>
 				</section>
-				{/* ===== FOOTER ===== */}
+				
+				{/* FOOTER */}
 				<footer className="w-full px-4 sm:px-6 md:px-8 py-10 bg-slate-950 border-t border-slate-800 text-slate-400 text-center">
 					<p>© 2025 RumoTechno. Todos os direitos reservados.</p>
 					<div className="mt-4 flex justify-center gap-6 text-sm">
-						<Link to="/privacidade" className="hover:text-slate-200 transition">Política de Privacidade</Link>
+					<Link to="/privacidade" className="hover:text-slate-200 transition">Política de Privacidade</Link>
+					<Link to="/termos" className="hover:text-slate-200 transition">Termos de Uso</Link>
 					</div>
 				</footer>
 			</main>

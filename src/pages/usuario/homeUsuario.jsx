@@ -491,7 +491,12 @@ export default function HomeUsuario() {
 				<section className="mt-10">
 					<div className="space-y-4">
 						{loadingCompat && (
-							<p className="text-slate-400">Carregando sua compatibilidade...</p>
+							<div className="min-h-[160px] flex items-center justify-center text-slate-300">
+								<div className="text-center">
+									<div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+									<p>Carregando sua compatibilidade...</p>
+								</div>
+							</div>
 						)}
 						{!loadingCompat && erroCompat && (
 							<p className="text-rose-300">{erroCompat}</p>
@@ -574,7 +579,7 @@ export default function HomeUsuario() {
 
 													{/* NOVO: Buscar por nome (estilo página admin) */}
 													<div className="mb-3">
-														<label className="block text-sm text-slate-300 mb-1">Buscar por nome</label>
+														<label className="block text-sm text-slate-300 mb-1 ml-1">Buscar por nome:</label>
 														<input
 															type="text"
 															placeholder="Digite parte do nome"
@@ -584,6 +589,7 @@ export default function HomeUsuario() {
 															}
 															className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200"
 														/>
+														<label className="block text-sm text-slate-400 mt-2 text-right mr-1">A frequência é a quantidade de vezes que a habilidade apareceu em 50 vagas cadastradas.</label>
 													</div>
 
 													{itensFiltrados.length === 0 ? (
@@ -625,7 +631,9 @@ export default function HomeUsuario() {
 																		</button>
 																		<div className={`${salvando ? 'opacity-60' : ''}`}>
 																			<div className="text-slate-200 font-medium">{h.nome}</div>
-																			<div className="text-xs text-slate-400">Frequência: {h.frequencia}</div>
+																			<div className="text-xs text-slate-400 flex items-center gap-1">
+																				<span>Frequência: {h.frequencia}</span>
+																			</div>
 																		</div>
 																	</div>
 																);

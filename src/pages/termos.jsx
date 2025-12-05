@@ -27,7 +27,8 @@ export default function Termos() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-10 leading-relaxed">
-        <h1 className="text-3xl font-bold text-slate-100 mb-4 text-center">Termos de Uso</h1>
+        <h1 className="text-3xl font-bold text-slate-100 mb-2 text-center">Termos de Uso</h1>
+        <p className="text-sm text-slate-400 mb-2 text-center">v1.0</p>
         <p className="text-sm text-slate-400 mb-6 text-center">Última atualização: 5 de novembro de 2025</p>
 
         <section className="mb-8">
