@@ -641,6 +641,17 @@ export default function AdminCarreira() {
                                 <p className="text-sm text-slate-400 mb-6">
                                     Tem certeza que deseja excluir a carreira "<span className="font-medium text-slate-200">{carreiraExcluir.nome}</span>"?
                                 </p>
+                                {/* feedback dentro do modal */}
+                                {erro && (
+                                    <div className="mb-4 text-sm text-red-400">
+                                        {erro}
+                                    </div>
+                                )}
+                                {mensagem && (
+                                    <div className="mb-4 text-sm text-emerald-400">
+                                        {mensagem}
+                                    </div>
+                                )}
                                 <div className="flex justify-end gap-3">
                                     <button
                                         onClick={cancelarExclusao}
